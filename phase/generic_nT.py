@@ -31,7 +31,7 @@ rvir = float(sys.argv[3])
 verbose = 0
 bulk = 1
 
-ion_list = ['HI', 'MgII', 'CIV', 'OVI']
+ion_list = ['HI', 'CIV', 'MgII', 'OVI']
 
 
 numbins = 50
@@ -45,7 +45,7 @@ for ion in ion_list:
 
     # Open the data 
     abs_file = './'+ion+'/'+galID+'.'+expn+'.'+ion+'.abs_cells.dat'
-    lognH, logT = np.loadtxt(file_loc+abs_file, skiprows=1, usecols=(7, 8), unpack=True)
+    lognH, logT = np.loadtxt(abs_file, skiprows=1, usecols=(7, 8), unpack=True)
 
     # Bin the data
     H, xedges, yedges = np.histogram2d( lognH, logT, bins=numbins)
@@ -119,5 +119,5 @@ for i in range(0,len(plot_list)):
 #plt.setp([a.get_yticklabels() for a in dropy],visible=False)
 
 plt.tight_layout()
-s = file_loc+'abscell_phase_{0:s}_{1:s}_{2:d}.pdf'.format(galID, expn, numbins)
+s = 'abscell_phase_{0:s}_{1:s}_{2:d}.pdf'.format(galID, expn, numbins)
 plt.savefig(s, bbox_inches='tight')

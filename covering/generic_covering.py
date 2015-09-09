@@ -168,6 +168,14 @@ for ion in ion_list:
     plt.xlim([min(Dmin),1.5])
     #plt.gca().get_frame().set_linewidth(2) 
     
-plt.subplots_adjust(wspace=0.3, hspace=0.3)
-s = 'master_{0:0.1f}mA_cover_bulk.pdf'.format(ewcut*1000)
+#plt.subplots_adjust(wspace=0.3, hspace=0.3)
+plt.tight_layout()
+plt.subplots_adjust(top=0.92)
+plt.suptitle(r'{0:s}, a={1:s}, Rvir={2:.1f} kpc, EWcut={3:.1f}$\AA$'.format(galID, expn, rvir, ewcut))
+s = galID+'_'+expn+'_{0:0.1f}mA_covering.pdf'.format(ewcut*1000)
 plt.savefig(s, bbox_inches='tight')
+
+
+
+
+

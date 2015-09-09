@@ -33,6 +33,11 @@ for i in range(0,15):
     Dmin.append(i*0.1)
     Dmax.append((i+1)*0.1)
     
+ewAll = []
+impAll = []
+yerrAll = []
+xerrPosAll = []
+xerrNegAll = []
 for ion in ion_list:
 
 #    filename = './'+ion+'/'+galID+'_GZa'+expn+'.'+ion+'.txt'
@@ -84,13 +89,30 @@ for ion in ion_list:
         imp_err_pos.append(high-im)
         imp_err_neg.append(im-low)
 
+    ewAll.append(ew_mean)
+    impAll.append(imp_mean)
+    yerrAll.append(ew_err)
+    xerrNegAll.append(imp_err_neg)
+    xerrPosAll.append(imp_err_pos)
 
-    plt.errorbar(imp_mean, ew_mean, yerr=ew_err, xerr=[imp_err_neg, imp_err_pos], fmt='s', linewidth=2)
-    plt.title(ion)
+
+for i, ion in enumerate(ion_list):
+    subplotnum = 221+i
+    plt.subplot(subplotnum)
+    plt.errorbar(impAll[i], ewAll[i], yerr=yerrAll[i], 
+                 xerr=[xerrNegAll[i], xerrPosAll[i]], 
+                 fmt='s', linewidth=2)
+
     plt.yscale('log')
     plt.xlim([0,1.5])
     plt.xlabel('Impact Parameter [Rvir]')
-    plt.ylabel('log(EW)')
-    plt.savefig(galID+'_'+ion+'_EWvsD.pdf')
-    plt.clf()
-    plt.cla()
+    plt.ylabel(r'$\log(EW_{'+ion+'})$')
+
+plt.tight_layout()
+plt.subplots_adjust(top=0.92)
+plt.suptitle('{0:s}, a={1:s}, Rvir={2:.1f} kpc'.format(galID, expn, rvir))
+plt.savefig(galID+'_'+expn+'_EWvsD.pdf', bbox_inches='tight')
+
+
+
+

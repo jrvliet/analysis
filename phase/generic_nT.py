@@ -20,13 +20,21 @@ import math
 import sys
 
 
+# Read in galaxy properties from galaxy.props
+f = open('galaxy.props')
+galID = f.readline().split()[1]
+expn = f.readline().split()[1]
+redshift = f.readline().split()[1]
+mvir = f.readline().split()[1]
+rvir = f.readline().split()[1]
 
-if len(sys.argv)!=4:
-    print 'Usage:\n\t python nT_bulk_plotting.py <galID> <expn> <Rvir> \n'
-    sys.exit()
-galID = sys.argv[1]
-expn = sys.argv[2]
-rvir = float(sys.argv[3])
+
+#if len(sys.argv)!=4:
+#    print 'Usage:\n\t python nT_bulk_plotting.py <galID> <expn> <Rvir> \n'
+#    sys.exit()
+##galID = sys.argv[1]
+#expn = sys.argv[2]
+#rvir = float(sys.argv[3])
 
 verbose = 0
 bulk = 1
@@ -34,12 +42,13 @@ bulk = 1
 ion_list = ['HI', 'CIV', 'MgII', 'OVI']
 
 
-numbins = 50
+numbins = 500
 i = -1
 histos = []
 xed = []
 yed = []
 i+=1
+binrange = [[-8, 1], [2, 8]]
 for ion in ion_list:
     print galID, '\t', ion
 
@@ -48,7 +57,7 @@ for ion in ion_list:
     lognH, logT = np.loadtxt(abs_file, skiprows=1, usecols=(7, 8), unpack=True)
 
     # Bin the data
-    H, xedges, yedges = np.histogram2d( lognH, logT, bins=numbins)
+    H, xedges, yedges = np.histogram2d( lognH, logT, bins=numbins, range=binrange)
     extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
     
     # Rotate and filp the histogram
@@ -60,7 +69,7 @@ for ion in ion_list:
 
     
 # Create the subplots
-fig,((p11,p12), (p21,p22)) = plt.subplots(2,2,figsize=(10.2,10.2))
+fig,((p11,p12), (p21,p22)) = plt.subplots(2,2,figsize=(11.2,10.8))
 plot_list = [p11, p21, p12, p22]
 labels = ['(a)', '(b)', '(c)', '(d)'] 
 labels = ['(a)', '(c)', '(b)', '(d)'] 
@@ -119,5 +128,8 @@ for i in range(0,len(plot_list)):
 #plt.setp([a.get_yticklabels() for a in dropy],visible=False)
 
 plt.tight_layout()
-s = 'abscell_phase_{0:s}_{1:s}_{2:d}.pdf'.format(galID, expn, numbins)
+plt.subplots_adjust(top=0.92)
+plt.suptitle('{0:s}, a={1:s}, Rvir={2:.1f} kpc'.format(galID, expn, rvir))
+
+s = '{0:s}_{1:s}_abscell_phase_{2:d}.pdf'.format(galID, expn, numbins)
 plt.savefig(s, bbox_inches='tight')

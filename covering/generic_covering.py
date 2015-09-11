@@ -53,9 +53,19 @@ legsize = 10
 ion_list = ['HI', 'MgII', 'CIV', 'OVI']
 line=['-','.']
 
-galID = sys.argv[1]
-expn = sys.argv[2]
-rvir = float(sys.argv[3])
+# Read in galaxy properties from galaxy.props
+f = open('galaxy.props')
+galID = f.readline().split()[1]
+expn = f.readline().split()[1]
+redshift = f.readline().split()[1]
+mvir = f.readline().split()[1]
+rvir = f.readline().split()[1]
+
+
+
+#galID = sys.argv[1]
+#expn = sys.argv[2]
+#rvir = float(sys.argv[3])
 
 CL = 0.8413
 tol = 1e-4

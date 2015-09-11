@@ -12,14 +12,24 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 
-if len(sys.argv)!=4:
-    print '\nUsage:'
-    print 'genericEWvS <galID> <expn> <Rvir>'
-    print ''
-    sys.exit()
-galID = sys.argv[1]
-expn = sys.argv[2]
-rvir = float(sys.argv[3])
+
+# Read in galaxy properties from galaxy.props
+f = open('galaxy.props')
+galID = f.readline().split()[1]
+expn = f.readline().split()[1]
+redshift = f.readline().split()[1]
+mvir = f.readline().split()[1]
+rvir = f.readline().split()[1]
+
+
+#if len(sys.argv)!=4:
+#    print '\nUsage:'
+#    print 'genericEWvS <galID> <expn> <Rvir>'
+#    print ''
+#    sys.exit()
+#galID = sys.argv[1]
+#expn = sys.argv[2]
+#rvir = float(sys.argv[3])
 
 
 ion_list = ['HI', 'MgII', 'CIV', 'OVI']

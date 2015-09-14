@@ -11,7 +11,7 @@
 #   contribute to absorption
 #
 # Instructions:
-#   python nT_bulk.py <galID> <expn> <Rvir>
+#   python nT_bulk.py <numbins = 50>
 #
 
 import numpy as np
@@ -25,9 +25,13 @@ f = open('galaxy.props')
 galID = f.readline().split()[1]
 expn = f.readline().split()[1]
 redshift = f.readline().split()[1]
-mvir = f.readline().split()[1]
-rvir = f.readline().split()[1]
+mvir = float(f.readline().split()[1])
+rvir = float(f.readline().split()[1])
 
+if len(sys.argv)==1:
+    numbins = 50
+else:
+    numbins = int(sys.argv[1])
 
 #if len(sys.argv)!=4:
 #    print 'Usage:\n\t python nT_bulk_plotting.py <galID> <expn> <Rvir> \n'
@@ -42,7 +46,6 @@ bulk = 1
 ion_list = ['HI', 'CIV', 'MgII', 'OVI']
 
 
-numbins = 500
 i = -1
 histos = []
 xed = []

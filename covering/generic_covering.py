@@ -58,8 +58,8 @@ f = open('galaxy.props')
 galID = f.readline().split()[1]
 expn = f.readline().split()[1]
 redshift = f.readline().split()[1]
-mvir = f.readline().split()[1]
-rvir = f.readline().split()[1]
+mvir = float(f.readline().split()[1])
+rvir = float(f.readline().split()[1])
 
 
 

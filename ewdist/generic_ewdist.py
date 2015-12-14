@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import subprocess as sp
 import os
+import sys
 
 ion_list = ['HI', 'MgII', 'CIV', 'OVI']
 
@@ -18,7 +19,7 @@ galID = f.readline().split()[1]
 expn = f.readline().split()[1]
 redshift = f.readline().split()[1]
 mvir = f.readline().split()[1]
-rvir = f.readline().split()[1]
+rvir = float(f.readline().split()[1])
 f.close()
 
 
@@ -46,7 +47,7 @@ for ion in ion_list:
 
     # Output will be named <galID>.logfreqbin
     # Rename to <galID>.<expn>.<ion>.ew.logfreqbin
-    oldname = '{0:s}.logfreqbin'.format(galID)
+    oldname = '.logfreqbin'.format(galID)
     newname = '{0:s}.{1:s}.{2:s}.ew.logfreqbin'.format(galID, expn, ion)
     command = 'mv {0:s} {1:s}'.format(oldname, newname)
     sp.call(command, shell=True)
@@ -63,9 +64,10 @@ for ion in ion_list:
     subplotnum = 221+ion_list.index(ion)
     plt.subplot(subplotnum)
     plt.errorbar(binCenter, freq, xerr=halfbin, yerr=[errDown,errUp], linestyle='none')
-    plt.xlabel('log( EW [$\AA] )')
-    plt.label('log ( n(EW) )')
-    plt.xlim([-3, -0.5])
+    plt.xlabel('log( EW [$\AA$] )')
+    plt.ylabel('log ( n(EW) )')
+    plt.xlim([-3, 2])
+    plt.ylim([-5, 2])
 
 plt.tight_layout()
 plt.subplots_adjust(top=0.92)

@@ -38,10 +38,14 @@ codeLoc = os.path.abspath(pathname)
 # Loop over ions
 for ion in ion_list:
     
+    
     allfile = './'+ion+'/'+galID+'.'+ion+'.a'+expn+'.ALL.sysabs'
     
+    
+    absfile = './{0:s}/{1:s}.{2:s}.a{0:s}.abs_cells.dat'.format(ion, galID, expn)
+
     # Run Chris's binning program
-    command = codeLoc + '/bindata-logfreq {0:s} {1:d} {2:d} {3:f} {4:f} {5:f} {6:d}'.format(allfile, column, linear, binsize, lowerlimit, upperlimit, header)
+    command = codeLoc + '/bindata-logfreq {0:s} {1:d} {2:d} {3:f} {4:f} {5:f} {6:d}'.format(absfile, column, linear, binsize, lowerlimit, upperlimit, header)
 
     sp.call(command, shell=True)
 

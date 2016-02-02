@@ -44,5 +44,5 @@ plt.xlim([xmin, xmax])
 
 plt.hlines([0,1], xmin, xmax, colors = 'k', linestyles = 'dashed')
 plt.legend(loc=3, frameon=False)
-plt.savefig('line_spectra.eps')
+plt.savefig('line_spectra.pdf')
 

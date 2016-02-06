@@ -34,13 +34,13 @@ if max(peak)<1.05:
     plt.ylim(ymax=1.05)
 
 if 'HI' in file:
-    xmin = -5000
-    xmax = 5000
+    xmin = -10000
+    xmax = 10000
 else:
     xmin = -1000
     xmax = 1000
 
-plt.xlim([xmin, xmax])
+#plt.xlim([xmin, xmax])
 
 plt.hlines([0,1], xmin, xmax, colors = 'k', linestyles = 'dashed')
 plt.legend(loc=3, frameon=False)

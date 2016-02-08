@@ -10,6 +10,21 @@ import matplotlib.pyplot as plt
 import subprocess as sp
 import os
 import sys
+from scipy.optimize import curve_fit
+
+def schechter(phi, lstar, alpha, l):
+
+    schec = phi * pow(l/lstar, alpha) * np.exp(-1.0*l/lstar)
+    return schec    
+
+
+
+def fit_schechter(x, y):
+
+    phi, m, alpha = 1,1,1  
+    return phi, m, alpha
+
+
 
 ion_list = ['HI', 'MgII', 'CIV', 'OVI']
 
@@ -60,14 +75,33 @@ for ion in ion_list:
     errDown = -1.0*data[:,3]
     errUp   = data[:,4]
 
+    # Fit a Schecter function to the data
+    xdata = binCenter
+    ydata = freq
+    
+    (phi, lstar, alpha), paramCovariance = curve_fit(schechter, xdata, ydata)
+
+    print 'Phi:\t{0:f}\nL*:\t{1:f}\nAlpha:\t{2:f}\n'.format(phi, lstar, alpha)
+    print paramCovariance
+    print 'One sigma :', np.sqrt(np.diag(paramCovariance))
+
+
     # Plot the data
     subplotnum = 221+ion_list.index(ion)
     plt.subplot(subplotnum)
-    plt.errorbar(binCenter, freq, xerr=halfbin, yerr=[errDown,errUp], linestyle='none')
+    plt.errorbar(binCenter, freq, xerr=halfbin, yerr=[errDown,errUp], 
+                linestyle='none', label='Data')
+
+    # Overplot fit
+    y = []
+    for l in xdata:
+        y.append(schecter(phi, lstar, alpha, l)
+    plt.plot(xdata, y, 'r', label='Fit')
     plt.xlabel('log( EW [$\AA$] )')
     plt.ylabel('log ( n(EW) )')
     plt.xlim([-3, 2])
     plt.ylim([-5, 2])
+    plt.legend(frameon=False)
 
 plt.tight_layout()
 plt.subplots_adjust(top=0.92)

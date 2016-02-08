@@ -95,7 +95,7 @@ for ion in ion_list:
     # Overplot fit
     y = []
     for l in xdata:
-        y.append(schecter(phi, lstar, alpha, l)
+        y.append(schecter(phi, lstar, alpha, l))
     plt.plot(xdata, y, 'r', label='Fit')
     plt.xlabel('log( EW [$\AA$] )')
     plt.ylabel('log ( n(EW) )')

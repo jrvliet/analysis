@@ -12,21 +12,18 @@ import os
 import sys
 from scipy.optimize import curve_fit
 
-def schechter(phi, lstar, alpha, l):
+def schechter(l, phi, lstar, alpha):
 
-    schec = phi * pow(l/lstar, alpha) * np.exp(-1.0*l/lstar)
+    schec = (phi/lstar) * pow((l/lstar), alpha) * np.exp(-1.0*l/lstar)
     return schec    
 
 
-
-def fit_schechter(x, y):
-
-    phi, m, alpha = 1,1,1  
-    return phi, m, alpha
-
-
-
 ion_list = ['HI', 'MgII', 'CIV', 'OVI']
+# Initial guess for Schechter parameters
+# Phi = 1
+# Lstar = -0.100
+# Alpha = -1.0
+p0 = [1.000, 1.000, -1.0]
 
 # Read in the galaxy properties from galaxy.props
 f = open('galaxy.props')
@@ -76,32 +73,59 @@ for ion in ion_list:
     errUp   = data[:,4]
 
     # Fit a Schecter function to the data
-    xdata = binCenter
-    ydata = freq
-    
-    (phi, lstar, alpha), paramCovariance = curve_fit(schechter, xdata, ydata)
+    xdata = pow(10.0,binCenter)
+    ydata = pow(10.0,freq)
+
+    print p0 
+    for i in range(0,len(xdata)):
+        val = schechter(xdata[i], p0[0], p0[1], p0[2])
+    (phi, lstar, alpha), paramCovariance = curve_fit(schechter, xdata, ydata, p0=p0)
 
     print 'Phi:\t{0:f}\nL*:\t{1:f}\nAlpha:\t{2:f}\n'.format(phi, lstar, alpha)
     print paramCovariance
     print 'One sigma :', np.sqrt(np.diag(paramCovariance))
-
+    print ''
 
     # Plot the data
     subplotnum = 221+ion_list.index(ion)
     plt.subplot(subplotnum)
-    plt.errorbar(binCenter, freq, xerr=halfbin, yerr=[errDown,errUp], 
+    xerrbin = pow(10.0,halfbin)
+    yerrbinDown = pow(10.0, errDown)
+    yerrbinUp = pow(10.0, errUp)
+    plt.errorbar(xdata, ydata, xerr=halfbin, yerr=[errDown,errUp], 
                 linestyle='none', label='Data')
+#    plt.errorbar(binCenter, freq, xerr=halfbin, yerr=[errDown,errUp], 
+#                linestyle='none', label='Data')
+
 
     # Overplot fit
     y = []
     for l in xdata:
-        y.append(schecter(phi, lstar, alpha, l))
+        val = schechter(l, phi, lstar, alpha)
+        y.append(val)
+
+
+    print np.mean(ydata)
+    print np.min(ydata)
+    print np.max(ydata)
+
+    print np.mean(xdata)
+    print np.min(xdata)
+    print np.max(xdata)
+
     plt.plot(xdata, y, 'r', label='Fit')
     plt.xlabel('log( EW [$\AA$] )')
     plt.ylabel('log ( n(EW) )')
-    plt.xlim([-3, 2])
-    plt.ylim([-5, 2])
-    plt.legend(frameon=False)
+    plt.yscale('log')
+    plt.xscale('log')
+    a,b = plt.ylim()
+#    print a, b
+#    plt.ylim([1e-5, 1e1])
+
+
+    plt.xlim([1e-3, 1e2])
+    plt.ylim([1e-5, 1e2])
+    plt.legend(frameon=False, loc='lower left', prop={'size':8})
 
 plt.tight_layout()
 plt.subplots_adjust(top=0.92)

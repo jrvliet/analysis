@@ -56,16 +56,16 @@ c     get the command line arguments
       CALL commline(in_file,col,type,binsize,z1,z2,nhdr)
 
 
-      WRITE(6,*) 'Input file             ',in_file
-      WRITE(6,*) 'Data column            ',col
-      WRITE(6,*) 'bin width              ',binsize
-      WRITE(6,*) 'start domain value     ',z1
-      WRITE(6,*) 'end domain star value  ',z2
-      WRITE(6,*) 'header rows            ',nhdr
+c      WRITE(6,*) 'Input file             ',in_file
+c      WRITE(6,*) 'Data column            ',col
+c      WRITE(6,*) 'bin width              ',binsize
+c      WRITE(6,*) 'start domain value     ',z1
+c      WRITE(6,*) 'end domain star value  ',z2
+c      WRITE(6,*) 'header rows            ',nhdr
 
       CALL fappend(in_file,'logfreqbin',out_file)
 
-      WRITE(6,*) 'OUTPUT FILE NAME = ',out_file
+c      WRITE(6,*) 'OUTPUT FILE NAME = ',out_file
 
 
 c     enter main program here
@@ -78,7 +78,7 @@ c     -----------------------------------------------------------------
       ndata = 0
       OPEN(unit=1,file=in_file,ERR=998,status='old')
       IF (nhdr.gt.0) then
-       WRITE(6,*) 'skipping ',nhdr,' header rows ...'
+c       WRITE(6,*) 'skipping ',nhdr,' header rows ...'
        DO 09 i=1,nhdr
         READ(1,*,ERR=999) headerline
  09    CONTINUE
@@ -139,7 +139,7 @@ c     happen if bin(i).ne.0
          n         = bin(i)                ! the value to be passed
          xllim     = 0.0d0                 ! minimum domain for root solve
          xulim     = 1.0d3*n               ! maximum domain for root solve
-         WRITE(6,*) i,xllim,xulim
+c         WRITE(6,*) i,xllim,xulim
          bindn(i) = zbrent(CLdn,xllim,xulim,tol) ! dn Poisson mean
          binup(i) = zbrent(CLup,xllim,xulim,tol) ! up Poisson mean
         END IF         

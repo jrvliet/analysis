@@ -25,6 +25,7 @@ ion_list = ['HI', 'MgII', 'CIV', 'OVI']
 # Alpha = -1.0
 p0 = [1.000, 1.000, -1.0]
 
+
 # Read in the galaxy properties from galaxy.props
 f = open('galaxy.props')
 galID = f.readline().split()[1]
@@ -32,8 +33,14 @@ expn = f.readline().split()[1]
 redshift = f.readline().split()[1]
 mvir = f.readline().split()[1]
 rvir = float(f.readline().split()[1])
+inc = f.readline().split()[1]
 f.close()
 
+# Open output file
+outfile = 'ewdist_schechter_{0:s}_a{1:s}_i{2:s}.out'.format(galID, expn, inc)
+fout = open(outfile, 'w')
+header = 'Ion\tPhi\t\t\tW*\t\t\tAlpha\n'
+fout.write(header)
 
 # Command line arguements for binfreq
 column = 6              # Column the data are in (count from 1)
@@ -73,18 +80,28 @@ for ion in ion_list:
     errUp   = data[:,4]
 
     # Fit a Schecter function to the data
-    xdata = pow(10.0,binCenter)
-    ydata = pow(10.0,freq)
+    xdata, ydata, err = [], [], []
+    for i in range(0,len(freq)):
+        if freq[i]>-50:
+            x = pow(10.0,binCenter[i])
+            y = pow(10.0,freq[i])
+            xdata.append(x)
+            ydata.append(y)
+            errorU = pow(10.0,errUp[i])
+            errorD = pow(10.0,errDown[i])
+            meanError = (errorU+errorD)/2.0
+            err.append( meanError )
 
-    print p0 
-    for i in range(0,len(xdata)):
-        val = schechter(xdata[i], p0[0], p0[1], p0[2])
-    (phi, lstar, alpha), paramCovariance = curve_fit(schechter, xdata, ydata, p0=p0)
+    (phi, lstar, alpha), paramCovariance = curve_fit(schechter, xdata, ydata, p0=p0, 
+                                                     sigma=err, absolute_sigma=False)
 
-    print 'Phi:\t{0:f}\nL*:\t{1:f}\nAlpha:\t{2:f}\n'.format(phi, lstar, alpha)
-    print paramCovariance
-    print 'One sigma :', np.sqrt(np.diag(paramCovariance))
-    print ''
+    sigma = np.sqrt(np.diag(paramCovariance))
+
+    # Write results to file
+    s = '{0:s}\t{1:f} +/- {2:f}\t{3:f} +/- {4:f}\t{5:f} +/- {6:f}\n'.format(
+        ion, phi, sigma[0], lstar, sigma[1], alpha, sigma[2])
+    fout.write(s)
+
 
     # Plot the data
     subplotnum = 221+ion_list.index(ion)
@@ -92,47 +109,39 @@ for ion in ion_list:
     xerrbin = pow(10.0,halfbin)
     yerrbinDown = pow(10.0, errDown)
     yerrbinUp = pow(10.0, errUp)
-    plt.errorbar(xdata, ydata, xerr=halfbin, yerr=[errDown,errUp], 
+    plt.errorbar(binCenter, freq, xerr=halfbin, yerr=[errDown,errUp], 
                 linestyle='none', label='Data')
-#    plt.errorbar(binCenter, freq, xerr=halfbin, yerr=[errDown,errUp], 
-#                linestyle='none', label='Data')
-
 
     # Overplot fit
     y = []
+    x = []
     for l in xdata:
         val = schechter(l, phi, lstar, alpha)
-        y.append(val)
+        y.append(np.log10(val))
+        x.append(np.log10(l))
 
-
-    print np.mean(ydata)
-    print np.min(ydata)
-    print np.max(ydata)
-
-    print np.mean(xdata)
-    print np.min(xdata)
-    print np.max(xdata)
-
-    plt.plot(xdata, y, 'r', label='Fit')
+    plt.plot(x, y, 'r', label='Fit')
     plt.xlabel('log( EW [$\AA$] )')
     plt.ylabel('log ( n(EW) )')
-    plt.yscale('log')
-    plt.xscale('log')
-    a,b = plt.ylim()
+#    plt.yscale('log')
+#    plt.xscale('log')
+#    a,b = plt.ylim()
 #    print a, b
 #    plt.ylim([1e-5, 1e1])
 
+    plt.xlim([-3, 2])
+    plt.ylim([-5, 2])
 
-    plt.xlim([1e-3, 1e2])
-    plt.ylim([1e-5, 1e2])
+#    plt.xlim([1e-3, 1e2])
+#    plt.ylim([1e-5, 1e2])
     plt.legend(frameon=False, loc='lower left', prop={'size':8})
 
 plt.tight_layout()
 plt.subplots_adjust(top=0.92)
-plt.suptitle(r'{0:s}, a={1:s}, Rvir={2:.1f} kpc'.format(galID, expn, rvir))
+plt.suptitle(r'{0:s}, a={1:s}, i={2:s}, Rvir={3:.1f} kpc'.format(galID, expn, inc, rvir))
 s = '{0:s}_{1:s}_ewdist.pdf'.format(galID, expn)
 plt.savefig(s, bbox_inches='tight')
-
+fout.close()
 
 
 

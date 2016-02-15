@@ -22,15 +22,6 @@ mvir = float(f.readline().split()[1])
 rvir = float(f.readline().split()[1])
 
 
-#if len(sys.argv)!=4:
-#    print '\nUsage:'
-#    print 'genericEWvS <galID> <expn> <Rvir>'
-#    print ''
-#    sys.exit()
-#galID = sys.argv[1]
-#expn = sys.argv[2]
-#rvir = float(sys.argv[3])
-
 
 ion_list = ['HI', 'MgII', 'CIV', 'OVI']
 #galID_list = ['D9o', 'D9o2']
@@ -51,7 +42,8 @@ xerrNegAll = []
 for ion in ion_list:
 
 #    filename = './'+ion+'/'+galID+'_GZa'+expn+'.'+ion+'.txt'
-    filename = './'+ion+'/'+galID+'.'+ion+'.a'+expn+'.ALL.sysabs'
+#    filename = './'+ion+'/'+galID+'.'+ion+'.a'+expn+'.ALL.sysabs'
+    filename = '/{0:s}/{1:s}.{0:s}.a{2:s}.i{3:d}.ALL.sysabs'.format(ion,galID,expn,inc)
     impRaw, ewRaw = np.loadtxt(filename, skiprows=1, usecols=(1, 5), unpack=True)
 #    ew1_raw, imp1_raw = np.loadtxt(fname1, skiprows=1, usecols=(5, 22), unpack=True)
 #    ew2_raw, imp2_raw = np.loadtxt(fname2, skiprows=1, usecols=(5, 22), unpack=True)
@@ -120,7 +112,7 @@ for i, ion in enumerate(ion_list):
 
 plt.tight_layout()
 plt.subplots_adjust(top=0.92)
-plt.suptitle('{0:s}, a={1:s}, Rvir={2:.1f} kpc'.format(galID, expn, rvir))
+plt.suptitle('{0:s}, a={1:s}, Rvir={2:.1f}, i={3:d}$^{\circ}$ kpc'.format(galID, expn, rvir, inc))
 plt.savefig(galID+'_'+expn+'_EWvsD.pdf', bbox_inches='tight')
 
 

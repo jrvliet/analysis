@@ -57,7 +57,8 @@ codeLoc = os.path.abspath(pathname)
 # Loop over ions
 for ion in ion_list:
     
-    allfile = './'+ion+'/'+galID+'.'+ion+'.a'+expn+'.ALL.sysabs'
+#    allfile = './'+ion+'/'+galID+'.'+ion+'.a'+expn+'.ALL.sysabs'
+    allfile = './{0:s}/{1:s}.{0:s}.a{2:s}.i{3:d}.ALL.sysabs'.format(ion,galID,expn,inc)
     
     # Run Chris's binning program
     command = codeLoc + '/bindata-logfreq {0:s} {1:d} {2:d} {3:f} {4:f} {5:f} {6:d}'.format(allfile, column, linear, binsize, lowerlimit, upperlimit, header)
@@ -138,7 +139,7 @@ for ion in ion_list:
 
 plt.tight_layout()
 plt.subplots_adjust(top=0.92)
-plt.suptitle(r'{0:s}, a={1:s}, i={2:s}, Rvir={3:.1f} kpc'.format(galID, expn, inc, rvir))
+plt.suptitle(r'{0:s}, a={1:s}, i={2:s}, Rvir={3:.1f} kpc, i={4:d}$^{\circ}$'.format(galID, expn, inc, rvir))
 s = '{0:s}_{1:s}_ewdist.pdf'.format(galID, expn)
 plt.savefig(s, bbox_inches='tight')
 fout.close()

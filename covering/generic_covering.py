@@ -58,10 +58,13 @@ f = open('galaxy.props')
 galID = f.readline().split()[1]
 expn = f.readline().split()[1]
 redshift = f.readline().split()[1]
-mvir = float(f.readline().split()[1])
-rvir = float(f.readline().split()[1])
+mass = f.readline().split()[1]
+rad = f.readline().split()[1]
+incline = f.readline().split()[1]
 
-
+mvir = float(mass)
+rvir = float(rad)
+inc = int(incline)
 
 #galID = sys.argv[1]
 #expn = sys.argv[2]
@@ -90,12 +93,10 @@ for j in range(0,nbins):
 del Dmin[-1]
 
 
-# Location of master sysabs files
-master_loc = '/home/matrix3/jrvander/sebass_gals/dwarfs/ALLfiles/masters/'
-
 for ion in ion_list:
     i = 0
-    allfile = './'+ion+'/'+galID+'.'+ion+'.a'+expn+'.ALL.sysabs'
+#    allfile = './'+ion+'/'+galID+'.'+ion+'.a'+expn+'.ALL.sysabs'
+    allfile = './{0:s}/{1:s}.{0:s}.a{2:s}.i{3:d}.ALL.sysabs'.format(ion, galID, expn, inc)
     absimpact=[]
     covering=[]
     imp=[]
@@ -181,7 +182,7 @@ for ion in ion_list:
 #plt.subplots_adjust(wspace=0.3, hspace=0.3)
 plt.tight_layout()
 plt.subplots_adjust(top=0.92)
-plt.suptitle(r'{0:s}, a={1:s}, Rvir={2:.1f} kpc, EWcut={3:.1f}$\AA$'.format(galID, expn, rvir, ewcut))
+plt.suptitle(r'{0:s}, a={1:s}, Rvir={2:.1f} kpc, i={3:d}$^{\circ}$, EWcut={4:.1f}$\AA$'.format(galID, expn, rvir, inc, ewcut))
 s = galID+'_'+expn+'_{0:0.1f}mA_covering.pdf'.format(ewcut*1000)
 plt.savefig(s, bbox_inches='tight')
 

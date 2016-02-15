@@ -27,6 +27,9 @@ expn = f.readline().split()[1]
 redshift = f.readline().split()[1]
 mvir = float(f.readline().split()[1])
 rvir = float(f.readline().split()[1])
+incline = f.readline().split()[1]
+
+inc = int(incline)
 
 if len(sys.argv)==1:
     numbins = 50
@@ -57,6 +60,7 @@ for ion in ion_list:
 
     # Open the data 
     abs_file = './'+ion+'/'+galID+'.'+expn+'.'+ion+'.abs_cells.dat'
+    abs_file = './{0:s}/{1:s}.{2:s}.{0:s}.i{3:d}.abs_cells.dat'.format(ion,galID,expn,inc)
     lognH, logT = np.loadtxt(abs_file, skiprows=1, usecols=(7, 8), unpack=True)
 
     # Bin the data
@@ -132,7 +136,7 @@ for i in range(0,len(plot_list)):
 
 plt.tight_layout()
 plt.subplots_adjust(top=0.92)
-plt.suptitle('{0:s}, a={1:s}, Rvir={2:.1f} kpc'.format(galID, expn, rvir))
+plt.suptitle('{0:s}, a={1:s}, Rvir={2:.1f} kpc, i={3:d}$^{\circ}$'.format(galID, expn, rvir,inc))
 
 s = '{0:s}_{1:s}_abscell_phase_{2:d}.pdf'.format(galID, expn, numbins)
 plt.savefig(s, bbox_inches='tight')

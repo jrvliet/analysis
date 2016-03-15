@@ -1,6 +1,6 @@
 FFLAGS=-O 
 #FFLAGS=-O -Bstatic
-TLIB=/home/matrix/cwc/Programs/tlib/tool.a
+TLIB=./tool.a
 OPTIONS = -O
 FPP=f
 FC=f95

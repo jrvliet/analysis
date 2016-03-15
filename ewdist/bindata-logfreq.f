@@ -76,6 +76,7 @@ c     READ in the data file; store data in x(i); count the data (NDATA)
 c     -----------------------------------------------------------------
 
       ndata = 0
+      write(*,*) in_file
       OPEN(unit=1,file=in_file,ERR=998,status='old')
       IF (nhdr.gt.0) then
 c       WRITE(6,*) 'skipping ',nhdr,' header rows ...'

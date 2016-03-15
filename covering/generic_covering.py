@@ -64,7 +64,7 @@ incline = f.readline().split()[1]
 
 mvir = float(mass)
 rvir = float(rad)
-inc = int(incline)
+inc = int(float(incline))
 
 #galID = sys.argv[1]
 #expn = sys.argv[2]
@@ -182,9 +182,9 @@ for ion in ion_list:
 #plt.subplots_adjust(wspace=0.3, hspace=0.3)
 plt.tight_layout()
 plt.subplots_adjust(top=0.92)
-plt.suptitle(r'{0:s}, a={1:s}, Rvir={2:.1f} kpc, i={3:d}$^{\circ}$, EWcut={4:.1f}$\AA$'.format(galID, expn, rvir, inc, ewcut))
-s = galID+'_'+expn+'_{0:0.1f}mA_covering.pdf'.format(ewcut*1000)
-plt.savefig(s, bbox_inches='tight')
+plt.suptitle(r'{0:s}, a={1:s}, Rvir={2:.1f} kpc, i={3:d}, EWcut={4:.1f}$\AA$'.format(galID, expn, rvir, inc, ewcut))
+name = '{0:s}_a{1:s}_i{2:d}_{3:.1f}mA_covering.pdf'.format(galID, expn, inc, ewcut*1000)
+plt.savefig(name, bbox_inches='tight')
 
 
 

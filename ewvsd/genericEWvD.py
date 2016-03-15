@@ -20,6 +20,8 @@ expn = f.readline().split()[1]
 redshift = f.readline().split()[1]
 mvir = float(f.readline().split()[1])
 rvir = float(f.readline().split()[1])
+inc = int(float(f.readline().split()[1]))
+
 
 
 
@@ -43,7 +45,7 @@ for ion in ion_list:
 
 #    filename = './'+ion+'/'+galID+'_GZa'+expn+'.'+ion+'.txt'
 #    filename = './'+ion+'/'+galID+'.'+ion+'.a'+expn+'.ALL.sysabs'
-    filename = '/{0:s}/{1:s}.{0:s}.a{2:s}.i{3:d}.ALL.sysabs'.format(ion,galID,expn,inc)
+    filename = './{0:s}/{1:s}.{0:s}.a{2:s}.i{3:d}.ALL.sysabs'.format(ion,galID,expn,inc)
     impRaw, ewRaw = np.loadtxt(filename, skiprows=1, usecols=(1, 5), unpack=True)
 #    ew1_raw, imp1_raw = np.loadtxt(fname1, skiprows=1, usecols=(5, 22), unpack=True)
 #    ew2_raw, imp2_raw = np.loadtxt(fname2, skiprows=1, usecols=(5, 22), unpack=True)
@@ -112,8 +114,9 @@ for i, ion in enumerate(ion_list):
 
 plt.tight_layout()
 plt.subplots_adjust(top=0.92)
-plt.suptitle('{0:s}, a={1:s}, Rvir={2:.1f}, i={3:d}$^{\circ}$ kpc'.format(galID, expn, rvir, inc))
-plt.savefig(galID+'_'+expn+'_EWvsD.pdf', bbox_inches='tight')
+plt.suptitle('{0:s}, a={1:s}, Rvir={2:.1f} kpc, i={3:d}'.format(galID, expn, rvir, inc))
+name = '{0:s}_a{1:s}_i{2:d}_EWvsD.pdf'.format(galID, expn, inc)
+plt.savefig(name, bbox_inches='tight')
 
 
 

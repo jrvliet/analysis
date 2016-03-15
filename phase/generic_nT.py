@@ -29,7 +29,7 @@ mvir = float(f.readline().split()[1])
 rvir = float(f.readline().split()[1])
 incline = f.readline().split()[1]
 
-inc = int(incline)
+inc = int(float(incline))
 
 if len(sys.argv)==1:
     numbins = 50
@@ -136,7 +136,7 @@ for i in range(0,len(plot_list)):
 
 plt.tight_layout()
 plt.subplots_adjust(top=0.92)
-plt.suptitle('{0:s}, a={1:s}, Rvir={2:.1f} kpc, i={3:d}$^{\circ}$'.format(galID, expn, rvir,inc))
+plt.suptitle('{0:s}, a={1:s}, Rvir={2:.1f} kpc, i={3:d}'.format(galID, expn, rvir,inc))
 
-s = '{0:s}_{1:s}_abscell_phase_{2:d}.pdf'.format(galID, expn, numbins)
+s = '{0:s}_a{1:s}_i{2:d}_abscell_phase_{3:d}.pdf'.format(galID, expn, inc, numbins)
 plt.savefig(s, bbox_inches='tight')

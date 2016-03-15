@@ -36,8 +36,8 @@ c..............................................................................
       double precision  x(maxdata),bin(maxdata)
       double precision  binup(maxdata),bindn(maxdata)
       double precision  binsize,z1,z2,lo,hi,xx
-      character*40      in_file,out_file,string
-      character*80      headerline
+      character*400     in_file,out_file,string
+      character*400     headerline
  
       COMMON /poisson/  n,CL
 
@@ -76,7 +76,7 @@ c     READ in the data file; store data in x(i); count the data (NDATA)
 c     -----------------------------------------------------------------
 
       ndata = 0
-      write(*,*) in_file
+c      write(*,*) in_file
       OPEN(unit=1,file=in_file,ERR=998,status='old')
       IF (nhdr.gt.0) then
 c       WRITE(6,*) 'skipping ',nhdr,' header rows ...'
@@ -301,7 +301,7 @@ c     the functions for the Poisson uncertaities
       logical           error
       integer           col,type,nhdr
       double precision  binsize,z1,z2,value2
-      character*40      in_file,string
+      character*400     in_file,string
       
 c     input file name
 

@@ -23,7 +23,7 @@ ion_list = ['HI', 'MgII', 'CIV', 'OVI']
 # Phi = 1
 # Lstar = -0.100
 # Alpha = -1.0
-p0 = [1.000, 1.000, -1.0]
+p0 = [1.000, -0.100, -1.0]
 
 
 # Read in the galaxy properties from galaxy.props

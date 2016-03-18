@@ -11,6 +11,7 @@ with open('mockspec.config', 'r') as f:
 
     for line in f:
         ions.append(line.split()[0])
+print ions
 
 with open('galaxy.props', 'r') as f:
     galID = f.readline().split()[0]
@@ -27,6 +28,7 @@ with open('los_stats.txt', 'w') as f:
         s += '\t\t\t{0:s}'.format(ion)
     f.write(s+'\n')
     
+
 
     for i in range(1000):
         losnum = str(i).zfill(4)

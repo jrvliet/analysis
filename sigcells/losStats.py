@@ -6,39 +6,41 @@ import matplotlib.pyplot as plt
 ions = []
 
 with open('mockspec.config', 'r') as f:
-    for i in range(23):
+    for i in range(24):
         f.readline()
 
     for line in f:
         ions.append(line.split()[0])
-print ions
 
 with open('galaxy.props', 'r') as f:
-    galID = f.readline().split()[0]
-    expn = f.readline().split()[0]
-    redshift = f.readline().split()[0]
-    mvir = f.readline().split()[0]
-    rvir = f.readline().split()[0]
-    inc = f.readline().split()[0]
+    galID = f.readline().split()[1]
+    expn = f.readline().split()[1]
+    redshift = f.readline().split()[1]
+    mvir = f.readline().split()[1]
+    rvir = f.readline().split()[1]
+    inc = f.readline().split()[1]
+
 
 with open('los_stats.txt', 'w') as f:
     
-    s = ''
+    s = '\t'
     for ion in ions:
-        s += '\t\t\t{0:s}'.format(ion)
+        s += '{0:s}\t\t\t\t'.format(ion)
     f.write(s+'\n')
     
 
+    origNum = np.zeros(len(ions))
+    finNum = np.zeros(len(ions))
 
-    for i in range(1000):
+    for i in range(1,1000):
         losnum = str(i).zfill(4)
-        origNum = []
-        finNum = []
     
         s = '{0:d}\t'.format(i)
-
+        origSum = 0
+        finalSum = 0
+        ionnum = 0
         for ion in ions:
-            linesfile = '{0:s}/{1:s}.{0:s}.los{2:s}.lines'.format(ion, galID, losnum)
+            linesfile = './{0:s}/{1:s}.{0:s}.los{2:s}.lines'.format(ion, galID, losnum)
             final = '{0:s}.final'.format(linesfile)
     
             # Get the number of cells
@@ -49,19 +51,49 @@ with open('los_stats.txt', 'w') as f:
                     num += 1        
 
             finalnum = 0
-            with open(final, 'r') as flines:
-                flines.readline()
-                for line in flines:
-                    finalnum += 1        
+            try:
+                with open(final, 'r') as flines:
+                    flines.readline()
+                    for line in flines:
+                        finalnum += 1        
+            except IOError:
+                finalnum = 0
             
-            percent = float(finalNum)/float(num)*100
-            s += '{0:d}\t{1:d}\t{2:.2f}'.format(num,finalnum,percent)
+            origNum[ionnum] += num
+            finNum[ionnum] += finalnum            
+            
+            ionnum += 1
+            try:
+                percent = float(finalnum)/float(num)*100
+            except ZeroDivisionError:
+#                print 'Division error for los{0:d} in {1:s}: num={2:d}, finalnum={3:d}'.format(i,ion,num,finalnum)
+                percent = 0
+            s += '{0:d}\t{1:d}\t{2:.2f}\t|\t'.format(num,finalnum,percent)
         
         # Write to file
         f.write(s+'\n')
 
+    print origNum
+    print finNum
 
-        
+    s = ''
+    for i in range(0,len(ions)*15):
+        s += '-'
+    f.write(s+'\n')
+
+    s = 'Mean \t'
+    for i in range(0,len(ions)):
+        aveNum = float(origNum[i]) / 1000.0
+        aveFin =  float(finNum[i]) / 1000.0
+        try:
+            aveper = aveFin / aveNum * 100
+        except ZeroDivisionError:
+            print ions[i]
+            aveper = 0
+        s += '{0:.1f}\t{1:.1f}\t{2:.2f}\t|\t'.format(aveNum,aveFin,aveper)
+    f.write(s+'\n')
+
+
     
 
 

@@ -31,7 +31,7 @@ with open('los_stats.txt', 'w') as f:
 
     origNum = np.zeros(len(ions))
     finNum = np.zeros(len(ions))
-
+    count = np.zeros(len(ions))
     for i in range(1,1000):
         losnum = str(i).zfill(4)
     
@@ -61,6 +61,8 @@ with open('los_stats.txt', 'w') as f:
             
             origNum[ionnum] += num
             finNum[ionnum] += finalnum            
+            if num != 0:
+                count[ionnum] += 1.0
             
             ionnum += 1
             try:
@@ -83,8 +85,8 @@ with open('los_stats.txt', 'w') as f:
 
     s = 'Mean \t'
     for i in range(0,len(ions)):
-        aveNum = float(origNum[i]) / 1000.0
-        aveFin =  float(finNum[i]) / 1000.0
+        aveNum = float(origNum[i]) / count[i]
+        aveFin =  float(finNum[i]) / count[i]
         try:
             aveper = aveFin / aveNum * 100
         except ZeroDivisionError:

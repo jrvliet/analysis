@@ -1,4 +1,5 @@
 
+import os.path
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -59,10 +60,12 @@ with open('los_stats.txt', 'w') as f:
             except IOError:
                 finalnum = 0
             
-            origNum[ionnum] += num
-            finNum[ionnum] += finalnum            
-            if num != 0:
-                count[ionnum] += 1.0
+            if num > 0:
+                sysabs = './{0:s}/{1:s}.{0:s}.los{2:s}.sysabs'.format(ion, galID, losnum)
+                if os.path.isfile(sysabs):
+                    count[ionnum] += 1.0
+                    origNum[ionnum] += num
+                    finNum[ionnum] += finalnum            
             
             ionnum += 1
             try:

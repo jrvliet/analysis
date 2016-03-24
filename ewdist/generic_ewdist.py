@@ -95,7 +95,7 @@ for ion in ion_list:
             err.append( meanError )
 
     (phi, lstar, alpha), paramCovariance = curve_fit(schechter, xdata, ydata, p0=p0, 
-                                                     sigma=err, absolute_sigma=False)
+                                                     sigma=err, absolute_sigma=True)
 
     sigma = np.sqrt(np.diag(paramCovariance))
 

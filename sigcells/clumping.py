@@ -72,7 +72,7 @@ for ion in ions:
     deviations = np.zeros(len(uniqLOS))
 
     # Get the distance along the LOS for each cell
-    x = []
+    xs = []
     for i, los in enumerate(uniqLOS):
         ind = int(los)-1
 
@@ -93,14 +93,14 @@ for ion in ions:
         mid = np.mean(s)
         
         for point in s:
-            x.append(point-mid)
+            xs.append(point-mid)
             
         dev = np.std(s)
         # Get the standard deviation of this distribution
         deviations[i] = dev
 
-    density = kde.gaussian_kde(x)
-    xgrid = np.linspace(x.min(), x.max())
+    density = kde.gaussian_kde(xs)
+    xgrid = np.linspace(xs.min(), xs.max())
     ax2.plot(xgrid, density(xgrid), label=ion) 
     ax.hist(deviations, bins=numbins, range=(0,0.2), log = True, 
             histtype='step', label=ion)

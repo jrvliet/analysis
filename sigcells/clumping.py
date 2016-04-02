@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from math import sqrt
 from scipy.stats import kde
+from jenks import jenks
 
 def get_delta_s(xen, yen, zen, xex, yex, zex, x, y, z, imp):
     
@@ -41,9 +42,11 @@ inc = '10'
 
 fig, ax = plt.subplots()
 fig2, ax2 = plt.subplots()
+fig3, ((ax31, ax32),(ax33,ax34)) = plt.subplots(2,2)
+ax3 = (ax31, ax32, ax33, ax34)
 numbins = 20
 
-for ion in ions:
+for ionnum, ion in enumerate(ions):
 
     print ion
     absfile = '{0:s}.{1:s}.{2:s}.i{3:s}.abs_cells.dat'.format(galID,expn,ion,inc)
@@ -73,6 +76,9 @@ for ion in ions:
 
     # Get the distance along the LOS for each cell
     xs = []
+    maxdist = []
+    mindist = []
+    spread = []
     for i, los in enumerate(uniqLOS):
         ind = int(los)-1
 
@@ -90,31 +96,51 @@ for ion in ions:
                 s.append(get_delta_s(xen[ind], yen[ind], zen[ind], 
                                 xex[ind], yex[ind], zex[ind], 
                                 x, y, z, b[ind]) )
+    
+        ypoints = [los for point in s]
+        ax3[ionnum].plot(s,ypoints, '.', color='k', ms=1)
+
+        maxdist.append(max(s))
+        mindist.append(min(s))
+        spread.append(max(s)-min(s))
         mid = np.mean(s)
-        
         for point in s:
             xs.append(point-mid)
             
-        dev = np.std(s)
+#        dev = np.mean(s)
         # Get the standard deviation of this distribution
+        dev = np.std(s)
         deviations[i] = dev
 
     density = kde.gaussian_kde(xs)
-    xgrid = np.linspace(xs.min(), xs.max())
+    xgrid = np.linspace( min(xs), max(xs) )
     ax2.plot(xgrid, density(xgrid), label=ion) 
+
     ax.hist(deviations, bins=numbins, range=(0,0.2), log = True, 
             histtype='step', label=ion)
 
+    ax3[ionnum].set_xlabel('Distance along LOS')
+    ax3[ionnum].set_ylabel('LOS Num')
+    ax3[ionnum].set_ylim([0,1000])
+    ax3[ionnum].set_xlim([0,1])
+    ax3[ionnum].set_title(ion)
+
+    print 'Max maxdist: {0:f}'.format(max(maxdist))
+    print 'Min mindist: {0:f}'.format(min(mindist))
+    print 'Min spread:  {0:f}'.format(min(spread))
+    print 'Max spread:  {0:f}'.format(max(spread))
     
 ax.set_xlabel('Standard Deviation of Cell Location Along LOS')
 ax.set_ylabel('Counts')
 ax.legend(frameon=False)
 fig.savefig('deviations.pdf',bbox_inches='tight')
 
+ax2.set_xlim([-0.1,0.1])
 ax2.legend(frameon=False)
 fig2.savefig('kde.pdf', bbox_inches='tight')
 
-
+fig3.tight_layout()
+fig3.savefig('absorbingCells.png', bbox_inches='tight')
 
 
 

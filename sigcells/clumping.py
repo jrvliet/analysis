@@ -30,132 +30,173 @@ def get_delta_s(xen, yen, zen, xex, yex, zex, x, y, z, imp):
 #    s = l - (sqrt( r**2 - imp**2 ) + sqrt( end**2 - imp**2) )
     s = sqrt( (xen-x)**2 + (yen-y)**2 + (zen-z)**2 )
 
-    return s/l
+    return s, l
 
 testLoc = '/home/hyades/jrvander/exampleData/'
+baseLoc = '/home/matrix3/jrvander/sebass_gals/dwarfs/'
 
 ions = ['HI', 'MgII', 'CIV', 'OVI']
 
-galID = 'vela2b-28'
+galIDs = ['D9o2', 'D9q', 'D9m4a']
+expn1 = ['0.900', '0.926', '0.950', '0.975', '0.990', '1.002']
+expn2 = ['0.901', '0.925', '0.950', '0.976', '0.991', '1.001']
+expn3 = ['0.900', '0.925', '0.950', '0.975', '0.990', '1.000']
+expns = [expn1, expn2, expn3]
+
 expn = '0.510'
 inc = '10'
 
-fig, ax = plt.subplots()
-
-fig2, ((ax21, ax22),(ax23,ax24)) = plt.subplots(2,2)
-ax2 = (ax21, ax22, ax23, ax24)
-
-fig3, ((ax31, ax32),(ax33,ax34)) = plt.subplots(2,2)
-ax3 = (ax31, ax32, ax33, ax34)
 numbins = 20
 
-for ionnum, ion in enumerate(ions):
-
+for galID, expn in zip(galIDs, expns):
     print ''
-    print ion
-    absfile = '{0:s}.{1:s}.{2:s}.i{3:s}.abs_cells.dat'.format(galID,expn,ion,inc)
-    gasfile = '{0:s}_GZa{1:s}.{2:s}.txt'.format(galID,expn,ion)
-    
-    # Read in the absorbing cells
-    losnum, abscells = np.loadtxt(testLoc+absfile, skiprows=1, usecols=(0,2), 
-                                unpack=True)
+    print galID    
 
-
-    # Read in the gas file
-    xLoc, yLoc, zLoc, density, temperature, alphaZ = np.loadtxt(testLoc+gasfile,
-                                                     skiprows=2, 
-                                                     usecols=(1,2,3,7,8,15),
-                                                     unpack=True)
-    # Read in the details about the line of sight
-    xen, yen, zen, xex, yex, zex = np.loadtxt(testLoc+'lines.dat', skiprows=2, 
-                                    usecols=(0,1,2,3,4,5), unpack=True)
-    # Read in impact parameters
-    b = np.loadtxt(testLoc+'lines.info', skiprows=2, usecols=(1,), unpack=True)
-    
-
-    # Find the unique LOS numbers in abs cell file
-    uniqLOS, uniqCounts = np.unique(losnum, return_counts=True)
-
-    deviations = np.zeros(len(uniqLOS))
-
-    # Get the distance along the LOS for each cell
-    xs = []
-    maxdist = []
-    mindist = []
-    spread = []
-    for i, los in enumerate(uniqLOS):
-        ind = int(los)-1
-
-        s = []
-        for j in range(len(abscells)):
-            if losnum[j]==los: 
-                cellid = int(abscells[j])
-                # Get the cell properties
-                x = xLoc[cellid-1]
-                y = yLoc[cellid-1]
-                z = zLoc[cellid-1]
+    for ionnum, ion in enumerate(ions):
         
-                # Get the distance from the LOS entry point
-                # to this cell
-                s.append(get_delta_s(xen[ind], yen[ind], zen[ind], 
-                                xex[ind], yex[ind], zex[ind], 
-                                x, y, z, b[ind]) )
-    
-        ypoints = [los for point in s]
-        ax3[ionnum].plot(s,ypoints, '.', color='k', ms=1)
+        outfile = '{0:s}_{1:s}_abscellClumping.dat'.format(galID, ion)
+        f = open(outfile, 'w')
+#        header = ('{0:15>s}\t{1:15>s}\t{2:15>s}\t{3:15>s}\t{4:15>s}\t{5:15>s}\t'
+#                  '{6:15>s}\t{7:15>s}\t{8:15>s}\t{9:15>s}\t{10:15>s}\n')
+        header = ('{0:s}\t{1:s}\t{2:s}\t{3:s}\t{4:s}\t{5:s}\t'
+                  '{6:s}\t{7:s}\t{8:s}\t{9:s}\t{10:s}\n')
+        header = header.format('Expn','Min LOS length', 'Max LOS length', 
+            'Mean LOS length', 'Min Dist', 'Max Dist', 'Min Spread', 
+            'Max Spread', 'Mean Spread', 'Median Spread', 'Std Dev Spread')
 
-        maxdist.append(max(s))
-        mindist.append(min(s))
-        spread.append(max(s)-min(s))
-        mid = np.mean(s)
-        for point in s:
-            xs.append(point-mid)
+        f.write(header)
+        sFormat = ('{0:s}\t{1:.6f}\t{2:.6f}\t{3:.6f}\t{4:.6f}\t{5:.6f}\t'
+                   '{6:.6f}\t{7:.6f}\t{8:.6f}\t{9:.6f}\t{10:.6f}\n')
+
+        print '\t\t',ion
+        for a in expn:
+            print '\t', a
+
+#            fig, ax = plt.subplots()
+
+#            fig2, ((ax21, ax22),(ax23,ax24)) = plt.subplots(2,2)
+#            ax2 = (ax21, ax22, ax23, ax24)
+
+#            fig3, ((ax31, ax32),(ax33,ax34)) = plt.subplots(2,2)
+#            ax3 = (ax31, ax32, ax33, ax34)
+            loc = '{0:s}/{1:s}_outputs/a{2:s}/{3:s}/'.format(baseLoc, 
+                                                             galID, a, ion)
+
+            absfile = '{0:s}.{1:s}.{2:s}.abs_cells.dat'.format(galID,a,ion)
+            gasfile = '{0:s}_GZa{1:s}.{2:s}.txt'.format(galID,a,ion)
+    
+            # Read in the absorbing cells
+            losnum, abscells = np.loadtxt(loc+absfile, skiprows=1, 
+                                          usecols=(0,2), unpack=True)
+
+            # Read in the gas file
+            try:
+                xLoc, yLoc, zLoc, density, temperature, alphaZ = np.loadtxt(loc+gasfile,
+                                                             skiprows=2, 
+                                                             usecols=(1,2,3,7,8,15),    
+                                                         unpack=True)
+            except ValueError:
+                continue
+            # Read in the details about the line of sight
+            xen, yen, zen, xex, yex, zex = np.loadtxt(loc+'../lines.dat', 
+                                skiprows=2, usecols=(0,1,2,3,4,5), unpack=True)
+            # Read in impact parameters
+            b = np.loadtxt(loc+'lines.info', skiprows=2, usecols=(1,), unpack=True)
             
-#        dev = np.mean(s)
-        # Get the standard deviation of this distribution
-        dev = np.std(s)
-        deviations[i] = dev
 
-    density = kde.gaussian_kde(xs)
+            # Find the unique LOS numbers in abs cell file
+            uniqLOS, uniqCounts = np.unique(losnum, return_counts=True)
 
-    ax2[ionnum].hist(spread, bins=numbins, histtype='step', label=ion)
-    ax2[ionnum].set_xlabel('Spread')
-    ax2[ionnum].set_ylabel('Count')
-#    ax2[ionnum].set_ylim([0,1000])
-    ax2[ionnum].set_xlim([0,1])
-    ax2[ionnum].set_title(ion)
+            deviations = np.zeros(len(uniqLOS))
 
+            # Get the distance along the LOS for each cell
+            xs = []
+            maxdist = []
+            mindist = []
+            spread = []
+            for i, los in enumerate(uniqLOS):
+                ind = int(los)-1
 
-#    ax2.plot(xgrid, density(xgrid), label=ion) 
+                s, l = [], []
+                for j in range(len(abscells)):
+                    if losnum[j]==los: 
+                        cellid = int(abscells[j])
+                        # Get the cell properties
+                        x = xLoc[cellid-1]
+                        y = yLoc[cellid-1]
+                        z = zLoc[cellid-1]
+                
+                        # Get the distance from the LOS entry point
+                        # to this cell
+                        dist, leng = get_delta_s(xen[ind], yen[ind], zen[ind], 
+                                        xex[ind], yex[ind], zex[ind], 
+                                        x, y, z, b[ind]) 
+                        s.append(dist)
+                        l.append(leng)
+            
+                ypoints = [los for point in s]
+#                ax3[ionnum].plot(s,ypoints, '.', color='k', ms=1)
+                maxdist.append(max(s))
+                mindist.append(min(s))
+                spread.append(max(s)-min(s))
+                mid = np.mean(s)
+                for point in s:
+                    xs.append(point-mid)
+                    
+        #        dev = np.mean(s)
+                # Get the standard deviation of this distribution
+                dev = np.std(s)
+                deviations[i] = dev
 
-    ax.hist(deviations, bins=numbins, range=(0,0.2), log = True, 
-            histtype='step', label=ion)
+            density = kde.gaussian_kde(xs)
 
-    ax3[ionnum].set_xlabel('Distance along LOS')
-    ax3[ionnum].set_ylabel('LOS Num')
-    ax3[ionnum].set_ylim([0,1000])
-    ax3[ionnum].set_xlim([0,1])
-    ax3[ionnum].set_title(ion)
-
-    print 'Max maxdist:    {0:f}'.format(max(maxdist))
-    print 'Min mindist:    {0:f}'.format(min(mindist))
-    print 'Min spread:     {0:f}'.format(min(spread))
-    print 'Max spread:     {0:f}'.format(max(spread))
-    print 'Mean spread:    {0:f}'.format(np.mean(spread))
-    print 'Median spread:  {0:f}'.format(np.median(spread))
-    print 'Std Dev spread: {0:f}'.format(np.std(spread))
+            # Plot histogram of deviations from mean
+#            ax.hist(deviations, bins=numbins, range=(0,0.2), log = True, 
+#                    histtype='step', label=ion)
+#            fig.suptitle('{0:s}, a{1:s}'.format(galID, a)
     
-ax.set_xlabel('Standard Deviation of Cell Location Along LOS')
-ax.set_ylabel('Counts')
-ax.legend(frameon=False)
-fig.savefig('deviations.pdf',bbox_inches='tight')
+            # Plot histogram of spread
+#            ax2[ionnum].hist(spread, bins=numbins, histtype='step', label=ion)
+#            ax2[ionnum].set_xlabel('Spread')
+#            ax2[ionnum].set_ylabel('Count')
+#            ax2[ionnum].set_xlim([0,1])
+#            ax2[ionnum].set_title(ion)
+#            fig2.suptitle('{0:s}, a{1:s}'.format(galID, a)
 
 
-fig2.tight_layout()
-fig2.savefig('kde.pdf', bbox_inches='tight')
+            # Plot location of absorbing cells along los
+#            ax3[ionnum].set_xlabel('Distance along LOS')
+#            ax3[ionnum].set_ylabel('LOS Num')
+#            ax3[ionnum].set_ylim([0,1000])
+#            ax3[ionnum].set_xlim([0,1])
+#            ax3[ionnum].set_title(ion)
+#            fig3.suptitle('{0:s}, a{1:s}'.format(galID, a)
 
-fig3.tight_layout()
-fig3.savefig('absorbingCells.png', bbox_inches='tight')
+            result = sFormat.format(a,min(l),max(l),np.mean(l),
+                    max(maxdist),min(mindist),max(spread),min(spread),
+                    np.mean(spread),np.median(spread),np.std(spread))
+            f.write(result) 
+#            print 'Max maxdist:    {0:f}'.format(max(maxdist))
+#            print 'Min mindist:    {0:f}'.format(min(mindist))
+#            print 'Min spread:     {0:f}'.format(min(spread))
+#            print 'Max spread:     {0:f}'.format(max(spread))
+#            print 'Mean spread:    {0:f}'.format(np.mean(spread))
+#            print 'Median spread:  {0:f}'.format(np.median(spread))
+#            print 'Std Dev spread: {0:f}'.format(np.std(spread))
+
+        f.close()
+ 
+#    ax.set_xlabel('Standard Deviation of Cell Location Along LOS')
+#    ax.set_ylabel('Counts')
+#    ax.legend(frameon=False)
+#    fig.savefig('deviations.pdf',bbox_inches='tight')
+
+
+#    fig2.tight_layout()
+#    fig2.savefig('kde.pdf', bbox_inches='tight')
+
+#    fig3.tight_layout()
+#    fig3.savefig('absorbingCells.png', bbox_inches='tight')
 
 
 

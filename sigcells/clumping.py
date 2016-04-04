@@ -8,6 +8,9 @@ import numpy as np
 from math import sqrt
 from scipy.stats import kde
 from jenks import jenks
+import subprocess as sp
+import json
+import sys
 
 def get_delta_s(xen, yen, zen, xex, yex, zex, x, y, z, imp):
     
@@ -41,12 +44,33 @@ galIDs = ['D9o2', 'D9q', 'D9m4a']
 expn1 = ['0.900', '0.926', '0.950', '0.975', '0.990', '1.002']
 expn2 = ['0.901', '0.925', '0.950', '0.976', '0.991', '1.001']
 expn3 = ['0.900', '0.925', '0.950', '0.975', '0.990', '1.000']
+
+#expn1 = ['1.002']
+#expn2 = ['1.001']
+#expn3 = ['1.000']
 expns = [expn1, expn2, expn3]
 
 expn = '0.510'
 inc = '10'
 
 numbins = 20
+
+for ion in ions:
+    filename = '{0:s}_stddev.dat'.format(ion)
+    command = 'touch {0:s}'.format(filename)
+    sp.call(command, shell=True)
+    command = command.replace('touch', 'rm')
+    sp.call(command, shell=True)
+    
+stddevs = []
+stddevs.append(ion)
+for ion in ions:
+    stddevs.append([])
+
+spreads = []
+spreads.append(ion)
+for ion in ions:
+    spreads.append([])
 
 for galID, expn in zip(galIDs, expns):
     print ''
@@ -56,6 +80,7 @@ for galID, expn in zip(galIDs, expns):
         
         outfile = '{0:s}_{1:s}_abscellClumping.dat'.format(galID, ion)
         f = open(outfile, 'w')
+
 #        header = ('{0:15>s}\t{1:15>s}\t{2:15>s}\t{3:15>s}\t{4:15>s}\t{5:15>s}\t'
 #                  '{6:15>s}\t{7:15>s}\t{8:15>s}\t{9:15>s}\t{10:15>s}\n')
         header = ('{0:s}\t{1:s}\t{2:s}\t{3:s}\t{4:s}\t{5:s}\t'
@@ -86,9 +111,11 @@ for galID, expn in zip(galIDs, expns):
             gasfile = '{0:s}_GZa{1:s}.{2:s}.txt'.format(galID,a,ion)
     
             # Read in the absorbing cells
-            losnum, abscells = np.loadtxt(loc+absfile, skiprows=1, 
+            try:
+                losnum, abscells = np.loadtxt(loc+absfile, skiprows=1, 
                                           usecols=(0,2), unpack=True)
-
+            except ValueError:
+                continue
             # Read in the gas file
             try:
                 xLoc, yLoc, zLoc, density, temperature, alphaZ = np.loadtxt(loc+gasfile,
@@ -131,7 +158,7 @@ for galID, expn in zip(galIDs, expns):
                         dist, leng = get_delta_s(xen[ind], yen[ind], zen[ind], 
                                         xex[ind], yex[ind], zex[ind], 
                                         x, y, z, b[ind]) 
-                        s.append(dist)
+                        s.append(dist/leng)
                         l.append(leng)
             
                 ypoints = [los for point in s]
@@ -140,6 +167,7 @@ for galID, expn in zip(galIDs, expns):
                 mindist.append(min(s))
                 spread.append(max(s)-min(s))
                 mid = np.mean(s)
+
                 for point in s:
                     xs.append(point-mid)
                     
@@ -147,7 +175,8 @@ for galID, expn in zip(galIDs, expns):
                 # Get the standard deviation of this distribution
                 dev = np.std(s)
                 deviations[i] = dev
-
+                stddevs[ionnum].append(dev)
+                spreads[ionnum].append(spread)
             density = kde.gaussian_kde(xs)
 
             # Plot histogram of deviations from mean
@@ -200,10 +229,33 @@ for galID, expn in zip(galIDs, expns):
 
 
 
+stdfile = 'stddev.dat'
+
+with open(stdfile, 'w') as f:
+    json.dump(stddevs, f)
 
 
+spreadfile = 'spreads.dat'
+with open(spreadfile, 'w') as f:
+    json.dump(spreads, f)
+sys.exit()
 
+stdf = open(stdfile, 'w')
+header = ''
+for ion in ions:
+    header += '{0:s}\t'.format(ion)
+stdf.write(header+'\n')
 
+# Write devs to file
+import pdb; pdb.set_trace()
+for j in range(0,len(stddevs[0])):
+    s = ''
+    for i in range(0,len(ions)):
+        s += '{0:.6f}\t'.format(stddevs[i][j])
+    
+    stdf.write(s+'\n')
+
+stdf.close()
 
 
 

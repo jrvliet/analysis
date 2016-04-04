@@ -175,8 +175,8 @@ for galID, expn in zip(galIDs, expns):
                 # Get the standard deviation of this distribution
                 dev = np.std(s)
                 deviations[i] = dev
-                stddevs[ionnum].append(dev)
-                spreads[ionnum].append(spread)
+                stddevs[ionnum+1].append(dev)
+                spreads[ionnum+1].append(spread)
             density = kde.gaussian_kde(xs)
 
             # Plot histogram of deviations from mean

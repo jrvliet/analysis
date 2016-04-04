@@ -34,8 +34,8 @@ fig2, ax2 = plt.subplots()
 
 #ions = ['HI', 'MgII', 'CIV', 'OVI']
 
-ion = data[0]
-for i in range(1,len(ion)):
+ions = data[0]
+for i in range(1,len(ions)):
 
     ion = ions[i-1]
     d = data[i+1]

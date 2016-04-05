@@ -65,9 +65,9 @@ for ionnum, ion in enumerate(ions):
     print ion
     s, l, v = [], [], []
     f = open('{0:s}_vlos.dat'.format(ion), 'w')
-    header = 'LOS length\tS\t\tVlos\n'
+    header = 'LOS length\tS\t\tVlos\t\tDensity\t\tTemp\tAlphaZ\t\tCellSize\tnIon\n'
     f.write(header)
-    form = '{0:.6f}\t{1:.6f}\t{2:.6f}\n'
+    form = '{0:.6f}\t{1:.6f}\t{2:.6f}\t{3:.6f}\t{4:.6f}\t{5:.6f}\t{6:.6f}\t{7:.6f}\n'
     for galID, expn in zip(galIDs, expns):
         print '\t',galID    
 
@@ -89,10 +89,10 @@ for ionnum, ion in enumerate(ions):
 
             # Read in the gas file
             try:
-                xLoc, yLoc, zLoc, xVel, yVel, zVel, density, temperature, alphaZ = np.loadtxt(
+                size, xLoc, yLoc, zLoc, xVel, yVel, zVel, density, temperature, nIon, alphaZ = np.loadtxt(
                                                              loc+gasfile,
                                                              skiprows=2, 
-                                                             usecols=(1,2,3,4,5,6,7,8,15),    
+                                                             usecols=(0,1,2,3,4,5,6,7,8,13,15),    
                                                              unpack=True)
             except ValueError:
                 continue
@@ -103,7 +103,6 @@ for ionnum, ion in enumerate(ions):
             # Read in impact parameters
             b = np.loadtxt(loc+'lines.info', skiprows=2, usecols=(1,), unpack=True)
             
-
             # Find the unique LOS numbers in abs cell file
             uniqLOS, uniqCounts = np.unique(losnum, return_counts=True)
 
@@ -120,6 +119,14 @@ for ionnum, ion in enumerate(ions):
                         x = xLoc[cellid-1]
                         y = yLoc[cellid-1]
                         z = zLoc[cellid-1]
+                        vx = xLoc[cellid-1]
+                        vy = yLoc[cellid-1]
+                        vz = zLoc[cellid-1]
+                        ionDense = np.log10(nIon[cellid-1])
+                        n = np.log10(density[cellid-1])
+                        t = np.log10(temperature[cellid-1])
+                        metal = alphaZ[cellid-1]
+                        cellL = size[cellid-1]
                 
                         # Get the distance from the LOS entry point
                         # to this cell
@@ -128,8 +135,29 @@ for ionnum, ion in enumerate(ions):
                                         x, y, z, b[ind]) 
                         vlos = get_vlos(xen[ind], yen[ind], zen[ind],
                                         xex[ind], yex[ind], zex[ind],
-                                        xVel[ind], yVel[ind], zVel[ind], leng)
+                                        vx, vy, vz, leng)
 
                         s = dist/leng
-                        f.write(form.format(leng, s, vlos))
+                        f.write(form.format(leng, s, vlos, n, t, metal, cellL, ionDense))
     f.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

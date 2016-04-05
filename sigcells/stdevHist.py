@@ -35,9 +35,9 @@ fig2, ax2 = plt.subplots()
 #ions = ['HI', 'MgII', 'CIV', 'OVI']
 
 ions = data[0]
-for i in range(1,len(ions)):
+for i in range(0,len(ions)):
 
-    ion = ions[i-1]
+    ion = ions[i]
     d = data[i+1]
     ax1.hist(d, bins=numbins, range=(0,1), histtype='step', label=ion)
     ax2.hist(d, bins=numbins, range=(0,1), histtype='step', log=True, label=ion)

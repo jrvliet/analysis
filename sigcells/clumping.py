@@ -45,9 +45,9 @@ expn1 = ['0.900', '0.926', '0.950', '0.975', '0.990', '1.002']
 expn2 = ['0.901', '0.925', '0.950', '0.976', '0.991', '1.001']
 expn3 = ['0.900', '0.925', '0.950', '0.975', '0.990', '1.000']
 
-#expn1 = ['1.002']
-#expn2 = ['1.001']
-#expn3 = ['1.000']
+expn1 = ['1.002']
+expn2 = ['1.001']
+expn3 = ['1.000']
 expns = [expn1, expn2, expn3]
 
 expn = '0.510'
@@ -63,12 +63,12 @@ for ion in ions:
     sp.call(command, shell=True)
     
 stddevs = []
-stddevs.append(ion)
+stddevs.append(ions)
 for ion in ions:
     stddevs.append([])
 
 spreads = []
-spreads.append(ion)
+spreads.append(ions)
 for ion in ions:
     spreads.append([])
 
@@ -176,7 +176,7 @@ for galID, expn in zip(galIDs, expns):
                 dev = np.std(s)
                 deviations[i] = dev
                 stddevs[ionnum+1].append(dev)
-                spreads[ionnum+1].append(spread)
+                spreads[ionnum+1].append(max(s)-min(s))
             density = kde.gaussian_kde(xs)
 
             # Plot histogram of deviations from mean
@@ -238,6 +238,12 @@ with open(stdfile, 'w') as f:
 spreadfile = 'spreads.dat'
 with open(spreadfile, 'w') as f:
     json.dump(spreads, f)
+
+
+
+
+
+
 sys.exit()
 
 stdf = open(stdfile, 'w')

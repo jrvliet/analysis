@@ -11,7 +11,7 @@ import subprocess as sp
 import json
 import sys
 
-def get_delta_s(xen, yen, zen, xex, yex, zex, x, y, z, imp):
+def get_delta_s(xen, yen, zen, xex, yex, zex, x, y, z):
     
     '''
     Returns the distance the point given by (x,y,z) is from
@@ -48,6 +48,9 @@ def get_vlos(xen, yen, zen, xex, yex, zex, vx, vy, vz, l):
 
 testLoc = '/home/hyades/jrvander/exampleData/'
 baseLoc = '/home/matrix3/jrvander/sebass_gals/dwarfs/'
+absLoc = '/home/jacob/research/dwarfs/abscells/individual/'
+gasLoc = '/home/jacob/research/dwarfs/gasfiles/'
+linesLoc = '/home/jacob/research/dwarfs/lines/'
 
 ions = ['HI', 'MgII', 'CIV', 'OVI']
 
@@ -65,24 +68,27 @@ for ionnum, ion in enumerate(ions):
     print ion
     s, l, v = [], [], []
     f = open('{0:s}_vlos.dat'.format(ion), 'w')
-    header = 'LOS length\tS\t\tVlos\t\tDensity\t\tTemp\tAlphaZ\t\tCellSize\tnIon\n'
+    header = 'LOS length\tS\t\tVlos\t\tDensity\t\tTemp\t\tAlphaZ\t\tCellSize\tnIon\n'
     f.write(header)
     form = '{0:.6f}\t{1:.6f}\t{2:.6f}\t{3:.6f}\t{4:.6f}\t{5:.6f}\t{6:.6f}\t{7:.6f}\n'
-    for galID, expn in zip(galIDs, expns):
+    for galID in galIDs:
         print '\t',galID    
 
-        for a in expn:
-            print '\t\t', a
+        listfile = '{0:s}/{1:s}.{2:s}.list'.format(absLoc,galID,ion)
+        listf = open(listfile, 'r')
 
-            loc = '{0:s}/{1:s}_outputs/a{2:s}/{3:s}/'.format(baseLoc, 
-                                                             galID, a, ion)
-
-            absfile = '{0:s}.{1:s}.{2:s}.abs_cells.dat'.format(galID,a,ion)
-            gasfile = '{0:s}_GZa{1:s}.{2:s}.txt'.format(galID,a,ion)
+        for line in listf:
     
+            # Set file names
+            absfile = absLoc + line.strip()
+            abssplit = absfile.split('.') 
+            a = '{0:s}.{1:s}'.format(abssplit[1],abssplit[2])
+            gasfile = '{0:s}/{1:s}_GZa{2:s}.{3:s}.txt'.format(gasLoc,galID,a,ion)
+            linesfile = '{0:s}/{1:s}_{2:s}_lines.dat'.format(linesLoc,galID,a)
+
             # Read in the absorbing cells
             try:
-                losnum, abscells = np.loadtxt(loc+absfile, skiprows=1, 
+                losnum, abscells = np.loadtxt(absfile, skiprows=1, 
                                           usecols=(0,2), unpack=True)
             except ValueError:
                 continue
@@ -90,7 +96,7 @@ for ionnum, ion in enumerate(ions):
             # Read in the gas file
             try:
                 size, xLoc, yLoc, zLoc, xVel, yVel, zVel, density, temperature, nIon, alphaZ = np.loadtxt(
-                                                             loc+gasfile,
+                                                             gasfile,
                                                              skiprows=2, 
                                                              usecols=(0,1,2,3,4,5,6,7,8,13,15),    
                                                              unpack=True)
@@ -98,10 +104,8 @@ for ionnum, ion in enumerate(ions):
                 continue
 
             # Read in the details about the line of sight
-            xen, yen, zen, xex, yex, zex = np.loadtxt(loc+'../lines.dat', 
+            xen, yen, zen, xex, yex, zex = np.loadtxt(linesfile, 
                                 skiprows=2, usecols=(0,1,2,3,4,5), unpack=True)
-            # Read in impact parameters
-            b = np.loadtxt(loc+'lines.info', skiprows=2, usecols=(1,), unpack=True)
             
             # Find the unique LOS numbers in abs cell file
             uniqLOS, uniqCounts = np.unique(losnum, return_counts=True)
@@ -132,13 +136,14 @@ for ionnum, ion in enumerate(ions):
                         # to this cell
                         dist, leng = get_delta_s(xen[ind], yen[ind], zen[ind], 
                                         xex[ind], yex[ind], zex[ind], 
-                                        x, y, z, b[ind]) 
+                                        x, y, z) 
                         vlos = get_vlos(xen[ind], yen[ind], zen[ind],
                                         xex[ind], yex[ind], zex[ind],
                                         vx, vy, vz, leng)
 
                         s = dist/leng
                         f.write(form.format(leng, s, vlos, n, t, metal, cellL, ionDense))
+        listf.close()
     f.close()
 
 

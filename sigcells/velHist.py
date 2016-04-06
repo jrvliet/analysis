@@ -57,17 +57,22 @@ def make_histos(v, s, nIon, size, nbins):
         length = l**(1./3.) * 3.086e21
         column[i] = (10**n) * length
     
-   
-    H, xed, yed = np.histogram2d(v,s,bins=nbins)
-    h = np.zeros_like(H)
+    vmin = -100
+    vmax = 100
+    smin = -220
+    smax = 220  
 
     print 'Making histogram'
+    H, xed, yed = np.histogram2d(v,s,bins=nbins, range=[[vmin,vmax],[smin,smax]])
+    h = np.zeros_like(H)
+    print 'Histogram done'
+
     for i in range(0,H.shape[0]):
         for j in range(0,H.shape[1]):
             vmin = xed[i]
             vmax = xed[i+1]
-            smin = yed[i]
-            smax = yed[i+1]
+            smin = yed[j]
+            smax = yed[j+1]
             val = []
             for k, (vel,sloc) in enumerate(zip(v,s)):
                 if vel>vmin and vel<vmax and sloc>smin and sloc<smax:
@@ -93,6 +98,7 @@ for ion in ions:
     for i in range(0,len(s)):
         s[i] = s[i]*l[i] - mid
     
+    print min(s), max(s)
     # Make histogram
     H, xedges, yedges = make_histos(v, s, nIon, size, numbins)
 

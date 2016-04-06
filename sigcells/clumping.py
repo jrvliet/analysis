@@ -100,8 +100,8 @@ for galID, expn in zip(galIDs, expns):
         listfile = '{0:s}/{1:s}.{2:s}.list'.format(absLoc,galID,ion)
         listf = open(listfile, 'r')
 
-        outfile = '{0:s}_{1:s}_abscellClumping.dat'.format(galID, ion)
-        f = open(outfile, 'w')
+#        outfile = '{0:s}_{1:s}_abscellClumping.dat'.format(galID, ion)
+#        f = open(outfile, 'w')
 
         header = ('{0:s}\t{1:s}\t{2:s}\t{3:s}\t{4:s}\t{5:s}\t'
                   '{6:s}\t{7:s}\t{8:s}\t{9:s}\t{10:s}\n')
@@ -109,7 +109,7 @@ for galID, expn in zip(galIDs, expns):
             'Mean LOS length', 'Min Dist', 'Max Dist', 'Min Spread', 
             'Max Spread', 'Mean Spread', 'Median Spread', 'Std Dev Spread')
 
-        f.write(header)
+#        f.write(header)
         sFormat = ('{0:s}\t{1:.6f}\t{2:.6f}\t{3:.6f}\t{4:.6f}\t{5:.6f}\t'
                    '{6:.6f}\t{7:.6f}\t{8:.6f}\t{9:.6f}\t{10:.6f}\n')
 
@@ -208,7 +208,7 @@ for galID, expn in zip(galIDs, expns):
 #                    max(maxdist),min(mindist),max(spread),min(spread),
 #                    np.mean(spread),np.median(spread),np.std(spread))
 #            f.write(result) 
-        f.close()
+#        f.close()
  
 stdfile = 'stdLocation.dat'
 with open(stdfile, 'w') as f:

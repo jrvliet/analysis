@@ -8,7 +8,7 @@ import matplotlib as mp
 from scipy.stats.mstats import gmean
 import sys
 
-def plotHist(hs, xeds, yeds, ions, filename):
+def plotHist(hs, xeds, yeds, ions, filename, ss,vs ):
 
     # Plot
     fig, ((ax1, ax2, ax3, ax4)) = plt.subplots(1,4,figsize=(20.8, 5.2))
@@ -18,7 +18,7 @@ def plotHist(hs, xeds, yeds, ions, filename):
         ion = ions[i]
         ax = axes[i]
         H = hs[i]
-#        H = np.ma.masked_where(H==0,H)
+        H = np.ma.masked_where(H==0,H)
         H = np.log10(H)
         xedges = xeds[i]
         yedges = yeds[i]
@@ -30,9 +30,12 @@ def plotHist(hs, xeds, yeds, ions, filename):
         ax.set_title(ion)
         if 'normed' in filename:
             ax.set_ylim([0,1])
-        ax.set_xlim([-100, 100])
-        ax.set_ylim([-220, 220])
-#        ax.set_ylim((yedges[0],yedges[-1]))
+        ax.set_ylim((yedges[0],yedges[-1]))
+        ax.set_xlim((xedges[0],xedges[-1]))
+
+        print len(vs[i])
+#        ax.plot(vs[i],ss[i],'x')
+
 
         cbarLabel = '$\log$ (Geo Mean of $N_{ion}$)'
         cbar = plt.colorbar(mesh, ax=ax, use_gridspec=True)
@@ -41,7 +44,7 @@ def plotHist(hs, xeds, yeds, ions, filename):
 
     fig.tight_layout()
     fig.subplots_adjust(top=0.92)
-    fig.savefig(filename, bbox_inches='tight')
+    fig.savefig(filename.replace('pdf','png'), bbox_inches='tight')
 
 
 
@@ -135,10 +138,16 @@ def gmean_bin(x, y, nIon, size, nbins, xlims, ylims, ion):
     for i in range(nbins):
         for j in range(nbins):
             # Find the indicies where x and y belong to this bin
-            bits = np.bitwise_and( xdig==i+1, ydig==i+1)
-            h[i,j] = gmean( column[bits] )
+            bits = np.bitwise_and( xdig==i+1, ydig==j+1)
+#            h[i,j] = gmean( column[bits] )
+            try:
+                h[i,j] = np.sum( column[bits] )
+            except ValueError: # raised if column is empty
+                pass
 
     np.savetxt('{0:s}_velHist.out'.format(ion), h)
+    print np.max(h)
+    print np.mean(h)
     return h, xbins, ybins
 
 
@@ -156,18 +165,22 @@ ions = ['HI', 'MgII', 'CIV', 'OVI']
 # Set binning parameters
 numbins = 50
 smin, smax = -220, 220
-vmin, vmax = -100, 100
+vmin, vmax = -250, 250
 slims = (smin, smax)
 vlims = (vmin, vmax)
 
 histos, xed, yed = [], [], []
+ss, vs = [], []
 for ion in ions:
     
     print ion
     # Read in data    
     filename = '{0:s}_vlos.dat'.format(ion)
     l, s, v, n, t, Z, size, nIon = np.loadtxt(filename, skiprows=1, usecols=(0,1,2,3,4,5,6,7), unpack=True)
-
+    diff = [s[i] - v[i] for i in range(len(s))]
+    print max(diff)
+    ss.append(s)
+    vs.append(v)
     # Scale LOS position so 0 is at the middle   
     mid = max(l) / 2.0
     for i in range(0,len(s)):
@@ -182,7 +195,7 @@ for ion in ions:
     yed.append(yedges)
     histos.append(H)
 
-plotHist(histos, xed, yed, ions, 'vel2dHist_gmeanColDense.pdf')
+plotHist(histos, xed, yed, ions, 'vel2dHist_gmeanColDense.pdf', ss, vs)
 
 
 

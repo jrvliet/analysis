@@ -1,6 +1,7 @@
 
 '''
 A code to determine the spread in LOS location vs LOS velocit
+Writes <ion>_vlos.dat
 '''
 import matplotlib.pyplot as plt
 import numpy as np
@@ -123,9 +124,9 @@ for ionnum, ion in enumerate(ions):
                         x = xLoc[cellid-1]
                         y = yLoc[cellid-1]
                         z = zLoc[cellid-1]
-                        vx = xLoc[cellid-1]
-                        vy = yLoc[cellid-1]
-                        vz = zLoc[cellid-1]
+                        vx = xVel[cellid-1]
+                        vy = yVel[cellid-1]
+                        vz = zVel[cellid-1]
                         ionDense = np.log10(nIon[cellid-1])
                         n = np.log10(density[cellid-1])
                         t = np.log10(temperature[cellid-1])

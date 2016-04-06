@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mp
 from scipy.stats.mstats import gmean
+import sys
 
 def plotHist(hs, xeds, yeds, ions, filename):
 
@@ -18,7 +19,7 @@ def plotHist(hs, xeds, yeds, ions, filename):
         ax = axes[i]
         H = hs[i]
 #        H = np.ma.masked_where(H==0,H)
-        H = np.log10(H)
+#        H = np.log10(H)
         xedges = xeds[i]
         yedges = yeds[i]
 
@@ -43,7 +44,7 @@ def plotHist(hs, xeds, yeds, ions, filename):
 
 
 
-def make_histos(v, s, nIon, size, nbins):
+def make_histos(v, s, nIon, size, nbins, ion):
 
     '''
     Bins up the x and y data into nbins
@@ -57,6 +58,8 @@ def make_histos(v, s, nIon, size, nbins):
         length = l**(1./3.) * 3.086e21
         column[i] = (10**n) * length
     
+    print min(column)
+    print max(column)
     vmin = -100
     vmax = 100
     smin = -220
@@ -65,20 +68,30 @@ def make_histos(v, s, nIon, size, nbins):
     print 'Making histogram'
     H, xed, yed = np.histogram2d(v,s,bins=nbins, range=[[vmin,vmax],[smin,smax]])
     h = np.zeros_like(H)
-    print 'Histogram done'
+    print 'Histogram done\n'
 
     for i in range(0,H.shape[0]):
         for j in range(0,H.shape[1]):
-            vmin = xed[i]
-            vmax = xed[i+1]
-            smin = yed[j]
-            smax = yed[j+1]
+            # #rows = shape[0]
+            # #cols = shape[1]
+            vmin = xed[j]
+            vmax = xed[j+1]
+            smin = yed[i]
+            smax = yed[i+1]
             val = []
             for k, (vel,sloc) in enumerate(zip(v,s)):
                 if vel>vmin and vel<vmax and sloc>smin and sloc<smax:
                     val.append(column[k])
+            print np.log10(min(val))
+            print np.log10(max(val))
+            print np.log10(np.mean(val))
+            print np.log10(gmean(val))
+            print vmin, vmax
+            print smin, smax
             h[i,j] = gmean(val)
-
+            print h[i,j]
+    h = np.log10(h)
+    np.savetxt('{0:s}_velHist.out'.format(ion), h)
     return h,xed,yed
 
 
@@ -100,7 +113,7 @@ for ion in ions:
     
     print min(s), max(s)
     # Make histogram
-    H, xedges, yedges = make_histos(v, s, nIon, size, numbins)
+    H, xedges, yedges = make_histos(v, s, nIon, size, numbins, ion)
 
     # Make histogram for non-normed s
 #    H, xedges, yedges = np.histogram2d(v,s, bins=numbins)
@@ -111,7 +124,7 @@ for ion in ions:
     histos2.append(H)
 
 #plotHist(histos1, xed1, yed1, ions, 'vel2dHist_normed.png')
-plotHist(histos2, xed2, yed2, ions, 'vel2dHist_gmeanColDense.png')
+plotHist(histos2, xed2, yed2, ions, 'vel2dHist_gmeanColDense.pdf')
 
 
 

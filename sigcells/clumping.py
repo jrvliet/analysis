@@ -110,6 +110,7 @@ for galID, expn in zip(galIDs, expns):
             a = '{0:s}.{1:s}'.format(abssplit[1],abssplit[2])
             gasfile = '{0:s}/{1:s}_GZa{2:s}.{3:s}.txt'.format(gasLoc,galID,a,ion)
             linesfile = '{0:s}/{1:s}_{2:s}_lines.dat'.format(linesLoc,galID,a)
+            metalabsfile = '{0:s}/{1:s}_{2:s}_metalSelectedLOS.dat'.format(linesLoc,galID,a)
 
             # Read in the absorbing cells
             try:
@@ -139,40 +140,51 @@ for galID, expn in zip(galIDs, expns):
 
             deviations = np.zeros(len(uniqLOS))
 
+            # Read in the LOS that have metal absoroption features detected
+            metalLOS = np.loadtxt(metalabsfile, skiprows=1, usecols=(0,), unpack=True)
+
+            #print 'Number of metal LOS: ',len(metalLOS)
+#            print 'Number of unique Los: ',len(uniqLOS)
+#            print 'Number of LOS in both arrys: ',len(np.intersect1d(metalLOS,uniqLOS))
+#            print np.intersect1d(metalLOS, uniqLOS)
+            #for i in range(0,len(metalLOS)):
+            #    print metalLOS[i], uniqLOS[i]
+#            sys.exit()
             # Get the distance along the LOS for each cell
             for i, los in enumerate(uniqLOS):
-                ind = int(los)-1
+                if los in metalLOS:
+                    ind = int(los)-1
 
-                s, l = [], []
-                ts, ns, zs = [], [], [],
-                for j in range(len(abscells)):
-                    if losnum[j]==los: 
-                        cellid = int(abscells[j])
-                        # Get the cell properties
-                        x = xLoc[cellid-1]
-                        y = yLoc[cellid-1]
-                        z = zLoc[cellid-1]
-                        ts.append(temperature[cellid-1])
-                        ns.append(density[cellid-1])
-                        zs.append(alphaZ[cellid-1])
+                    s, l = [], []
+                    ts, ns, zs = [], [], [],
+                    for j in range(len(abscells)):
+                        if losnum[j]==los: 
+                            cellid = int(abscells[j])
+                            # Get the cell properties
+                            x = xLoc[cellid-1]
+                            y = yLoc[cellid-1]
+                            z = zLoc[cellid-1]
+                            ts.append(temperature[cellid-1])
+                            ns.append(density[cellid-1])
+                            zs.append(alphaZ[cellid-1])
+                    
+                            # Get the distance from the LOS entry point
+                            # to this cell
+                            dist, leng = get_delta_s(xen[ind], yen[ind], zen[ind], 
+                                            xex[ind], yex[ind], zex[ind], 
+                                            x, y, z) 
+                            s.append(dist)
+                            l.append(leng)
                 
-                        # Get the distance from the LOS entry point
-                        # to this cell
-                        dist, leng = get_delta_s(xen[ind], yen[ind], zen[ind], 
-                                        xex[ind], yex[ind], zex[ind], 
-                                        x, y, z) 
-                        s.append(dist)
-                        l.append(leng)
-            
 
-                # Get the standard deviation of this distribution
-                dev = np.std(s)
-                stddevs[ionnum+1].append(dev)
-                spreads[ionnum+1].append(max(s)-min(s))
+                    # Get the standard deviation of this distribution
+                    dev = np.std(s)
+                    stddevs[ionnum+1].append(dev)
+                    spreads[ionnum+1].append(max(s)-min(s))
 
-                stdTemps[ionnum+1].append(np.std(ts))
-                stdDense[ionnum+1].append(np.std(ns))
-                stdMetal[ionnum+1].append(np.std(zs))
+                    stdTemps[ionnum+1].append(np.std(ts))
+                    stdDense[ionnum+1].append(np.std(ns))
+                    stdMetal[ionnum+1].append(np.std(zs))
 
 
 

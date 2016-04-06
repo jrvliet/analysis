@@ -29,6 +29,19 @@ def get_delta_s(xen, yen, zen, xex, yex, zex, x, y, z):
 
     return s, l
 
+def proper_stat(d):
+    '''
+    Returns the proper statistic to use for the variable
+    Use this funciton to eliminate possible typos and allow for
+    easy testing
+
+    Current stat:
+        coefficient of variation = std/mean
+    '''
+    
+    return np.std(d)/np.mean(d)    
+
+
 testLoc = '/home/hyades/jrvander/exampleData/'
 baseLoc = '/home/matrix3/jrvander/sebass_gals/dwarfs/'
 absLoc = '/home/jacob/research/dwarfs/abscells/individual/'
@@ -182,9 +195,11 @@ for galID, expn in zip(galIDs, expns):
                     stddevs[ionnum+1].append(dev)
                     spreads[ionnum+1].append(max(s)-min(s))
 
-                    stdTemps[ionnum+1].append(np.std(ts))
-                    stdDense[ionnum+1].append(np.std(ns))
-                    stdMetal[ionnum+1].append(np.std(zs))
+                    # Use the proper stat for this variables
+                    # due to their very large dynamic range
+                    stdTemps[ionnum+1].append(proper_stat(ts))
+                    stdDense[ionnum+1].append(proper_stat(ns))
+                    stdMetal[ionnum+1].append(proper_stat(zs))
 
 
 

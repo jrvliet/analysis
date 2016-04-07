@@ -18,7 +18,11 @@ def plotHist(hs, xeds, yeds, ions, filename, ss,vs ):
         ion = ions[i]
         ax = axes[i]
         H = hs[i]
-        H = np.ma.masked_where(H==0,H)
+#        H = np.ma.masked_where(H==0,H)
+        minval = (np.ma.masked_where(H==0,H)).min()
+        H[H<minval] = minval
+    
+        print 'Min of unmasked: ',H.min()
         H = np.log10(H)
         xedges = xeds[i]
         yedges = yeds[i]
@@ -32,10 +36,6 @@ def plotHist(hs, xeds, yeds, ions, filename, ss,vs ):
             ax.set_ylim([0,1])
         ax.set_ylim((yedges[0],yedges[-1]))
         ax.set_xlim((xedges[0],xedges[-1]))
-
-        print len(vs[i])
-#        ax.plot(vs[i],ss[i],'x')
-
 
         cbarLabel = '$\log$ (Geo Mean of $N_{ion}$)'
         cbar = plt.colorbar(mesh, ax=ax, use_gridspec=True)

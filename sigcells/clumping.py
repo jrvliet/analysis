@@ -100,16 +100,12 @@ for galID, expn in zip(galIDs, expns):
         listfile = '{0:s}/{1:s}.{2:s}.list'.format(absLoc,galID,ion)
         listf = open(listfile, 'r')
 
-#        outfile = '{0:s}_{1:s}_abscellClumping.dat'.format(galID, ion)
-#        f = open(outfile, 'w')
-
         header = ('{0:s}\t{1:s}\t{2:s}\t{3:s}\t{4:s}\t{5:s}\t'
                   '{6:s}\t{7:s}\t{8:s}\t{9:s}\t{10:s}\n')
         header = header.format('Expn','Min LOS length', 'Max LOS length', 
             'Mean LOS length', 'Min Dist', 'Max Dist', 'Min Spread', 
             'Max Spread', 'Mean Spread', 'Median Spread', 'Std Dev Spread')
 
-#        f.write(header)
         sFormat = ('{0:s}\t{1:.6f}\t{2:.6f}\t{3:.6f}\t{4:.6f}\t{5:.6f}\t'
                    '{6:.6f}\t{7:.6f}\t{8:.6f}\t{9:.6f}\t{10:.6f}\n')
 
@@ -144,9 +140,6 @@ for galID, expn in zip(galIDs, expns):
             # Read in the details about the line of sight
             xen, yen, zen, xex, yex, zex = np.loadtxt(linesfile, 
                                 skiprows=2, usecols=(0,1,2,3,4,5), unpack=True)
-            # Read in impact parameters
-#            b = np.loadtxt(loc+'lines.info', skiprows=2, usecols=(1,), unpack=True)
-            
 
             # Find the unique LOS numbers in abs cell file
             uniqLOS, uniqCounts = np.unique(losnum, return_counts=True)
@@ -156,13 +149,6 @@ for galID, expn in zip(galIDs, expns):
             # Read in the LOS that have metal absoroption features detected
             metalLOS = np.loadtxt(metalabsfile, skiprows=1, usecols=(0,), unpack=True)
 
-            #print 'Number of metal LOS: ',len(metalLOS)
-#            print 'Number of unique Los: ',len(uniqLOS)
-#            print 'Number of LOS in both arrys: ',len(np.intersect1d(metalLOS,uniqLOS))
-#            print np.intersect1d(metalLOS, uniqLOS)
-            #for i in range(0,len(metalLOS)):
-            #    print metalLOS[i], uniqLOS[i]
-#            sys.exit()
             # Get the distance along the LOS for each cell
             for i, los in enumerate(uniqLOS):
                 if los in metalLOS:
@@ -191,8 +177,7 @@ for galID, expn in zip(galIDs, expns):
                 
 
                     # Get the standard deviation of this distribution
-                    dev = np.std(s)
-                    stddevs[ionnum+1].append(dev)
+                    stddevs[ionnum+1].append(np.std(s))
                     spreads[ionnum+1].append(max(s)-min(s))
 
                     # Use the proper stat for this variables
@@ -200,20 +185,10 @@ for galID, expn in zip(galIDs, expns):
                     stdTemps[ionnum+1].append(proper_stat(ts))
                     stdDense[ionnum+1].append(proper_stat(ns))
                     stdMetal[ionnum+1].append(proper_stat(zs))
-
-
-
-
-#            result = sFormat.format(a,min(l),max(l),np.mean(l),
-#                    max(maxdist),min(mindist),max(spread),min(spread),
-#                    np.mean(spread),np.median(spread),np.std(spread))
-#            f.write(result) 
-#        f.close()
  
 stdfile = 'stdLocation.dat'
 with open(stdfile, 'w') as f:
     json.dump(stddevs, f)
-
 
 spreadfile = 'spreads.dat'
 with open(spreadfile, 'w') as f:

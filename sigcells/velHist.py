@@ -36,8 +36,6 @@ def plotHist(hs, xeds, yeds, ions, filename, ss,vs ):
         ax.set_ylim((yedges[0],yedges[-1]))
         ax.set_xlim((xedges[0],xedges[-1]))
 
-        ax.plot(vs,ss,'x')
-
         cbarLabel = '$\log$ (Geo Mean of $N_{ion}$)'
         cbar = plt.colorbar(mesh, ax=ax, use_gridspec=True)
         cbar.ax.get_yaxis().labelpad = 20
@@ -95,10 +93,6 @@ def gmean_bin(x, y, nIon, size, nbins, xlims, ylims, ion):
             bits = np.bitwise_and( xdig==i+1, ydig==j+1)
             if True in bits:
                 h[i,j] = np.log10( gmean( column[bits] ) )
-#            try:
-#                h[i,j] = np.sum( column[bits] )
-#            except ValueError: # raised if column is empty
-#                pass
 
     np.savetxt('{0:s}_velHist.out'.format(ion), h)
     print 'Max of h: ', np.max(h)
@@ -106,6 +100,45 @@ def gmean_bin(x, y, nIon, size, nbins, xlims, ylims, ion):
     return h, xbins, ybins
 
 
+
+
+
+
+def gmean_speed_bin(x, y, nbins,xlims,ylims,ion,speed):
+    '''
+    Bins up the data according to x and y
+    Value in each bin is the geometric mean of the speed
+    '''
+
+    x = speed
+    # Make the bins
+    xbins = np.linspace(xlims[0], xlims[1], nbins+1)
+    ybins = np.linspace(ylims[0], ylims[1], nbins+1)
+
+    # Determine what cells go in what bins
+    xdig = np.digitize(x, xbins)
+    ydig = np.digitize(y, ybins)
+
+    # Fix the edge effects
+    maxBinNum = len(xbins)
+    for i in range(len(xdig)):
+        if xdig[i]==maxBinNum:
+            xdig[i] -= 1
+        if ydig[i]==maxBinNum:
+            ydig[i] -= 1
+    
+    # Create empty array
+    h = np.zeros((nbins, nbins))
+
+    # Loop through array
+    for i in range(nbins):
+        for j in range(nbins):
+            # Find the indicies where x and y belong to this bin
+            bits = np.bitwise_and( xdig==i+1, ydig==j+1)
+            if True in bits:
+                h[i,j] = np.log10( np.sum( speed[bits] ) )
+
+    return h, xbins, ybins
 
 
 
@@ -125,13 +158,14 @@ slims = (smin, smax)
 vlims = (vmin, vmax)
 
 histos, xed, yed = [], [], []
+hs, xeds, yeds = [], [], []
 ss, vs = [], []
 for ion in ions:
     
     print ion
     # Read in data    
     filename = '{0:s}_vlos.dat'.format(ion)
-    l, s, v, n, t, Z, size, nIon = np.loadtxt(filename, skiprows=1, usecols=(0,1,2,3,4,5,6,7), unpack=True)
+    l, s, v, n, t, Z, size, nIon, speed = np.loadtxt(filename, skiprows=1, usecols=(0,1,2,3,4,5,6,7,8), unpack=True)
     diff = [s[i] - v[i] for i in range(len(s))]
     print max(diff)
     ss.append(s)
@@ -150,7 +184,16 @@ for ion in ions:
     yed.append(yedges)
     histos.append(H)
 
+    vlims0 = [0, 300]
+    h, xedges, yedges = gmean_speed_bin(s,v,numbins,vlims0,slims,ion,speed)
+    h = np.rot90(h)
+    h = np.flipud(h)
+    xeds.append(xedges)
+    yeds.append(yedges)
+    hs.append(h)
+
 plotHist(histos, xed, yed, ions, 'vel2dHist_gmeanColDense.pdf', ss, vs)
+plotHist(hs, xeds, yeds, ions, 'vel2dHist_gmeanSpeed.pdf', ss, vs)
 
 
 

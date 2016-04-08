@@ -2,6 +2,7 @@
 '''
 A code to determine the spread in LOS location vs LOS velocit
 Writes <ion>_vlos.dat
+Writes <ion>__vtrans.dat
 '''
 import matplotlib.pyplot as plt
 import numpy as np
@@ -35,7 +36,7 @@ def get_vlos(xen, yen, zen, xex, yex, zex, vx, vy, vz, l):
     the directional vector and the velocity vector
     '''
 
-    # Normalized direcitonal vector
+    # Normalized directional vector
     dx = (xex-xen) / l
     dy = (yex-yen) / l
     dz = (zex-zen) / l
@@ -44,6 +45,37 @@ def get_vlos(xen, yen, zen, xex, yex, zex, vx, vy, vz, l):
     vlos = dx*vx + dy*vy + dz*vz
     
     return vlos
+
+def get_vperp(xen, yen, zen, xex, yex, zex, vx, vy, vz, l):
+    '''
+    Returns the component of the velocity vector perpindicular
+    to the direction of the LOS, as found by the length of the
+    cross product of the directional vector and the 
+    velocity vector
+    '''
+    
+    # Normalized directional vector
+    dx = (xex-xen) / l
+    dy = (yex-yen) / l
+    dz = (zex-zen) / l
+
+    # Find the cross product of dxv
+    d = np.array([dx, dy, dz])
+    v = np.array([vx, vy, vz])
+    cp = np.cross(d,v)
+    vperp = norm(cp)
+    return vperp
+
+
+def norm(v):
+    '''
+    Computes the length of the vector and returns it
+    '''
+    sum = 0
+    for i in v:
+        sum += i**2
+    return sqrt(sum)
+
 
 def get_speed(vx, vy, vz):
     ''' 
@@ -79,7 +111,7 @@ for ionnum, ion in enumerate(ions):
     f = open('{0:s}_vlos.dat'.format(ion), 'w')
     header = 'LOS length\tS\t\tVlos\t\tDensity\t\tTemp\t\tAlphaZ\t\tCellSize\tnIon\n'
     f.write(header)
-    form = '{0:.6f}\t{1:.6f}\t{2:.6f}\t{3:.6f}\t{4:.6f}\t{5:.6f}\t{6:.6f}\t{7:.6f}\t{8:.6f}\n'
+    form = '{0:.6f}\t{1:.6f}\t{2:.6f}\t{3:.6f}\t{4:.6f}\t{5:.6f}\t{6:.6f}\t{7:.6f}\t{8:.6f}\t{9:.6f}\n'
     for galID in galIDs:
         print '\t',galID    
 
@@ -143,16 +175,22 @@ for ionnum, ion in enumerate(ions):
                 
                         # Get the distance from the LOS entry point
                         # to this cell
-                        dist, leng = get_delta_s(xen[ind], yen[ind], zen[ind], 
-                                        xex[ind], yex[ind], zex[ind], 
-                                        x, y, z) 
-                        vlos = get_vlos(xen[ind], yen[ind], zen[ind],
-                                        xex[ind], yex[ind], zex[ind],
-                                        vx, vy, vz, leng)
+                        startx = xen[ind]
+                        starty = yen[ind]
+                        startz = zen[ind]
+                        endx = xex[ind]
+                        endy = yex[ind]
+                        endz = zex[ind]
+                
+                        dist, leng = get_delta_s(startx, starty, startz, 
+                                        endx, endy, endz, x, y, z) 
+                        vlos = get_vlos(startx, starty, startz,
+                                        endx, endy, endz, vx, vy, vz, leng)
                         speed = get_speed(vx, vy, vz)
-
+                        vperp = get_vperp(startx, starty, startz, endx, endy, endz, 
+                                        vx, vy, vz, leng)
                         s = dist/leng
-                        f.write(form.format(leng, s, vlos, n, t, metal, cellL, ionDense, speed))
+                        f.write(form.format(leng, s, vlos, n, t, metal, cellL, ionDense, speed, vperp))
         listf.close()
     f.close()
 

@@ -39,7 +39,8 @@ def proper_stat(d):
         coefficient of variation = std/mean
     '''
     
-    return np.std(d)/np.mean(d)    
+#    return np.std(d)/np.mean(d)    
+    return np.std(d)
 
 
 testLoc = '/home/hyades/jrvander/exampleData/'
@@ -132,7 +133,7 @@ for galID, expn in zip(galIDs, expns):
             try:
                 xLoc, yLoc, zLoc, density, temperature, alphaZ = np.loadtxt(gasfile,
                                                              skiprows=2, 
-                                                             usecols=(1,2,3,7,8,15),    
+                                                             usecols=(1,2,3,7,8,9),    
                                                          unpack=True)
             except ValueError:
                 continue

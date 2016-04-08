@@ -39,8 +39,7 @@ def proper_stat(d):
         coefficient of variation = std/mean
     '''
     
-#    return np.std(d)/np.mean(d)    
-    return np.std(d)
+    return np.std(d)/np.mean(d)    
 
 
 testLoc = '/home/hyades/jrvander/exampleData/'

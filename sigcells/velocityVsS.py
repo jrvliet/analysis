@@ -45,6 +45,14 @@ def get_vlos(xen, yen, zen, xex, yex, zex, vx, vy, vz, l):
     
     return vlos
 
+def get_speed(vx, vy, vz):
+    ''' 
+    Computes the speed of the cells (magnitude of 3d velocity)
+    '''
+    
+    speed = sqrt( vx**2 + vy**2 + vz**2 )
+
+    return speed
 
 
 testLoc = '/home/hyades/jrvander/exampleData/'
@@ -71,7 +79,7 @@ for ionnum, ion in enumerate(ions):
     f = open('{0:s}_vlos.dat'.format(ion), 'w')
     header = 'LOS length\tS\t\tVlos\t\tDensity\t\tTemp\t\tAlphaZ\t\tCellSize\tnIon\n'
     f.write(header)
-    form = '{0:.6f}\t{1:.6f}\t{2:.6f}\t{3:.6f}\t{4:.6f}\t{5:.6f}\t{6:.6f}\t{7:.6f}\n'
+    form = '{0:.6f}\t{1:.6f}\t{2:.6f}\t{3:.6f}\t{4:.6f}\t{5:.6f}\t{6:.6f}\t{7:.6f}\t{8:.6f}\n'
     for galID in galIDs:
         print '\t',galID    
 
@@ -130,7 +138,7 @@ for ionnum, ion in enumerate(ions):
                         ionDense = np.log10(nIon[cellid-1])
                         n = np.log10(density[cellid-1])
                         t = np.log10(temperature[cellid-1])
-                        metal = alphaZ[cellid-1]
+                        metal = np.log10(alphaZ[cellid-1])
                         cellL = size[cellid-1]
                 
                         # Get the distance from the LOS entry point
@@ -141,9 +149,10 @@ for ionnum, ion in enumerate(ions):
                         vlos = get_vlos(xen[ind], yen[ind], zen[ind],
                                         xex[ind], yex[ind], zex[ind],
                                         vx, vy, vz, leng)
+                        speed = get_speed(vx, vy, vz)
 
                         s = dist/leng
-                        f.write(form.format(leng, s, vlos, n, t, metal, cellL, ionDense))
+                        f.write(form.format(leng, s, vlos, n, t, metal, cellL, ionDense, speed))
         listf.close()
     f.close()
 

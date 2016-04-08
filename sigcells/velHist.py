@@ -22,8 +22,7 @@ def plotHist(hs, xeds, yeds, ions, filename, ss,vs ):
         minval = (np.ma.masked_where(H==0,H)).min()
         H[H<minval] = minval
     
-        print 'Min of unmasked: ',H.min()
-        H = np.log10(H)
+        print 'Range of unmasked: ',H.min(), H.max()
         xedges = xeds[i]
         yedges = yeds[i]
 
@@ -37,6 +36,8 @@ def plotHist(hs, xeds, yeds, ions, filename, ss,vs ):
         ax.set_ylim((yedges[0],yedges[-1]))
         ax.set_xlim((xedges[0],xedges[-1]))
 
+        ax.plot(vs,ss,'x')
+
         cbarLabel = '$\log$ (Geo Mean of $N_{ion}$)'
         cbar = plt.colorbar(mesh, ax=ax, use_gridspec=True)
         cbar.ax.get_yaxis().labelpad = 20
@@ -45,6 +46,117 @@ def plotHist(hs, xeds, yeds, ions, filename, ss,vs ):
     fig.tight_layout()
     fig.subplots_adjust(top=0.92)
     fig.savefig(filename.replace('pdf','png'), bbox_inches='tight')
+
+
+
+
+def gmean_bin(x, y, nIon, size, nbins, xlims, ylims, ion):
+    '''
+    Bins up the data according to x and y
+    Value in each bin is the geometric mean of the column
+    density contribution of cells in that bin, as determined
+    by multiplying nIon by size**1/3
+    '''
+
+    # Calculate the column density
+    column = np.zeros(len(size))
+    f = open('{0:s}_column.out'.format(ion), 'w')
+    for i, (n,l) in enumerate(zip(nIon, size)):
+        # Take the cube root of the cell length and convert from kpc to cm
+        length = l**(1./3.) * 3.086e21
+        col = n * length
+        column[i] = col
+        f.write('{0:.4e}\n'.format(col))
+    f.close()        
+
+    # Make the bins
+    xbins = np.linspace(xlims[0], xlims[1], nbins+1)
+    ybins = np.linspace(ylims[0], ylims[1], nbins+1)
+
+    # Determine what cells go in what bins
+    xdig = np.digitize(x, xbins)
+    ydig = np.digitize(y, ybins)
+
+    # Fix the edge effects
+    maxBinNum = len(xbins)
+    for i in range(len(xdig)):
+        if xdig[i]==maxBinNum:
+            xdig[i] -= 1
+        if ydig[i]==maxBinNum:
+            ydig[i] -= 1
+    
+    # Create empty array
+    h = np.zeros((nbins, nbins))
+
+    # Loop through array
+    for i in range(nbins):
+        for j in range(nbins):
+            # Find the indicies where x and y belong to this bin
+            bits = np.bitwise_and( xdig==i+1, ydig==j+1)
+            if True in bits:
+                h[i,j] = np.log10( gmean( column[bits] ) )
+#            try:
+#                h[i,j] = np.sum( column[bits] )
+#            except ValueError: # raised if column is empty
+#                pass
+
+    np.savetxt('{0:s}_velHist.out'.format(ion), h)
+    print 'Max of h: ', np.max(h)
+    print 'Mean of h: ', np.mean(h)
+    return h, xbins, ybins
+
+
+
+
+
+
+
+
+
+
+
+ions = ['HI', 'MgII', 'CIV', 'OVI']
+
+# Set binning parameters
+numbins = 50
+smin, smax = -220, 220
+vmin, vmax = -250, 250
+slims = (smin, smax)
+vlims = (vmin, vmax)
+
+histos, xed, yed = [], [], []
+ss, vs = [], []
+for ion in ions:
+    
+    print ion
+    # Read in data    
+    filename = '{0:s}_vlos.dat'.format(ion)
+    l, s, v, n, t, Z, size, nIon = np.loadtxt(filename, skiprows=1, usecols=(0,1,2,3,4,5,6,7), unpack=True)
+    diff = [s[i] - v[i] for i in range(len(s))]
+    print max(diff)
+    ss.append(s)
+    vs.append(v)
+    # Scale LOS position so 0 is at the middle   
+    mid = max(l) / 2.0
+    for i in range(0,len(s)):
+        s[i] = s[i]*l[i] - mid
+        
+    nIon = [ 10**i for i in nIon]
+    # Make histogram
+    H, xedges, yedges = gmean_bin(v, s, nIon, size, numbins, vlims, slims, ion)
+    H = np.rot90(H)
+    H = np.flipud(H)
+    xed.append(xedges)
+    yed.append(yedges)
+    histos.append(H)
+
+plotHist(histos, xed, yed, ions, 'vel2dHist_gmeanColDense.pdf', ss, vs)
+
+
+
+
+
+
 
 
 
@@ -97,111 +209,5 @@ def make_histos(v, s, nIon, size, nbins, ion):
     h = np.log10(h)
     np.savetxt('{0:s}_velHist.out'.format(ion), h)
     return h,xed,yed
-
-
-
-def gmean_bin(x, y, nIon, size, nbins, xlims, ylims, ion):
-    '''
-    Bins up the data according to x and y
-    Value in each bin is the geometric mean of the column
-    density contribution of cells in that bin, as determined
-    by multiplying nIon by size**1/3
-    '''
-
-    # Calculate the column density
-    column = np.zeros(len(size))
-    for i, (n,l) in enumerate(zip(nIon, size)):
-        # Take the cube root of the cell length and convert from kpc to cm
-        length = l**(1./3.) * 3.086e21
-        column[i] = (10**n) * length
-
-    # Make the bins
-    xbins = np.linspace(xlims[0], xlims[1], nbins+1)
-    ybins = np.linspace(ylims[0], ylims[1], nbins+1)
-
-    # Determine what cells go in what bins
-    xdig = np.digitize(x, xbins)
-    ydig = np.digitize(y, ybins)
-
-    # Fix the edge effects
-    maxBinNum = len(xbins)
-    for i in range(len(xdig)):
-        if xdig[i]==maxBinNum:
-            xdig[i] -= 1
-        if ydig[i]==maxBinNum:
-            ydig[i] -= 1
-    
-    # Create empty array
-    h = np.zeros((nbins, nbins))
-
-    # Loop through array
-    for i in range(nbins):
-        for j in range(nbins):
-            # Find the indicies where x and y belong to this bin
-            bits = np.bitwise_and( xdig==i+1, ydig==j+1)
-#            h[i,j] = gmean( column[bits] )
-            try:
-                h[i,j] = np.sum( column[bits] )
-            except ValueError: # raised if column is empty
-                pass
-
-    np.savetxt('{0:s}_velHist.out'.format(ion), h)
-    print np.max(h)
-    print np.mean(h)
-    return h, xbins, ybins
-
-
-
-
-
-
-
-
-
-
-
-ions = ['HI', 'MgII', 'CIV', 'OVI']
-
-# Set binning parameters
-numbins = 50
-smin, smax = -220, 220
-vmin, vmax = -250, 250
-slims = (smin, smax)
-vlims = (vmin, vmax)
-
-histos, xed, yed = [], [], []
-ss, vs = [], []
-for ion in ions:
-    
-    print ion
-    # Read in data    
-    filename = '{0:s}_vlos.dat'.format(ion)
-    l, s, v, n, t, Z, size, nIon = np.loadtxt(filename, skiprows=1, usecols=(0,1,2,3,4,5,6,7), unpack=True)
-    diff = [s[i] - v[i] for i in range(len(s))]
-    print max(diff)
-    ss.append(s)
-    vs.append(v)
-    # Scale LOS position so 0 is at the middle   
-    mid = max(l) / 2.0
-    for i in range(0,len(s)):
-        s[i] = s[i]*l[i] - mid
-    
-    print min(v), max(v)
-    # Make histogram
-    H, xedges, yedges = gmean_bin(v, s, nIon, size, numbins, vlims, slims, ion)
-    H = np.rot90(H)
-    H = np.flipud(H)
-    xed.append(xedges)
-    yed.append(yedges)
-    histos.append(H)
-
-plotHist(histos, xed, yed, ions, 'vel2dHist_gmeanColDense.pdf', ss, vs)
-
-
-
-
-
-
-
 
 

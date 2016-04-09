@@ -111,7 +111,7 @@ for ionnum, ion in enumerate(ions):
     f = open('{0:s}_vlos.dat'.format(ion), 'w')
     header = 'LOS length\tS\t\tVlos\t\tDensity\t\tTemp\t\tAlphaZ\t\tCellSize\tnIon\n'
     f.write(header)
-    form = '{0:.6f}\t{1:.6f}\t{2:.6f}\t{3:.6f}\t{4:.6f}\t{5:.6f}\t{6:.6f}\t{7:.6f}\t{8:.6f}\t{9:.6f}\n'
+    form = '{0:.6f}\t{1:.6f}\t{2:.6f}\t{3:.6f}\t{4:.6f}\t{5:.6f}\t{6:.6f}\t{7:.6f}\t{8:.6f}\t{9:.6f}\t{10:.6f}\n'
     for galID in galIDs:
         print '\t',galID    
 
@@ -190,7 +190,9 @@ for ionnum, ion in enumerate(ions):
                         vperp = get_vperp(startx, starty, startz, endx, endy, endz, 
                                         vx, vy, vz, leng)
                         s = dist/leng
-                        f.write(form.format(leng, s, vlos, n, t, metal, cellL, ionDense, speed, vperp))
+                        r = sqrt(x**2 + y**2 + z**2)
+
+                        f.write(form.format(leng, s, vlos, n, t, metal, cellL, ionDense, speed, vperp, r))
         listf.close()
     f.close()
 

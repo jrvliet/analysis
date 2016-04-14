@@ -86,6 +86,17 @@ def get_speed(vx, vy, vz):
 
     return speed
 
+def get_column_dense(cellL, ionDense):
+    '''
+    Computes the column density of the cell
+    Assumes path legnth is cube root of cell length
+    '''
+    kpc2cm = 3.086e21
+    length = cellL**(1./3.) * kpc2cm
+    column = (10**ionDense)*length
+    
+    return np.log10(column)
+
 
 testLoc = '/home/hyades/jrvander/exampleData/'
 baseLoc = '/home/matrix3/jrvander/sebass_gals/dwarfs/'
@@ -109,9 +120,9 @@ for ionnum, ion in enumerate(ions):
     print ion
     s, l, v = [], [], []
     f = open('{0:s}_vlos.dat'.format(ion), 'w')
-    header = 'LOS length\tS\t\tVlos\t\tDensity\t\tTemp\t\tAlphaZ\t\tCellSize\tnIon\n'
+    header = 'LOS length\tS\t\tVlos\t\tDensity\t\tTemp\t\tAlphaZ\t\tCellSize\tnIon\t\tSpeed\t\tVperp\tr\t\tColDense\n'
     f.write(header)
-    form = '{0:.6f}\t{1:.6f}\t{2:.6f}\t{3:.6f}\t{4:.6f}\t{5:.6f}\t{6:.6f}\t{7:.6f}\t{8:.6f}\t{9:.6f}\t{10:.6f}\n'
+    form = '{0:.6f}\t{1:.6f}\t{2:.6f}\t{3:.6f}\t{4:.6f}\t{5:.6f}\t{6:.6f}\t{7:.6f}\t{8:.6f}\t{9:.6f}\t{10:.6f}\t{11:.6f}\n'
     for galID in galIDs:
         print '\t',galID    
 
@@ -189,10 +200,11 @@ for ionnum, ion in enumerate(ions):
                         speed = get_speed(vx, vy, vz)
                         vperp = get_vperp(startx, starty, startz, endx, endy, endz, 
                                         vx, vy, vz, leng)
+                        column = get_column_dense(cellL, ionDense)
                         s = dist/leng
                         r = sqrt(x**2 + y**2 + z**2)
 
-                        f.write(form.format(leng, s, vlos, n, t, metal, cellL, ionDense, speed, vperp, r))
+                        f.write(form.format(leng, s, vlos, n, t, metal, cellL, ionDense, speed, vperp, r, column))
         listf.close()
     f.close()
 

@@ -8,7 +8,7 @@ import matplotlib as mp
 from scipy.stats.mstats import gmean
 import sys
 
-def plotHist(hs, xeds, yeds, ions, filename, ss,vs ):
+def plotHist(hs, xeds, yeds, ions, filename, xname, yname, cname ):
 
     mask = 0
 
@@ -27,28 +27,30 @@ def plotHist(hs, xeds, yeds, ions, filename, ss,vs ):
             minval = (np.ma.masked_where(H==0,H)).min()
             H[H<minval] = minval
     
-        print 'Range of histogram: ',H.min(), H.max()
-
         xedges = xeds[i]
         yedges = yeds[i]
 
-        print xedges.shape
-        print yedges.shape
-        print H.shape
         cm = mp.cm.get_cmap('viridis')
         mesh = ax.pcolormesh(xedges,yedges,H, cmap=cm)
-        ax.set_ylabel('Dist Along LOS')
-        ax.set_xlabel('LOS Velocity')
+        ax.set_xlabel(xname)
+        ax.set_ylabel(yname)
         ax.set_title(ion)
         if 'normed' in filename:
             ax.set_ylim([0,1])
-        ax.set_ylim((yedges[0],yedges[-1]))
-        ax.set_xlim((xedges[0],xedges[-1]))
+        if 'abs' in xname.lower():
+            ax.set_xlim((0.0,xedges[-1]))
+        else:
+            ax.set_xlim((xedges[0],xedges[-1]))
+    
+        if 'abs' in yname.lower():
+            ax.set_ylim((0.0,yedges[-1]))
+        else: 
+            ax.set_ylim((yedges[0],yedges[-1]))
 
         cbarLabel = '$\log$ (Geo Mean of $N_{ion}$)'
         cbar = plt.colorbar(mesh, ax=ax, use_gridspec=True)
         cbar.ax.get_yaxis().labelpad = 20
-        cbar.ax.set_ylabel(cbarLabel, rotation=270, fontsize=12)
+        cbar.ax.set_ylabel(cname, rotation=270, fontsize=12)
 
     fig.tight_layout()
     fig.subplots_adjust(top=0.92)
@@ -197,14 +199,14 @@ for ion in ions:
     hs.append(h)
 
     v = np.absolute(v)
-    H, xedges, yedges = binning_z(v, s, col, numbins, vlims, slims, 'gmean')
+    H, xedges, yedges = binning_z(v, s, col, numbins, vlims0, slims, 'gmean')
 #    H, xedges, yedges = gmean_bin(v, s, nIon, size, numbins, vlims0, slims, ion)
     xedabs.append(xedges)
     yedabs.append(yedges)
     histosabs.append(H)
 
 
-    h, xedges, yedges = binning_z(vperp, s, col, numbins, vlims, slims, 'gmean')
+    h, xedges, yedges = binning_z(vperp, s, col, numbins, vlims0, slims, 'gmean')
 #    h, xedges, yedges = gmean_bin(vperp, s, nIon, size, numbins, vlims0, slims, ion)
     xedperp.append(xedges)
     yedperp.append(yedges)
@@ -218,16 +220,22 @@ for ion in ions:
     yed_rs.append(yedges)
     h_rs.append(h)
 
+# Labels
+losvel = 'LOS Velocity [km/s]'
+abslosvel = 'Abs LOS Velocity [km/s]'
+lospos = 'LOS Position [kpc]'
+gColDense = 'Geo Mean Col Dense'
+speed = 'Speed [km/s]'
+hist = 'Number of cells'
+dist = 'Galactocentric Distance [kpc]'
+perpVel = 'Perpidicular Velocity [km/s]'
 
-plotHist(histos, xed, yed, ions, 'vel2dHist_gmeanColDense.pdf', ss, vs)
-print ''
-plotHist(histosabs, xedabs, yedabs, ions, 'vel2dHist_gmeanColDense_abs.pdf', ss, vs)
-print ''
-plotHist(hs, xeds, yeds, ions, 'vel2dHist_gmeanSpeed.pdf', ss, vs)
-print ''
-plotHist(hperp, xedperp, yedperp, ions, 'vel2dHist_gmeanColDense_vperp.pdf', ss, vs)
-print ''
-plotHist(h_rs, xed_rs, yed_rs, ions, 'vel2dHist_speed_r.pdf', ss, vs)
+
+plotHist(histos, xed, yed, ions, 'vel2dHist_gmeanColDense_new.pdf', losvel, lospos, gColDense)
+plotHist(histosabs, xedabs, yedabs, ions, 'vel2dHist_gmeanColDense_abs_new.pdf', abslosvel, lospos, gColDense)
+plotHist(hs, xeds, yeds, ions, 'vel2dHist_gmeanSpeed_new.pdf', losvel, speed, gColDense)
+plotHist(hperp, xedperp, yedperp, ions, 'vel2dHist_gmeanColDense_vperp_new.pdf', perpVel, losvel, gColDense)
+plotHist(h_rs, xed_rs, yed_rs, ions, 'vel2dHist_speed_r_new.pdf', dist, speed,  hist)
 
 
 

@@ -16,20 +16,25 @@ def plotHist(hs, xeds, yeds, ions, filename, ss,vs ):
     fig, ((ax1, ax2, ax3, ax4)) = plt.subplots(1,4,figsize=(20.8, 5.2))
     axes = [ax1, ax2, ax3, ax4]
 
+
     for i in range(0,len(axes)):
         ion = ions[i]
         ax = axes[i]
         H = hs[i]
         if mask==1:
             H = np.ma.masked_where(H==0,H)
-        minval = (np.ma.masked_where(H==0,H)).min()
-        H[H<minval] = minval
+        else:
+            minval = (np.ma.masked_where(H==0,H)).min()
+            H[H<minval] = minval
     
-        print 'Range of unmasked: ',H.min(), H.max()
+        print 'Range of histogram: ',H.min(), H.max()
+
         xedges = xeds[i]
         yedges = yeds[i]
 
-
+        print xedges.shape
+        print yedges.shape
+        print H.shape
         cm = mp.cm.get_cmap('viridis')
         mesh = ax.pcolormesh(xedges,yedges,H, cmap=cm)
         ax.set_ylabel('Dist Along LOS')
@@ -115,6 +120,8 @@ def binning_z(x, y, z, nbins, xlims, ylims, mode='hist'):
     h = np.rot90(h)
     h = np.flipud(h)
     h = np.log10(h)
+    #h = np.log10(h[h>0])
+    h[h==-np.inf] = 0
     return h, xbins, ybins
 
 
@@ -129,7 +136,7 @@ vmin, vmax = -250, 250
 slims = (smin, smax)
 vlims = (vmin, vmax)
 
-
+printrange = 0
 
 histos, xed, yed = [], [], []
 histosabs, xedabs, yedabs = [], [], []
@@ -145,8 +152,20 @@ for ion in ions:
     l, s, v, n, t, Z, size, nIon, speed, vperp, r, col = np.loadtxt(filename, 
                         skiprows=1, usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True)
     
-    print 'Min vperp', vperp.min()
-    print 'Max vperp', vperp.max()
+    if printrange==1:
+        print '\nFor {0:s}'.format(ion)
+        print 'Range of LOS Length: {0:f}-{1:f}'.format(l.min(), l.max())
+        print 'Range of S:          {0:f}-{1:f}'.format(s.min(), s.max())
+        print 'Range of Vlos:       {0:f}-{1:f}'.format(v.min(), v.max())
+        print 'Range of Density:    {0:f}-{1:f}'.format(n.min(), n.max())
+        print 'Range of Temp:       {0:f}-{1:f}'.format(t.min(), t.max())
+        print 'Range of AlphaZ:     {0:f}-{1:f}'.format(Z.min(), Z.max())
+        print 'Range of Cellsize:   {0:f}-{1:f}'.format(size.min(), size.max())
+        print 'Range of nIon:       {0:f}-{1:f}'.format(nIon.min(), nIon.max())
+        print 'Range of Speed:      {0:f}-{1:f}'.format(speed.min(), speed.max())
+        print 'Range of Vperp:      {0:f}-{1:f}'.format(vperp.min(), vperp.max())
+        print 'Range of Distance:   {0:f}-{1:f}'.format(r.min(), r.max())
+        print 'Range of Col Dense:  {0:f}-{1:f}'.format(col.min(), col.max())
 
     diff = [s[i] - v[i] for i in range(len(s))]
     ss.append(s)
@@ -156,7 +175,13 @@ for ion in ions:
     for i in range(0,len(s)):
         s[i] = s[i]*l[i] - mid
         
-    nIon = [ 10**i for i in nIon]
+    # Unlog all logged data points
+    n    = np.array([ 10**i for i in n])
+    t    = np.array([ 10**i for i in t])
+    Z    = np.array([ 10**i for i in Z])
+    nIon = np.array([ 10**i for i in nIon])
+    col  = np.array([ 10**i for i in col])
+
     # Make histogram
     H, xedges, yedges = binning_z(v, s, col, numbins, vlims, slims, 'gmean')
 #    H, xedges, yedges = gmean_bin(v, s, nIon, size, numbins, vlims, slims, ion)
@@ -187,17 +212,21 @@ for ion in ions:
 
     rlims = [r.min(), r.max()]
     slims = [s.min(), s.max()]
-    h, xed, yed = binning_z(r, s, col, numbins, rlims, slims, 'hist')
+    h, xedges, yedges = binning_z(r, s, col, numbins, rlims, slims, 'hist')
     #h_r, xed_r, yed_r = hist(r,speed,numbins, ion)
-    xed_rs.append(xed)
-    yed_rs.append(yed)
+    xed_rs.append(xedges)
+    yed_rs.append(yedges)
     h_rs.append(h)
 
 
 plotHist(histos, xed, yed, ions, 'vel2dHist_gmeanColDense.pdf', ss, vs)
+print ''
 plotHist(histosabs, xedabs, yedabs, ions, 'vel2dHist_gmeanColDense_abs.pdf', ss, vs)
+print ''
 plotHist(hs, xeds, yeds, ions, 'vel2dHist_gmeanSpeed.pdf', ss, vs)
+print ''
 plotHist(hperp, xedperp, yedperp, ions, 'vel2dHist_gmeanColDense_vperp.pdf', ss, vs)
+print ''
 plotHist(h_rs, xed_rs, yed_rs, ions, 'vel2dHist_speed_r.pdf', ss, vs)
 
 

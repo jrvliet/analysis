@@ -48,7 +48,6 @@ def plotHist(hs, xeds, yeds, ions, filename, xname, yname, cname ):
         else: 
             ax.set_ylim((yedges[0],yedges[-1]))
 
-#        cbarLabel = '$\log$ (Geo Mean of $N_{ion}$)'
         cbar = plt.colorbar(mesh, ax=ax, use_gridspec=True)
         cbar.ax.get_yaxis().labelpad = 20
         cbar.ax.set_ylabel(cname, rotation=270, fontsize=12)
@@ -136,10 +135,12 @@ numbins = 50
 smin, smax = -220, 220
 vmin, vmax = -250, 250
 rmin, rmax = 0.0, 300
+spmin, spmax = 0.0, 300
 slims = (smin, smax)
 vlims = (vmin, vmax)
 absvlims = (0.0, vmax)
 rlims = (rmin, rmax)
+splims = (spmin, spmax)
 
 
 printrange = 0
@@ -182,6 +183,7 @@ for ion in ions:
     diff = [s[i] - v[i] for i in range(len(s))]
     ss.append(s)
     vs.append(v)
+
     # Scale LOS position so 0 is at the middle   
     mid = max(l) / 2.0
     for i in range(0,len(s)):
@@ -195,26 +197,29 @@ for ion in ions:
     col  = np.array([ 10**i for i in col])
 
     # Make histogram
+    # Bin up the LOS vel and LOS location, colored by geo mean of column density
     h_losv_s_type = 'gmean'
-    H, xedges, yedges = binning_z(v, s, col, numbins, vlims, slims, g_losv_s_type)
+    H, xedges, yedges = binning_z(v, s, col, numbins, vlims, slims, 'hist')
     xed_losv_s.append(xedges)
     yed_losv_s.append(yedges)
     h_losv_s.append(H)
-    
 
+    # Same as the one above, but use absolute value of LOS vel
     v = np.absolute(v)
     h_abslosv_s
-    H, xedges, yedges = binning_z(v, s, col, numbins, absvlims, slims, 'gmean')
+    H, xedges, yedges = binning_z(v, s, col, numbins, absvlims, slims, 'hist')
     xed_abslosv_s.append(xedges)
     yed_abslosv_s.append(yedges)
     h_abslosv_s.append(H)
 
-    h, xedges, yedges = binning_z(vperp, s, col, numbins, absvlims, slims, 'gmean')
+    # Bin the perpidcular component of velocity with LOS position
+    h, xedges, yedges = binning_z(vperp, s, col, numbins, absvlims, slims, 'hist')
     xed_perpv_s.append(xedges)
     yed_perpv_s.append(yedges)
     h_perpv_s.append(h)
 
-    h, xedges, yedges = binning_z(r, s, col, numbins, rlims, slims, 'gmean')
+    # Bin the galactocentric distance and the speed
+    h, xedges, yedges = binning_z(r, speed, col, numbins, rlims, splims, 'hist')
     xed_r_speed.append(xedges)
     yed_r_speed.append(yedges)
     h_r_speed.append(h)
@@ -229,11 +234,11 @@ hist = 'Number of cells'
 dist = 'Galactocentric Distance [kpc]'
 perpVel = 'Perpidicular Velocity [km/s]'
 
-plotHist(h_losv_s, xed_losv_s, yed_losv_s, ions, 'vel2dHist_losv_s_gmeanColDense.pdf', losvel, lospos, gColDense)
-plotHist(h_abslosv_s, xed_abslosv_s, yed_abslosv_s, ions, 'vel2dHist_abslosv_s_gmeanColDense.pdf', abslosvel, lospos, gColDense)
+plotHist(h_losv_s, xed_losv_s, yed_losv_s, ions, 'vel2dHist_losv_s_hist.pdf', losvel, lospos, hist)
+plotHist(h_abslosv_s, xed_abslosv_s, yed_abslosv_s, ions, 'vel2dHist_abslosv_s_hist.pdf', abslosvel, lospos, hist)
 #plotHist(h, xeds, yeds, ions, 'vel2dHist_gmeanSpeed_new.pdf', losvel, speed, gColDense)
-plotHist(h_perpv_s, xed_perpv_s, yed_perpv_s, ions, 'vel2dHist_vperp_s_gmeanColDense.pdf', perpVel, losvel, gColDense)
-plotHist(h_r_speed, xed_r_speed, yed_r_speed, ions, 'vel2dHist_r_s_peed_hist.pdf', dist, speed,  gColDense)
+plotHist(h_perpv_s, xed_perpv_s, yed_perpv_s, ions, 'vel2dHist_vperp_s_hist.pdf', perpVel, losvel, hist)
+plotHist(h_r_speed, xed_r_speed, yed_r_speed, ions, 'vel2dHist_r_s_speed_hist.pdf', dist, speed,  hist)
 
 
 

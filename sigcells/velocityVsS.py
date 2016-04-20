@@ -97,6 +97,21 @@ def get_column_dense(cellL, ionDense):
     
     return np.log10(column)
 
+def get_vrad(x, y, z, vx, vy, vz):
+    '''
+    Computes the radial velocity fo the cell
+    vrad = v . r^
+    vrad = x*vx + y*vy + z*vz
+    '''
+    l = sqrt(x**2 + y**2 + z**2)
+    kpc2km = 3.086e16
+    x = x/l
+    y = y/l
+    z = z/l
+    vr = x*vx + y*vy + z*vz
+
+    return vr 
+    
 
 testLoc = '/home/hyades/jrvander/exampleData/'
 baseLoc = '/home/matrix3/jrvander/sebass_gals/dwarfs/'
@@ -120,9 +135,9 @@ for ionnum, ion in enumerate(ions):
     print ion
     s, l, v = [], [], []
     f = open('{0:s}_vlos.dat'.format(ion), 'w')
-    header = 'LOS length\tS\t\tVlos\t\tDensity\t\tTemp\t\tAlphaZ\t\tCellSize\tnIon\t\tSpeed\t\tVperp\tr\t\tColDense\n'
+    header = 'LOS length\tS\t\tVlos\t\tDensity\t\tTemp\t\tAlphaZ\t\tCellSize\tnIon\t\tSpeed\t\tVperp\tr\t\tVrad\t\tColDense\n'
     f.write(header)
-    form = '{0:.6f}\t{1:.6f}\t{2:.6f}\t{3:.6f}\t{4:.6f}\t{5:.6f}\t{6:.6f}\t{7:.6f}\t{8:.6f}\t{9:.6f}\t{10:.6f}\t{11:.6f}\n'
+    form = '{0:.6f}\t{1:.6f}\t{2:.6f}\t{3:.6f}\t{4:.6f}\t{5:.6f}\t{6:.6f}\t{7:.6f}\t{8:.6f}\t{9:.6f}\t{10:.6f}\t{11:.6f}\t{12:.6f}\n'
     for galID in galIDs:
         print '\t',galID    
 
@@ -201,10 +216,11 @@ for ionnum, ion in enumerate(ions):
                         vperp = get_vperp(startx, starty, startz, endx, endy, endz, 
                                         vx, vy, vz, leng)
                         column = get_column_dense(cellL, ionDense)
+                        vrad = get_vrad(x, y, z, vx, vy, vz)
                         s = dist/leng
                         r = sqrt(x**2 + y**2 + z**2)
 
-                        f.write(form.format(leng, s, vlos, n, t, metal, cellL, ionDense, speed, vperp, r, column))
+                        f.write(form.format(leng, s, vlos, n, t, metal, cellL, ionDense, speed, vperp, r, vrad, column))
         listf.close()
     f.close()
 

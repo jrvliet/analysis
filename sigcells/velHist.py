@@ -143,13 +143,14 @@ rlims = (rmin, rmax)
 splims = (spmin, spmax)
 
 
-printrange = 0
+printrange = 1
 
 # Initialize arrays to hold binning
 h_losv_s, xed_losv_s, yed_losv_s = [], [], []
 h_abslosv_s, xed_abslosv_s, yed_abslosv_s = [], [], []
 h_perpv_s, xed_perpv_s, yed_perpv_s = [], [], []
 h_r_speed, xed_r_speed, yed_r_speed = [], [], []
+h_r_vr, xed_r_vr, yed_r_vr = [], [], []
 
 histos, xed, yed = [], [], []
 histosabs, xedabs, yedabs = [], [], []
@@ -162,8 +163,8 @@ for ion in ions:
     print ion
     # Read in data    
     filename = '{0:s}_vlos.dat'.format(ion)
-    l, s, v, n, t, Z, size, nIon, speed, vperp, r, col = np.loadtxt(filename, 
-                        skiprows=1, usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True)
+    l, s, v, n, t, Z, size, nIon, speed, vperp, r, vrad, col = np.loadtxt(filename, 
+                        skiprows=1, usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12), unpack=True)
     
     if printrange==1:
         print '\nFor {0:s}'.format(ion)
@@ -178,6 +179,7 @@ for ion in ions:
         print 'Range of Speed:      {0:f}-{1:f}'.format(speed.min(), speed.max())
         print 'Range of Vperp:      {0:f}-{1:f}'.format(vperp.min(), vperp.max())
         print 'Range of Distance:   {0:f}-{1:f}'.format(r.min(), r.max())
+        print 'Range of Vrad:       {0:f}-{1:f}'.format(vrad.min(), vrad.max())
         print 'Range of Col Dense:  {0:f}-{1:f}'.format(col.min(), col.max())
 
     diff = [s[i] - v[i] for i in range(len(s))]
@@ -224,6 +226,14 @@ for ion in ions:
     yed_r_speed.append(yedges)
     h_r_speed.append(h)
 
+    # Bin the radial velocity with the galactocentric distance
+    h, xedges, yedges = binning_z(r, vrad, col, numbins, rlims, splims, 'hist')
+    xed_r_vr.append(xedges)
+    yed_r_vr.append(yedges)
+    h_r_vr.append(h)
+        
+
+
 # Labels
 losvel = 'LOS Velocity [km/s]'
 abslosvel = 'Abs LOS Velocity [km/s]'
@@ -233,13 +243,14 @@ speed = 'Speed [km/s]'
 hist = 'Number of cells'
 dist = 'Galactocentric Distance [kpc]'
 perpVel = 'Perpidicular Velocity [km/s]'
+vradial = 'Radial Velocity [km/s]'
 
 plotHist(h_losv_s, xed_losv_s, yed_losv_s, ions, 'vel2dHist_losv_s_hist.pdf', losvel, lospos, hist)
 plotHist(h_abslosv_s, xed_abslosv_s, yed_abslosv_s, ions, 'vel2dHist_abslosv_s_hist.pdf', abslosvel, lospos, hist)
 #plotHist(h, xeds, yeds, ions, 'vel2dHist_gmeanSpeed_new.pdf', losvel, speed, gColDense)
 plotHist(h_perpv_s, xed_perpv_s, yed_perpv_s, ions, 'vel2dHist_vperp_s_hist.pdf', perpVel, losvel, hist)
 plotHist(h_r_speed, xed_r_speed, yed_r_speed, ions, 'vel2dHist_r_s_speed_hist.pdf', dist, speed,  hist)
-
+plotHist(h_r_vr, xed_r_vr, yed_r_vr, ions, 'vel2dHist_r_vr_hist.pdf', dist, vradial, hist)
 
 
 #############################################################################################

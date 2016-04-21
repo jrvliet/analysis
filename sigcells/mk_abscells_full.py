@@ -66,6 +66,9 @@ for ion in ions:
             temp = gas[index,8]
             snII = gas[index,9]
             
+            print cellnum       
+            print index
+            print x, y,z,vx,vy,vz,nH,temp,snII
             fout.write(form.format(x,y,z,vx,vy,vx,nH,temp,snII))
 
 

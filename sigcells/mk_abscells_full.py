@@ -30,7 +30,7 @@ for ion in ions:
     outfile = '{0:s}_abscells.full'.format(ion)
     fout = open(outfile, 'w')
     fout.write('x\t\ty\t\tz\t\tvx\t\tvy\t\tvz\t\tnH\t\tTemp\t\tsnII\n')
-    form = '{0:.4es}\t{1:.4e}\t{2:.4e}\t{3:.4e}\t{4:.4e}\t{5:.4e}\t{6:.4e}\t{7:.4e}\t{8:.4e}\n'
+    form = '{0:.4e}\t{1:.4e}\t{2:.4e}\t{3:.4e}\t{4:.4e}\t{5:.4e}\t{6:.4e}\t{7:.4e}\t{8:.4e}\n'
     for absf in absfiles:
         print '\tAbsf =',absf
         galID = absf.split('.')[0].split('/')[-1]
@@ -55,7 +55,7 @@ for ion in ions:
                 gas = np.loadtxt(gasfile,skiprows=2)
                 prevA==a
 
-            index = cellnum-1
+            index = int(cellnum-1)
             x = gas[index,1]
             y = gas[index,2]
             z = gas[index,3]
@@ -66,9 +66,6 @@ for ion in ions:
             temp = gas[index,8]
             snII = gas[index,9]
             
-            print cellnum       
-            print index
-            print x, y,z,vx,vy,vz,nH,temp,snII
             fout.write(form.format(x,y,z,vx,vy,vx,nH,temp,snII))
 
 

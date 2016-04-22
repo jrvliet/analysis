@@ -8,6 +8,8 @@ def plotfunc(prop,m):
 
     markList = ['$1$', '$2$', '$3$', '$4$', '$5$', '$6$', '$7$', '$8$', '$9$', '$10$'] 
     markList = ['o', 's', 'x', 'v', '^', '<', '>', '+', '*', 'd'] 
+    colorList = ['blue', 'green', 'red', 'black', 'brown', 'cyan', 'crimson', 'azure', 
+                    'coral', 'darkgreen']
 
 #    prop = filename.split('_')[2]
     fig, ((ax1, ax2),(ax3, ax4)) = plt.subplots(2,2, figsize=(10,10))
@@ -25,6 +27,7 @@ def plotfunc(prop,m):
         filename = '{0:s}_clump_member_count.out'.format(ion)
         number = []
         marks = []
+        cols = []
         with open(filename, 'r') as f:
             for line in f:
                 memberSum = 0
@@ -34,8 +37,9 @@ def plotfunc(prop,m):
                     number.append(i)
                     memberSum += int(l[i])
                     marks.append(markList[i-1])
-        for a, b, c in zip(k, cov, marks):
-            ax.scatter(a,b,marker=c,s=10)
+                    cols.append(colorList[i-1])
+        for a, b, c, d in zip(k, cov, cols, marks):
+            ax.scatter(a,b,marker=d,c=c,s=10)
 
 #        ax.scatter(k,cov,c=number,marker=marks,s=50,cmap='viridis')
 

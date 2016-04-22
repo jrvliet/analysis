@@ -27,6 +27,37 @@ def mad(x):
     val = np.median(dev)
     return val
 
+def cov(x):
+    '''
+    Computes the coefficient of variation of the sample
+    Defined as:
+        cov = std(x)/mean(x)
+    '''
+    stdev = np.std(x)
+    mean = np.mean(x)
+    if stdev<0 or mean<0:
+        print stdev, mean, min(x), max(x)
+    coeff = np.std(x)/np.mean(x)
+    return coeff
+
+def group_radius(gx,gy,gz):
+    '''
+    Computes the radius of the group based on the
+    x,y,z coordinates of the group members
+    
+    Represent the cluster as a sphere
+    Diameter is mean of the largest distance between
+    member points along each axis
+    '''
+
+    longestX = max(gx) - min(gx)
+    longestY = max(gy) - min(gy)
+    longestZ = max(gz) - min(gz)
+    
+    diameter = (longestX + longestY + longestZ) / 3.0
+
+    return diameter / 2.0
+
 def fancy_dendrogram(*args, **kwargs):
     max_d = kwargs.pop('max_d', None)
     if max_d and 'color_threshold' not in kwargs:
@@ -52,6 +83,7 @@ def fancy_dendrogram(*args, **kwargs):
     return ddata
 
 ions = ['HI', 'MgII', 'CIV', 'OVI']
+plotting = 0
 
 for ion in ions:
 
@@ -61,9 +93,13 @@ for ion in ions:
     filename = '{0:s}_abscells.subset'.format(ion)
     cells = np.loadtxt(filename, skiprows=1)
     filename = filename.replace('abscells', 'abscells_full')
-    x, y, z, dense, temp, snII = np.loadtxt(filename, skiprows=1, 
+    xloc, yloc, zloc, dense, temp, snII = np.loadtxt(filename, skiprows=1, 
                                 usecols=(0,1,2,3,4,5), unpack=True)
 
+    print '\nLimits: '
+    print '\tDensity:     {0:.4e}\t{1:.4e}'.format(min(dense),max(dense))
+    print '\tTemperature: {0:.4e}\t{1:.4e}'.format(min(temp),max(temp))
+    print '\tMetallicity: {0:.4e}\t{1:.4e}'.format(min(snII),max(snII))
     # Generate the linkage matrix
     # Use the Ward variance minimization algorithm
     z = linkage(cells, 'ward')
@@ -111,159 +147,186 @@ for ion in ions:
     tempMad, denseMad, metalMad = [], [], [] 
     meanStdT, meanStdN, meanStdZ = [], [], []
     meanMadT, meanMadN, meanMadZ = [], [], []
-    maxClusterNum = 100
+    maxClusterNum = 10
+
+    ftempname = '{0:s}_clump_temperature_cov.out'.format(ion)
+    ftemp = open(ftempname, 'w')    
+
+    fnumberName = '{0:s}_clump_member_count.out'.format(ion)
+    fnumber = open(fnumberName, 'w')
+
+    fdenseName = '{0:s}_clump_density_cov.out'.format(ion)
+    fdense = open(fdenseName, 'w')
+
+    fmetalName = '{0:s}_clump_snII_cov.out'.format(ion)
+    fmetal = open(fmetalName, 'w')
+
+    fradiusName = '{0:s}_clump_radius.out'.format(ion)
+    fradius = open(fradiusName, 'w')
+
     for k in range(1,maxClusterNum+1):
 
-        print 'Number of clusters = ',k
+        tempstr = '{0:d}\t'.format(k)
+        numstr = '{0:d}\t'.format(k)
+        densestr = '{0:d}\t'.format(k)
+        metalstr = '{0:d}\t'.format(k)
+        radiusstr = '{0:d}\t'.format(k)
+
         # Retrieve the clusters
         cluster = fcluster(z, k, criterion='maxclust')
         meanks.append(k)
         for clusterNum in range(1,k+1):
-            print '\tFor cluster number {0:d}, {1:d} members'.format(clusterNum,
-                            np.sum(cluster[cluster==clusterNum])/2)
+
+            numberOfMembers = len(cluster[cluster==clusterNum])
+            #print '\tFor cluster number {0:d}, {1:d} members'.format(clusterNum,
+            #            numberOfMembers)
             groupN = dense[cluster==clusterNum]
             groupT = temp[cluster==clusterNum]
-            groupZ = snII[cluster==clusterNum]
+            groupM = snII[cluster==clusterNum]
+            groupX = xloc[cluster==clusterNum]
+            groupY = yloc[cluster==clusterNum]
+            groupZ = zloc[cluster==clusterNum]
             
+            groupRadius = group_radius(groupX, groupY, groupZ)
             ks.append(k)
-            tempMean.append(np.log10(np.mean(groupT)))
-            denseMean.append(np.log10(np.mean(groupN)))
-            metalMean.append(np.log10(np.mean(groupZ)))
 
-            tempSpread.append(np.log10(np.std(groupT)))
-            denseSpread.append(np.log10(np.std(groupN)))
-            metalSpread.append(np.log10(np.std(groupZ)))
+            numstr += '{0:d}\t'.format(numberOfMembers)
+            tempstr  += '{0:.4e}\t'.format(cov(groupT))
+            densestr += '{0:.4e}\t'.format(cov(groupN))
+            metalstr += '{0:.4e}\t'.format(cov(groupM))
+            radiusstr += '{0:.4e}\t'.format(groupRadius)
+
+        fnumber.write(numstr+'\n')
+        ftemp.write(tempstr+'\n')
+        fdense.write(densestr+'\n')
+        fmetal.write(metalstr+'\n')
+        fradius.write(radiusstr+'\n')
+
+#        fout.write('{0:d}\t{1:.3f}\t{2:.3f}\t{3:.3f}\n'.format(k,
+#                    np.mean(tempSpread[-k]),
+#                    np.mean(denseSpread[-k]),
+#                    np.mean(metalSpread[-k]) ))
+    ftemp.close()
+    fnumber.close()
+    fdense.close()
+    fmetal.close()
+    fradius.close()
+
+    if plotting==1:
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12,4))
+        ax1.plot(ks, tempSpread, 'x')
+        ax1.set_xlabel('Number of Clusters')
+        ax1.set_ylabel('Std Dev of Temp in Each Cluster')
+        ax1.set_xlim([0,maxClusterNum+1])
+
+        ax2.plot(ks, denseSpread, 'x')
+        ax2.set_xlabel('Number of Clusters')
+        ax2.set_ylabel('Std Dev of Density in Each Cluster')
+        ax2.set_xlim([0,maxClusterNum+1])
+
+        ax3.plot(ks, metalSpread, 'x')
+        ax3.set_xlabel('Number of Clusters')
+        ax3.set_ylabel('Std Dev of SNII MF in Each Cluster')
+        ax3.set_xlim([0,maxClusterNum+1])
+        
+        fig.tight_layout()
+        fig.savefig('{0:s}_cloud_props_std.png'.format(ion), bbox_inches='tight')
+
+        plt.cla()
+        plt.clf()   
+        plt.close('all')
+
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12,4))
+        ax1.plot(ks, tempMean, 'x')
+        ax1.set_xlabel('Number of Clusters')
+        ax1.set_ylabel('Mean of Temp in Each Cluster')
+        ax1.set_xlim([0,maxClusterNum+1])
+
+        ax2.plot(ks, denseMean, 'x')
+        ax2.set_xlabel('Number of Clusters')
+        ax2.set_ylabel('Mean of Density in Each Cluster')
+        ax2.set_xlim([0,maxClusterNum+1])
+
+        ax3.plot(ks, metalMean, 'x')
+        ax3.set_xlabel('Number of Clusters')
+        ax3.set_ylabel('Mean of SNII MF in Each Cluster')
+        ax3.set_xlim([0,maxClusterNum+1])
+        
+        fig.tight_layout()
+        fig.savefig('{0:s}_cloud_props_mean.png'.format(ion), bbox_inches='tight')
+        plt.cla()
+        plt.clf()   
+        plt.close('all')
             
-            tempMad.append(np.log10(mad(groupT)))
-            denseMad.append(np.log10(mad(groupN)))
-            metalMad.append(np.log10(mad(groupZ)))
 
-        fout.write('{0:d}\t{1:.3f}\t{2:.3f}\t{3:.3f}\n'.format(k,
-                    np.mean(tempSpread[-k]),
-                    np.mean(denseSpread[-k]),
-                    np.mean(metalSpread[-k]) ))
-        meanStdT.append(np.mean(tempSpread[-k]))
-        meanStdN.append(np.mean(denseSpread[-k]))
-        meanStdZ.append(np.mean(metalSpread[-k]))
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12,4))
+        ax1.plot(ks, tempMad, 'x')
+        ax1.set_xlabel('Number of Clusters')
+        ax1.set_ylabel('MAD of Temp in Each Cluster')
+        ax1.set_xlim([0,maxClusterNum+1])
 
-        meanMadT.append(np.mean(tempMad[-k]))
-        meanMadN.append(np.mean(denseMad[-k]))
-        meanMadZ.append(np.mean(metalMad[-k]))
+        ax2.plot(ks, denseMad, 'x')
+        ax2.set_xlabel('Number of Clusters')
+        ax2.set_ylabel('MAD of Density in Each Cluster')
+        ax2.set_xlim([0,maxClusterNum+1])
 
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12,4))
-    ax1.plot(ks, tempSpread, 'x')
-    ax1.set_xlabel('Number of Clusters')
-    ax1.set_ylabel('Std Dev of Temp in Each Cluster')
-    ax1.set_xlim([0,maxClusterNum+1])
+        ax3.plot(ks, metalMad, 'x')
+        ax3.set_xlabel('Number of Clusters')
+        ax3.set_ylabel('MAD of SNII MF in Each Cluster')
+        ax3.set_xlim([0,maxClusterNum+1])
+        
+        fig.tight_layout()
+        fig.savefig('{0:s}_cloud_props_mad.png'.format(ion), bbox_inches='tight')
+        plt.cla()
+        plt.clf()   
+        plt.close('all')
 
-    ax2.plot(ks, denseSpread, 'x')
-    ax2.set_xlabel('Number of Clusters')
-    ax2.set_ylabel('Std Dev of Density in Each Cluster')
-    ax2.set_xlim([0,maxClusterNum+1])
 
-    ax3.plot(ks, metalSpread, 'x')
-    ax3.set_xlabel('Number of Clusters')
-    ax3.set_ylabel('Std Dev of SNII MF in Each Cluster')
-    ax3.set_xlim([0,maxClusterNum+1])
-    
-    fig.tight_layout()
-    fig.savefig('{0:s}_cloud_props_std.png'.format(ion), bbox_inches='tight')
+        
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12,4))
+        ax1.plot(meanks, meanMadT, 'x')
+        ax1.set_xlabel('Number of Clusters')
+        ax1.set_ylabel('Mean MAD of Temp in Each Cluster')
+        ax1.set_xlim([0,maxClusterNum+1])
 
-    plt.cla()
-    plt.clf()   
-    plt.close('all')
+        ax2.plot(meanks, meanMadN, 'x')
+        ax2.set_xlabel('Number of Clusters')
+        ax2.set_ylabel('Mean MAD of Density in Each Cluster')
+        ax2.set_xlim([0,maxClusterNum+1])
 
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12,4))
-    ax1.plot(ks, tempMean, 'x')
-    ax1.set_xlabel('Number of Clusters')
-    ax1.set_ylabel('Mean of Temp in Each Cluster')
-    ax1.set_xlim([0,maxClusterNum+1])
-
-    ax2.plot(ks, denseMean, 'x')
-    ax2.set_xlabel('Number of Clusters')
-    ax2.set_ylabel('Mean of Density in Each Cluster')
-    ax2.set_xlim([0,maxClusterNum+1])
-
-    ax3.plot(ks, metalMean, 'x')
-    ax3.set_xlabel('Number of Clusters')
-    ax3.set_ylabel('Mean of SNII MF in Each Cluster')
-    ax3.set_xlim([0,maxClusterNum+1])
-    
-    fig.tight_layout()
-    fig.savefig('{0:s}_cloud_props_mean.png'.format(ion), bbox_inches='tight')
-    plt.cla()
-    plt.clf()   
-    plt.close('all')
+        ax3.plot(meanks, meanMadZ, 'x')
+        ax3.set_xlabel('Number of Clusters')
+        ax3.set_ylabel('Mean MAD of SNII MF in Each Cluster')
+        ax3.set_xlim([0,maxClusterNum+1])
+        
+        fig.tight_layout()
+        fig.savefig('{0:s}_numClusterEffect_mad.png'.format(ion), bbox_inches='tight')
+        plt.cla()
+        plt.clf()   
+        plt.close('all')
         
 
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12,4))
-    ax1.plot(ks, tempMad, 'x')
-    ax1.set_xlabel('Number of Clusters')
-    ax1.set_ylabel('MAD of Temp in Each Cluster')
-    ax1.set_xlim([0,maxClusterNum+1])
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12,4))
+        ax1.plot(meanks, meanStdT, 'x')
+        ax1.set_xlabel('Number of Clusters')
+        ax1.set_ylabel('Mean Std of Temp in Each Cluster')
+        ax1.set_xlim([0,maxClusterNum+1])
 
-    ax2.plot(ks, denseMad, 'x')
-    ax2.set_xlabel('Number of Clusters')
-    ax2.set_ylabel('MAD of Density in Each Cluster')
-    ax2.set_xlim([0,maxClusterNum+1])
+        ax2.plot(meanks, meanStdN, 'x')
+        ax2.set_xlabel('Number of Clusters')
+        ax2.set_ylabel('Mean Std of Density in Each Cluster')
+        ax2.set_xlim([0,maxClusterNum+1])
 
-    ax3.plot(ks, metalMad, 'x')
-    ax3.set_xlabel('Number of Clusters')
-    ax3.set_ylabel('MAD of SNII MF in Each Cluster')
-    ax3.set_xlim([0,maxClusterNum+1])
-    
-    fig.tight_layout()
-    fig.savefig('{0:s}_cloud_props_mad.png'.format(ion), bbox_inches='tight')
-    plt.cla()
-    plt.clf()   
-    plt.close('all')
-
-
-    
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12,4))
-    ax1.plot(meanks, meanMadT, 'x')
-    ax1.set_xlabel('Number of Clusters')
-    ax1.set_ylabel('Mean MAD of Temp in Each Cluster')
-    ax1.set_xlim([0,maxClusterNum+1])
-
-    ax2.plot(meanks, meanMadN, 'x')
-    ax2.set_xlabel('Number of Clusters')
-    ax2.set_ylabel('Mean MAD of Density in Each Cluster')
-    ax2.set_xlim([0,maxClusterNum+1])
-
-    ax3.plot(meanks, meanMadZ, 'x')
-    ax3.set_xlabel('Number of Clusters')
-    ax3.set_ylabel('Mean MAD of SNII MF in Each Cluster')
-    ax3.set_xlim([0,maxClusterNum+1])
-    
-    fig.tight_layout()
-    fig.savefig('{0:s}_numClusterEffect_mad.png'.format(ion), bbox_inches='tight')
-    plt.cla()
-    plt.clf()   
-    plt.close('all')
-    
-
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12,4))
-    ax1.plot(meanks, meanStdT, 'x')
-    ax1.set_xlabel('Number of Clusters')
-    ax1.set_ylabel('Mean Std of Temp in Each Cluster')
-    ax1.set_xlim([0,maxClusterNum+1])
-
-    ax2.plot(meanks, meanStdN, 'x')
-    ax2.set_xlabel('Number of Clusters')
-    ax2.set_ylabel('Mean Std of Density in Each Cluster')
-    ax2.set_xlim([0,maxClusterNum+1])
-
-    ax3.plot(meanks, meanStdZ, 'x')
-    ax3.set_xlabel('Number of Clusters')
-    ax3.set_ylabel('Mean Std of SNII MF in Each Cluster')
-    ax3.set_xlim([0,maxClusterNum+1])
-    
-    fig.tight_layout()
-    fig.savefig('{0:s}_numClusterEffect_std.png'.format(ion), bbox_inches='tight')
-    plt.cla()
-    plt.clf()   
-    plt.close('all')
+        ax3.plot(meanks, meanStdZ, 'x')
+        ax3.set_xlabel('Number of Clusters')
+        ax3.set_ylabel('Mean Std of SNII MF in Each Cluster')
+        ax3.set_xlim([0,maxClusterNum+1])
+        
+        fig.tight_layout()
+        fig.savefig('{0:s}_numClusterEffect_std.png'.format(ion), bbox_inches='tight')
+        plt.cla()
+        plt.clf()   
+        plt.close('all')
     
     fout.close()
 

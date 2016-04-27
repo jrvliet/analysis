@@ -1,9 +1,9 @@
 
 '''
-A code to quantify the clumping of absorbing cells in spatial location, 
-density, temperature, and metallicity
-Makes files called std<property>.dat
+A code to quantify the clumpin gof absorbing cells
+based on their spatial location
 '''
+
 import matplotlib.pyplot as plt
 import numpy as np
 from math import sqrt
@@ -12,38 +12,97 @@ from jenks import jenks
 import subprocess as sp
 import json
 import sys
+import scipy.cluster.hierarchy as sh
+import scipy.spatial.distance as sd
+import time
 
-def get_delta_s(xen, yen, zen, xex, yex, zex, x, y, z):
-    
+
+
+def num_clusters(z):
+
+    last = z[-10:,2]
+    acceleration = np.diff(last, 2)  # 2nd derivative of the distances
+    acceleration_rev = acceleration[::-1]
+    k = acceleration_rev.argmax() + 2 
+
+    return k
+
+def mad(x):
     '''
-    Returns the distance the point given by (x,y,z) is from
-    (xen, yen, zen) along the LOS defined by the starting
-    and ending points
-    '''
-    
-    # Length of LOS
-    l = sqrt( (xen-xex)**2 + (yen-yex)**2 + (zen-zex)**2 )
-
-    # Distance from entry point to cell
-    s = sqrt( (xen-x)**2 + (yen-y)**2 + (zen-z)**2 )
-
-    return s, l
-
-def proper_stat(d):
-    '''
-    Returns the proper statistic to use for the variable
-    Use this funciton to eliminate possible typos and allow for
-    easy testing
-
-    Current stat:
-        coefficient of variation = std/mean
+    Computes the Mean Absolute Deviation of the sample
+    Defined as:
+        mad = median( |x - median(x)| )
     '''
     
-    return np.std(d)/np.mean(d)    
+    # Find the median of the sample
+    med = np.median(x)
+    
+    # Get the absolute deviation
+    dev = [abs(i-med) for i in x]
+    
+    # Compute the MAD
+    val = np.median(dev)
+    return val
+
+def cov(x):
+    '''
+    Computes the coefficient of variation of the sample
+    Defined as:
+        cov = std(x)/mean(x)
+    '''
+    stdev = np.std(x)
+    mean = np.mean(x)
+    if stdev<0 or mean<0:
+        print stdev, mean, min(x), max(x)
+    coeff = np.std(x)/np.mean(x)
+    return coeff
+
+def group_radius(gx,gy,gz):
+    '''
+    Computes the radius of the group based on the
+    x,y,z coordinates of the group members
+    
+    Represent the cluster as a sphere
+    Diameter is mean of the largest distance between
+    member points along each axis
+    '''
+
+    longestX = max(gx) - min(gx)
+    longestY = max(gy) - min(gy)
+    longestZ = max(gz) - min(gz)
+    
+    diameter = (longestX + longestY + longestZ) / 3.0
+
+    return diameter / 2.0
+
+def fancy_dendrogram(*args, **kwargs):
+    max_d = kwargs.pop('max_d', None)
+    if max_d and 'color_threshold' not in kwargs:
+        kwargs['color_threshold'] = max_d
+    annotate_above = kwargs.pop('annotate_above', 0)
+
+    ddata = sh.dendrogram(*args, **kwargs)
+
+    if not kwargs.get('no_plot', False):
+        plt.title('Hierarchical Clustering Dendrogram (truncated)')
+        plt.xlabel('sample index or (cluster size)')
+        plt.ylabel('distance')
+        for i, d, c in zip(ddata['icoord'], ddata['dcoord'], ddata['color_list']):
+            x = 0.5 * sum(i[1:3])
+            y = d[1]
+            if y > annotate_above:
+                plt.plot(x, y, 'o', c=c)
+                plt.annotate("%.3g" % y, (x, y), xytext=(0, -5),
+                             textcoords='offset points',
+                             va='top', ha='center')
+        if max_d:
+            plt.axhline(y=max_d, c='k')
+    return ddata
 
 
-testLoc = '/home/hyades/jrvander/exampleData/'
-baseLoc = '/home/matrix3/jrvander/sebass_gals/dwarfs/'
+
+
+
 absLoc = '/home/jacob/research/dwarfs/abscells/individual/'
 gasLoc = '/home/jacob/research/dwarfs/gasfiles/'
 linesLoc = '/home/jacob/research/dwarfs/lines/'
@@ -60,151 +119,111 @@ expn2 = ['1.001']
 expn3 = ['1.000']
 expns = [expn1, expn2, expn3]
 
-expn = '0.510'
-inc = '10'
 
-numbins = 20
-
-# Intiialize arrays    
-stddevs = []
-stddevs.append(ions)
-for ion in ions:
-    stddevs.append([])
-
-spreads = []
-spreads.append(ions)
-for ion in ions:
-    spreads.append([])
-
-stdTemps = []
-stdTemps.append(ions)
-for ion in ions:
-    stdTemps.append([])
-
-stdDense = []
-stdDense.append(ions)
-for ion in ions:
-    stdDense.append([])
-
-stdMetal = []
-stdMetal.append(ions)
-for ion in ions:
-    stdMetal.append([])
-
+# Loop over galID
 for galID, expn in zip(galIDs, expns):
-    print ''
-    print galID    
 
+    print galID
+    
+    # Loop over ions
     for ionnum, ion in enumerate(ions):
-        
+
+        # Open the files that contain the list of all abs_cells files
         listfile = '{0:s}/{1:s}.{2:s}.list'.format(absLoc,galID,ion)
-        listf = open(listfile, 'r')
+        
+        with open(listfile, 'r') as listf:
+    
+            for line in listf:
 
-        header = ('{0:s}\t{1:s}\t{2:s}\t{3:s}\t{4:s}\t{5:s}\t'
-                  '{6:s}\t{7:s}\t{8:s}\t{9:s}\t{10:s}\n')
-        header = header.format('Expn','Min LOS length', 'Max LOS length', 
-            'Mean LOS length', 'Min Dist', 'Max Dist', 'Min Spread', 
-            'Max Spread', 'Mean Spread', 'Median Spread', 'Std Dev Spread')
+                # Open each abs_cell file and read it in
+                absfile = line.strip()
+                abssplit = absfile.split('.')
+                a = '{0:s}.{1:s}'.format(abssplit[1],abssplit[2])
+                gasfile = '{0:s}/{1:s}_GZa{2:s}.{3:s}.txt'.format(gasLoc,galID,a,ion)
+                linesfile = '{0:s}/{1:s}_{2:s}_lines.dat'.format(linesLoc,galID,a)
+    
+                # Read in the absorbing cells
+                try: 
+                    abscells = np.loadtxt(absLoc+absfile, skiprows=1, usecols=(2,), unpack=True)
+                except ValueError:
+                    continue
+    
+                # Read in the gas file
+                try:
+                    xLoc, yLoc, zLoc, density, temperature, snII = np.loadtxt(gasfile,
+                            skiprows=2, usecols=(1,2,3,7,8,9), unpack=True)
+                except ValueError:
+                    continue
 
-        sFormat = ('{0:s}\t{1:.6f}\t{2:.6f}\t{3:.6f}\t{4:.6f}\t{5:.6f}\t'
-                   '{6:.6f}\t{7:.6f}\t{8:.6f}\t{9:.6f}\t{10:.6f}\n')
+                numCells = len(xLoc)
+                numSubset = int(numCells/100.0)
 
-        print '\t\t',ion
+                print 'Number of Cells = {0:d}\tnumSubset = {1:d}'.format(numCells, numSubset)
 
-        for line in listf:
-
-            # Define files
-            absfile = absLoc + line.strip()
-            abssplit = absfile.split('.')
-            a = '{0:s}.{1:s}'.format(abssplit[1],abssplit[2])
-            gasfile = '{0:s}/{1:s}_GZa{2:s}.{3:s}.txt'.format(gasLoc,galID,a,ion)
-            linesfile = '{0:s}/{1:s}_{2:s}_lines.dat'.format(linesLoc,galID,a)
-            metalabsfile = '{0:s}/{1:s}_{2:s}_metalSelectedLOS.dat'.format(linesLoc,galID,a)
-
-            # Read in the absorbing cells
-            try:
-                losnum, abscells = np.loadtxt(absfile, skiprows=1, 
-                                          usecols=(0,2), unpack=True)
-            except ValueError:
-                continue
-
-            # Read in the gas file
-            try:
-                xLoc, yLoc, zLoc, density, temperature, alphaZ = np.loadtxt(gasfile,
-                                                             skiprows=2, 
-                                                             usecols=(1,2,3,7,8,9),    
-                                                         unpack=True)
-            except ValueError:
-                continue
-
-            # Read in the details about the line of sight
-            xen, yen, zen, xex, yex, zex = np.loadtxt(linesfile, 
-                                skiprows=2, usecols=(0,1,2,3,4,5), unpack=True)
-
-            # Find the unique LOS numbers in abs cell file
-            uniqLOS, uniqCounts = np.unique(losnum, return_counts=True)
-
-            deviations = np.zeros(len(uniqLOS))
-
-            # Read in the LOS that have metal absoroption features detected
-            metalLOS = np.loadtxt(metalabsfile, skiprows=1, usecols=(0,), unpack=True)
-
-            # Get the distance along the LOS for each cell
-            for i, los in enumerate(uniqLOS):
-                if los in metalLOS:
-                    ind = int(los)-1
-
-                    s, l = [], []
-                    ts, ns, zs = [], [], [],
-                    for j in range(len(abscells)):
-                        if losnum[j]==los: 
-                            cellid = int(abscells[j])
-                            # Get the cell properties
-                            x = xLoc[cellid-1]
-                            y = yLoc[cellid-1]
-                            z = zLoc[cellid-1]
-                            ts.append(temperature[cellid-1])
-                            ns.append(density[cellid-1])
-                            zs.append(alphaZ[cellid-1])
-                    
-                            # Get the distance from the LOS entry point
-                            # to this cell
-                            dist, leng = get_delta_s(xen[ind], yen[ind], zen[ind], 
-                                            xex[ind], yex[ind], zex[ind], 
-                                            x, y, z) 
-                            s.append(dist)
-                            l.append(leng)
+                # Select a number of random cells equal to the numSubset from the
+                # the absorbing cells
+                subsetLoc = np.zeros((numSubset, 3))
+                subsetProp = np.zeros((numSubset, 3))
                 
+                for i in range(numSubset):
+                    index = np.random.randint(0,numCells)
+                    subsetLoc[i, 0] = xLoc[index]
+                    subsetLoc[i, 1] = yLoc[index]
+                    subsetLoc[i, 2] = zLoc[index]
+    
+                    subsetProp[i, 0] = density[index]
+                    subsetProp[i, 1] = temperature[index]
+                    subsetProp[i, 2] = snII[index]
+                    
 
-                    # Get the standard deviation of this distribution
-                    stddevs[ionnum+1].append(np.std(s))
-                    spreads[ionnum+1].append(max(s)-min(s))
+                # Genearate the linkage matrix
+                # Use the Ward variance minimization algorithm
+                time1 = time.time()
+                z = sh.linkage(subsetLoc, 'ward')
+                time2 = time.time()
+                print 'Duration of linkage = {0:f} seconds'.format(time2-time1)
 
-                    # Use the proper stat for this variables
-                    # due to their very large dynamic range
-                    stdTemps[ionnum+1].append(proper_stat(ts))
-                    stdDense[ionnum+1].append(proper_stat(ns))
-                    stdMetal[ionnum+1].append(proper_stat(zs))
- 
-stdfile = 'stdLocation.dat'
-with open(stdfile, 'w') as f:
-    json.dump(stddevs, f)
+                # Determine how well the clustering preserves the
+                # original distance
+                c, coph_dist = sh.cophenet(z, sd.pdist(subsetLoc))
+                print c
 
-spreadfile = 'spreads.dat'
-with open(spreadfile, 'w') as f:
-    json.dump(spreads, f)
 
-tempfile = 'stdTemperatures.dat'
-with open(tempfile, 'w') as f:
-    json.dump(stdTemps, f)
+                # Create the fancy dendrogram and save
+                fancy_dendrogram(z, truncate_mode='lastp', p=12,
+                                leaf_rotation=90, leaf_font_size=12,
+                                show_contracted=True, annotate_above=10)
 
-tempfile = 'stdDensities.dat'
-with open(tempfile, 'w') as f:
-    json.dump(stdDense, f)
+                figname = '{0:s}_{1:s}_{2:s}_abscells_dendrogram.png'.format(ion,galID,expn)
+                plt.savefig(figname, bbox_inches='tight')
+                plt.cla()
+                plt.clf()
 
-tempfile = 'stdMetals.dat'
-with open(tempfile, 'w') as f:
-    json.dump(stdMetal, f)
+                k = num_clusters(z)
+                print 'Number of clusters = {0:d}'.format(k)
+
+
+
+                sys.exit()
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

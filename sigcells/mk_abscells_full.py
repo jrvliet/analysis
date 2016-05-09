@@ -51,9 +51,10 @@ for ion in ions:
 
             # If a is a different one from before, read in a new gas box
             if a!=prevA:
+                print 'New expansion factor: {0:s} -> {1:s}'.format(prevA, a)
                 gasfile = '{0:s}/{1:s}_GZa{2:s}.{3:s}.txt'.format(gasLoc,galID,a,ion)
                 gas = np.loadtxt(gasfile,skiprows=2)
-                prevA==a
+                prevA = a
 
             index = int(cellnum-1)
             x = gas[index,1]

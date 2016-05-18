@@ -13,9 +13,14 @@ def calc_pa(phi):
     '''
     Calculates the position angle for the LOS
     '''
-    rot = math.floor(phi / 90)
-    pa = phi - 90*rot
-    return pa
+    if phi<=90:
+        return phi
+    elif phi>90 and phi<=180:
+        return 180.0 - phi
+    elif phi>180 and phi<=270:
+        return phi - 180.0
+    else:
+        return 350.0 - phi
 
 def gmean(vals):
     '''

@@ -9,11 +9,26 @@ from mpl_toolkits.axisartist.grid_finder import MaxNLocator
 
 # define how your plots look:
 
-def setup_axes(fig, rect, theta, radius):
+def setup_axes(fig, rect, theta, radius, quad):
+
+
+    # quad controls the quadrant of the plot and controls the orientation 
+    # of the plot where quad=1 is upper left, 2 is upper right, 3 is 
+    # lower left, 4 is lower right   
+    if quad==1:
+        tr_rotate = Affine2D().translate(np.pi/2.0, 0)
+    elif quad==2:
+        tr_rotate = Affine2D().translate(0, 0)
+    elif quad==3:
+        tr_rotate = Affine2D().translate(np.pi, 0)
+    else:
+        tr_rotate = Affine2D().translate(3.0*np.pi/2.0, 0)
+        
+    tr_scale = Affine2D().scale(np.pi/180., 1.) 
 
     # PolarAxes.PolarTransform takes radian. However, we want our coordinate
     # system in degree
-    tr = Affine2D().scale(np.pi/180., 1.) + PolarAxes.PolarTransform()
+    tr = tr_scale + tr_rotate + PolarAxes.PolarTransform()
 
     # Find grid values appropriate for the coordinate (degree).
     # The argument is an approximate number of grids.
@@ -52,7 +67,8 @@ def setup_axes(fig, rect, theta, radius):
     ax1.axis["top"].label.set_axis_direction("top")
 
     ax1.axis["left"].label.set_text("$D$ (kpc)")
-    ax1.axis["top"].label.set_text(ur"Azimuthal Angle, $\Phi$")
+    ax1.axis["right"].label.set_text("$D$ (kpc) right")
+    ax1.axis["top"].label.set_text(ur"$\Phi$")
 
     ax1.grid(True)
     
@@ -76,13 +92,23 @@ To plot:
 
 """
 
+pa, d, vrange = [], [], []
+for i in range(20):
+    pa.append(np.random.random()*90.0)
+    d.append(np.random.random()*200.0)
+    vrange.append(np.random.random()*25.0)
+
 fig = figure(1,figsize=(9,4))
 
-ax1, aux_ax1 = setup_axes(fig,111,theta=[0.0,90.0],radius=[0,210])
+ax1, aux_ax1 = setup_axes(fig,121,theta=[0.0,90.0],radius=[0,210], quad=1)
+ax2, aux_ax2 = setup_axes(fig,122,theta=[0.0,90.0],radius=[0,210], quad=2)
 
-aux_ax1.scatter(pa,D,s=vrange,marker='o',zorder=30,c='#602C6E',
+aux_ax1.scatter(pa,d,s=vrange,marker='o',zorder=30,c='#602C6E',
+                linewidth=0,alpha=0.9)
+aux_ax2.scatter(pa,d,s=vrange,marker='o',zorder=30,c='#602C6E',
                 linewidth=0,alpha=0.9)
 
+fig.savefig('polartest.pdf', bbox_inches='tight')
 """
 
 Simple! Hah.

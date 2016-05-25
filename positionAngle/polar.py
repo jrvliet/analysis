@@ -61,14 +61,31 @@ def setup_axes(fig, rect, theta, radius, quad):
     ax1.axis["right"].set_axis_direction("top")
 
     ax1.axis["bottom"].set_visible(False)
+
     ax1.axis["top"].set_axis_direction("bottom")
     ax1.axis["top"].toggle(ticklabels=True, label=True)
     ax1.axis["top"].major_ticklabels.set_axis_direction("top")
     ax1.axis["top"].label.set_axis_direction("top")
-
-    ax1.axis["left"].label.set_text("$D$ (kpc)")
-    ax1.axis["right"].label.set_text("$D$ (kpc) right")
     ax1.axis["top"].label.set_text(ur"$\Phi$")
+
+    # Set the axis labels based on the quadrant
+    if quad==1:
+        axisdir = 'top'
+        ax1.axis["right"].set_visible(True)
+        ax1.axis["right"].toggle(ticklabels=True, label=True)
+        #ax1.axis["right"].major_ticklabels.set_axis_direction('bottom')
+        #ax1.axis["right"].set_axis_direction('top')
+        #ax1.axis["right"].set_ticklabel_direction('-')
+        ax1.axis["right"].label.set_rotation(180)
+        ax1.axis["right"].label.set_text("$D$ (kpc)")
+    if quad==2: 
+        ax1.axis["left"].set_visible(True)
+        ax1.axis["left"].toggle(ticklabels=True, label=True)
+        ax1.axis["left"].major_ticklabels.set_axis_direction("bottom")
+        ax1.axis["left"].set_axis_direction("bottom")
+        ax1.axis["left"].label.set_text("$D$ (kpc)")
+
+
 
     ax1.grid(True)
     

@@ -42,8 +42,10 @@ def setup_axes(fig, rect, theta, radius, quad):
     grid_locator1 = MaxNLocator(6)
 
     # the extremes are passed to the function
+    thetaMin = 0
+    thetaMax = 90
     grid_helper = floating_axes.GridHelperCurveLinear(tr,
-                                extremes=(theta[0], theta[1], radius[0],
+                                extremes=(thetaMin, thetaMax, radius[0],
                                           radius[1]),
                                 grid_locator1=grid_locator1,
                                 grid_locator2=grid_locator2,
@@ -54,6 +56,8 @@ def setup_axes(fig, rect, theta, radius, quad):
     ax1 = floating_axes.FloatingSubplot(fig, rect, grid_helper=grid_helper)
     fig.add_subplot(ax1)
 
+    print ax1.get_xlim()
+    print ax1.get_ylim()
     # adjust axis
     # the axis artist lets you call axis with
     # "bottom", "top", "left", "right"
@@ -70,20 +74,69 @@ def setup_axes(fig, rect, theta, radius, quad):
 
     # Set the axis labels based on the quadrant
     if quad==1:
-        axisdir = 'top'
+    
+        # Set visibilities
         ax1.axis["right"].set_visible(True)
+        ax1.axis["left"].set_visible(True)
         ax1.axis["right"].toggle(ticklabels=True, label=True)
-        #ax1.axis["right"].major_ticklabels.set_axis_direction('bottom')
+        ax1.axis["left"].toggle(ticklabels=False, label=False)
+
+        # Tick Labels
+        #ax1.axis["right"].major_ticks.set_axis_direction('right')
+        ax1.axis["right"].major_ticklabels.set_axis_direction('bottom')
+        #ax1.axis["right"].major_ticklabels.set_pad(-20)
         #ax1.axis["right"].set_axis_direction('top')
-        #ax1.axis["right"].set_ticklabel_direction('-')
-        ax1.axis["right"].label.set_rotation(180)
+        #ax1.axis["right"].set_ticklabel_direction('+')
+        
+        # Axis labels
+        ax1.axis["right"].label.set_rotation(0)
         ax1.axis["right"].label.set_text("$D$ (kpc)")
-    if quad==2: 
+        ax1.axis["right"].label.set_pad(20)
+
+    elif quad==2: 
         ax1.axis["left"].set_visible(True)
         ax1.axis["left"].toggle(ticklabels=True, label=True)
         ax1.axis["left"].major_ticklabels.set_axis_direction("bottom")
         ax1.axis["left"].set_axis_direction("bottom")
         ax1.axis["left"].label.set_text("$D$ (kpc)")
+
+    elif quad==3:
+        # Set visibilities
+        ax1.axis["right"].set_visible(True)
+        ax1.axis["left"].set_visible(True)
+        ax1.axis["right"].toggle(ticklabels=False, label=False)
+        ax1.axis["left"].toggle(ticklabels=True, label=True)
+
+        # Tick Labels
+        #ax1.axis["right"].major_ticks.set_axis_direction('right')
+        ax1.axis["left"].major_ticklabels.set_axis_direction('top')
+        #ax1.axis["right"].major_ticklabels.set_pad(-20)
+        #ax1.axis["right"].set_axis_direction('top')
+        #ax1.axis["right"].set_ticklabel_direction('+')
+        
+        # Axis labels
+        ax1.axis["left"].label.set_rotation(180)
+        ax1.axis["left"].label.set_text("$D$ (kpc)")
+        ax1.axis["left"].label.set_pad(20)
+
+    else: 
+        # Set visibilities
+        ax1.axis["right"].set_visible(True)
+        ax1.axis["left"].set_visible(True)
+        ax1.axis["right"].toggle(ticklabels=True, label=True)
+        ax1.axis["left"].toggle(ticklabels=False, label=False)
+
+        # Tick Labels
+        #ax1.axis["right"].major_ticks.set_axis_direction('right')
+        ax1.axis["right"].major_ticklabels.set_axis_direction('top')
+        #ax1.axis["right"].major_ticklabels.set_pad(-20)
+        #ax1.axis["right"].set_axis_direction('top')
+        #ax1.axis["right"].set_ticklabel_direction('+')
+        
+        # Axis labels
+        ax1.axis["right"].label.set_rotation(180)
+        ax1.axis["right"].label.set_text("$D$ (kpc)")
+        ax1.axis["right"].label.set_pad(0)
 
 
 
@@ -115,16 +168,28 @@ for i in range(20):
     d.append(np.random.random()*200.0)
     vrange.append(np.random.random()*25.0)
 
-fig = figure(1,figsize=(9,4))
+fig = figure(1,figsize=(10,10))
+fig, ((a1, a2),(a3,a4)) = subplots(2,2,figsize=(10,10))
 
-ax1, aux_ax1 = setup_axes(fig,121,theta=[0.0,90.0],radius=[0,210], quad=1)
-ax2, aux_ax2 = setup_axes(fig,122,theta=[0.0,90.0],radius=[0,210], quad=2)
+ax1, aux_ax1 = setup_axes(fig,a1,theta=[0.0,90.0],radius=[0,210], quad=1)
+ax2, aux_ax2 = setup_axes(fig,a2,theta=[0.0,90.0],radius=[0,210], quad=2)
+ax3, aux_ax3 = setup_axes(fig,a3,theta=[0.0,90.0],radius=[0,210], quad=3)
+ax4, aux_ax4 = setup_axes(fig,a4,theta=[0.0,90.0],radius=[0,210], quad=4)
+
+#ax1, aux_ax1 = setup_axes(fig,221,theta=[0.0,90.0],radius=[0,210], quad=1)
+#ax2, aux_ax2 = setup_axes(fig,222,theta=[0.0,90.0],radius=[0,210], quad=2)
+#ax3, aux_ax3 = setup_axes(fig,223,theta=[0.0,90.0],radius=[0,210], quad=3)
+#ax4, aux_ax4 = setup_axes(fig,224,theta=[0.0,90.0],radius=[0,210], quad=4)
 
 aux_ax1.scatter(pa,d,s=vrange,marker='o',zorder=30,c='#602C6E',
                 linewidth=0,alpha=0.9)
 aux_ax2.scatter(pa,d,s=vrange,marker='o',zorder=30,c='#602C6E',
                 linewidth=0,alpha=0.9)
-
+aux_ax3.scatter(pa,d,s=vrange,marker='o',zorder=30,c='#602C6E',
+                linewidth=0,alpha=0.9)
+aux_ax4.scatter(pa,d,s=vrange,marker='o',zorder=30,c='#602C6E',
+                linewidth=0,alpha=0.9)
+#fig.subplots_adjust(wspace=-.5)
 fig.savefig('polartest.pdf', bbox_inches='tight')
 """
 

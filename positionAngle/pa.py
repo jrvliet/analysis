@@ -115,8 +115,6 @@ for ion, ax1, ax2, ax3, ax4 in zip(ions,axes1,axes2,axes3,axes4):
             statistic='mean', bins=50)
     whereNans = np.isnan(bin_means)
     bin_means[whereNans] = 0.0
-    print ew.min(), ew.max()
-    print bin_means.min(), bin_means.max()
     bin_means = np.ma.masked_where(bin_means==0, bin_means)
     bin_means = np.log10(bin_means)
     mesh = ax4.pcolormesh(x_edges, y_edges, bin_means)

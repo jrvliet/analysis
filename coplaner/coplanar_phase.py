@@ -125,7 +125,7 @@ for ion, axrow in zip(ions, axes):
 
 
 fig.tight_layout()
-s = 'phase_planer_test.pdf'
+s = 'vela2b-28_a0.490_i90_EWcut100mA.pdf'
 plt.savefig(s, bbox_inches='tight')
 
 

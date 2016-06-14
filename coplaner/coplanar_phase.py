@@ -139,7 +139,7 @@ for ion, axrow in zip(ions, axes):
     label = '{0:s} Within {1:d} deg of Minor Axis'.format(ion, 90-perpCut)
     plot_hist(perpDense, perpTemp, numbins, binrange, axrow[2], label)
 
-    label = '{0:s} All'.format(ion, 90-perpCut)
+    label = '{0:s} All'.format(ion)
     plot_hist(dense, temp, numbins, binrange, axrow[3], label)
 
 

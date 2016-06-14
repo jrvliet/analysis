@@ -44,7 +44,7 @@ incline = 90
 ions = ['HI', 'MgII', 'CIV', 'OVI']
 
 absfileBase = 'vela2b-{0:d}.{1:s}.{2:s}.i{3:d}.abs_cells.h5'
-sysabsfileBase = 'vela2b-{0:d}.{1:s}.a{2:s}.ALL.sysabs.h5'
+sysabsfileBase = 'vela2b-{0:d}.{1:s}.a{2:s}.i{3:d}.ALL.sysabs.h5'
 stat = 'mean' 
 statname = 'mean'
 
@@ -59,7 +59,7 @@ for galNum in halo_list:
         
         loc = '{0:s}/vela{1:d}/a{2:s}/i{3:d}/{4:s}/'.format(location,galNum,expn,incline,ion)
         absfile = absfileBase.format(galNum,expn,ion,incline)
-        sysabsfile = sysabsfileBase.format(galNum,ion,expn)
+        sysabsfile = sysabsfileBase.format(galNum,ion,expn,incline)
 
         # Get Rvir
         with open(loc+'../galaxy.props', 'r') as f:

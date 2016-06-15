@@ -81,7 +81,7 @@ fig, axes = plt.subplots(numions, 4, figsize=(12,9))
 for ion, axrow in zip(ions, axes):
     testloc = '/mnt/cluster/abs/cgm/vela2b/vela{0:d}/a{1:s}/i{2:d}/{3:s}/'.format(galID, expn, inc,ion)
     absfile = 'vela2b-{0:d}.{1:s}.{2:s}.i{3:d}.abs_cells.h5'.format(galID, expn, ion, inc)
-    sysfile = 'vela2b-{0:d}.{1:s}.a{2:s}.ALL.sysabs.h5'.format(galID,ion,expn)
+    sysfile = 'vela2b-{0:d}.{1:s}.a{2:s}.i{3:d}.ALL.sysabs.h5'.format(galID,ion,expn,inc)
     filename = '{0:s}/{1:s}'.format(testloc,absfile)
 
     # Get the virial radius

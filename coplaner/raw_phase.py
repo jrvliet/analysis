@@ -11,6 +11,7 @@ outflows = 4o kpc radius cylinder cenetered on galaxy, inf thickness
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import sys
 
 coplaneZCut = 20    # [kpc]
 outflowRCut = 40    # [kpc]
@@ -23,6 +24,11 @@ galID = 28
 expn = '0.490'
 gasbox = 'vela2b-{0:d}_GZa{1:s}.h5'.format(galID, expn)
 d = pd.read_hdf(gasbox, 'data')
+
+print np.log10(max(d['temperature']))
+print np.log10(min(d['temperature']))
+print np.log10(max(d['density']))
+print np.log10(min(d['density']))
 
 xbox = d['x']
 ybox = d['y']
@@ -74,24 +80,36 @@ if readin == 0:
 else:
     x, y, z = np.loadtxt('galaxy.coords', usecols=(0,1,2), unpack=True)
 
+# Original
+#planeInds = (abs(z)<coplaneZCut) & ((x**2 + y**2) > galRCut**2)
+#outflowInds =( (x**2 + y**2) < outflowRCut**2) & (abs(z)>galZCut)
+#bothInds = planeInds & outflowInds
+#voidInds = ~planeInds & ~outflowInds
+
+# New 
+planeInds = (abs(z)<coplaneZCut) & ((x**2 + y**2) > outflowRCut**2)
+outflowInds =( (x**2 + y**2) < outflowRCut**2) & (abs(z)>coplaneZCut)
+bothInds = planeInds & outflowInds
+voidInds = ~planeInds & ~outflowInds
+
 # Select the coplanar gas
 # This is defined as cells with |z| < coplaneZCut
 print 'Select coplaner gas'
-planeInds = (abs(z)<coplaneZCut) & ((x**2 + y**2) < galRCut**2)
 nPlane = dense[planeInds]
 tPlane = temp[planeInds]
 
 # Select the outflow gas
 # This is defined as cells with x**2 + y**2 < outflowRCut**2
 print 'Select outflow gas'
-outflowInds =( (x**2 + y**2) < outflowRCut**2) & (abs(z)<galZCut)
 nOutflow = dense[outflowInds]
 tOutflow = temp[outflowInds]
+
+nBoth = dense[bothInds]
+tBoth = temp[bothInds]
 
 # Select all gas cells that are not in either region
 # void = not(outflow) AND not(coplanar)
 print 'Select void gas'
-voidInds = ~planeInds & ~outflowInds
 nVoid = dense[voidInds]
 tVoid = temp[voidInds]
 
@@ -101,7 +119,7 @@ print 'In the void:    {0:d}'.format(len(nVoid))
 print 'Sum:            {0:d}'.format(len(nPlane)+len(nOutflow)+len(nVoid))
 print 'Total:          {0:d}'.format(len(dense))
 numbins = 50
-binrange = [[-9,3],[2,8]]
+binrange = [[-10,3],[2,8]]
 
 fig, axes = plt.subplots(2,4, figsize=(20,10))
 (ax1, ax2, ax3, ax4), (ax5, ax6, ax7, ax8) = axes
@@ -148,9 +166,7 @@ ax4.set_title('All Gas')
 
 # Plot Normalized coplane
 h = hPlane / hAll
-print h.min()
-print h.max()
-print np.log10(min(dense))
+h[np.isnan(h)] = 0.0
 h = np.rot90(h)
 h = np.flipud(h)
 h = np.ma.masked_where(h==0,h)
@@ -161,6 +177,7 @@ ax5.set_title('Normed Plane Gas')
 
 # Plot normalized outflows
 h = hOutflow / hAll
+h[np.isnan(h)] = 0.0
 h = np.rot90(h)
 h = np.flipud(h)
 h = np.ma.masked_where(h==0,h)
@@ -171,6 +188,7 @@ ax6.set_title('Normed Outflow Gas')
 
 # Plot normalized void
 h = hVoid / hAll
+h[np.isnan(h)] = 0.0
 h = np.rot90(h)
 h = np.flipud(h)
 h = np.ma.masked_where(h==0,h)
@@ -178,7 +196,15 @@ mesh = ax7.pcolormesh(xedges, yedges, h)
 cbar = plt.colorbar(mesh, ax=ax7, use_gridspec=True)
 ax7.set_title('Normed Void Gas')
 
-
+# Plot gas that is within both plane and outflow
+hBoth, xedges, yedges = np.histogram2d(nBoth, tBoth, bins=numbins, range=binrange)
+h = np.rot90(hBoth)
+h = np.flipud(h)
+h = np.ma.masked_where(h==0,h)
+h = np.log10(h)
+mesh = ax8.pcolormesh(xedges, yedges, h)
+cbar = plt.colorbar(mesh, ax=ax8, use_gridspec=True)
+ax8.set_title('Outflow and Plane Gas')
 
 
 for axs in axes:

@@ -76,6 +76,13 @@ d = pd.read_hdf(gasbox, 'data')
 ions = ['MgII', 'CIV', 'OVI']
 absfile = './i{0:d}/{1:s}/vela2b-{2:d}.{3:s}.{1:s}.abs_cells.h5'
 
+# Read in ion absorbing cells
+dIon = []
+for ion in ions:
+    absfilename = absfile.format(inc,ion,galID,expn)
+    dIon.append( pd.read_hdf(absfilename, 'data') )
+
+
 xbox = d['x']
 ybox = d['y']
 zbox = d['z']
@@ -138,15 +145,29 @@ fig, axes = plt.subplots(4,4, figsize=(16,16))
 
 axs = axes[0]    
 
-    # Plot all gas in the box
-    planeInds, outflowInds, voidInds = select_regions(x, y, z, aOutflow, aPlane, rmin, rmax) 
-    allInds = np.array( [True for i in range(len(x))] )
-    plot_hist( dense, temp, planeInds, axs[0], 'All Coplanar Gas') 
-    plot_hist( dense, temp, outflowInds, axs[1], 'All Outflow Gas') 
-    plot_hist( dense, temp, voidInds, axs[2], 'All Void Gas') 
-    plot_hist( dense, temp, allInds, axs[3], 'All Gas') 
+# Plot all gas in the box
+planeInds, outflowInds, voidInds = select_regions(x, y, z, aOutflow, aPlane, rmin, rmax) 
+allInds = np.array( [True for i in range(len(x))] )
+plot_hist( dense, temp, planeInds, axs[0], 'All Coplanar Gas') 
+plot_hist( dense, temp, outflowInds, axs[1], 'All Outflow Gas') 
+plot_hist( dense, temp, voidInds, axs[2], 'All Void Gas') 
+plot_hist( dense, temp, allInds, axs[3], 'All Gas') 
+
+axs = axes[1:]
+for i in range(len(ions)):
+
+    ion = ions[i]
+    
+    # Plot the MgII absorbing gas
+    d = dIon[i]
+    xbox = d['x']
+    ybox = d['y']
+    zbox = d['z']
+    # Convert to gal frame
+planeInds, outflowInds, voidInds = select_abs_regions(x, y, z, aOutflow, aPlane, rmin, rmax) 
     
     
+
 plot_hist( dense, temp, ind, ax, title ):
 # Plot coplanar gas
 hPlane, xedges, yedges = np.histogram2d(nPlane, tPlane, bins=numbins, range=binrange)

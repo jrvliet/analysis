@@ -53,6 +53,23 @@ def plot_hist( dense, temp, ind, ax, title ):
     cbar = plt.colorbar(mesh, ax=ax, use_gridspec=True)
     ax.set_title(title)
 
+    ax.set_xlim(binrange[0])
+    ax.set_ylim(binrange[1])
+    ax.set_xlabel('log nH')
+    ax.set_ylabel('log T')
+
+def convert_frame(xAll, yAll, zAll, cellIDs):
+    
+    x, y, z = [], [], []
+    for cell in cellIDs:
+        
+        index = cell-1
+        x.append(xAll[index])
+        y.append(yAll[index])
+        z.append(zAll[index])
+
+    return x, y, z
+
 
 
 coplaneZCut = 20    # [kpc]
@@ -132,7 +149,7 @@ if readin == 0:
     y = np.array(ygal)
     z = np.array(zgal)
 else:
-    x, y, z = np.loadtxt('galaxy.coords', usecols=(0,1,2), unpack=True)
+    xAll, yAll, zAll = np.loadtxt('galaxy.coords', usecols=(0,1,2), unpack=True)
 
 
 
@@ -141,12 +158,10 @@ rmin = 0.2*rvir
 rmax = 0.75*rvir
 
 fig, axes = plt.subplots(4,4, figsize=(16,16))
-
-
 axs = axes[0]    
 
 # Plot all gas in the box
-planeInds, outflowInds, voidInds = select_regions(x, y, z, aOutflow, aPlane, rmin, rmax) 
+planeInds, outflowInds, voidInds = select_regions(xAll, yAll, zAll, aOutflow, aPlane, rmin, rmax) 
 allInds = np.array( [True for i in range(len(x))] )
 plot_hist( dense, temp, planeInds, axs[0], 'All Coplanar Gas') 
 plot_hist( dense, temp, outflowInds, axs[1], 'All Outflow Gas') 
@@ -154,7 +169,7 @@ plot_hist( dense, temp, voidInds, axs[2], 'All Void Gas')
 plot_hist( dense, temp, allInds, axs[3], 'All Gas') 
 
 axs = axes[1:]
-for i in range(len(ions)):
+for i,ion in enumerate(ions):
 
     ion = ions[i]
     
@@ -163,10 +178,26 @@ for i in range(len(ions)):
     xbox = d['x']
     ybox = d['y']
     zbox = d['z']
-    # Convert to gal frame
-planeInds, outflowInds, voidInds = select_abs_regions(x, y, z, aOutflow, aPlane, rmin, rmax) 
+    dense = d['log_nH']
+    temp = d['log_T']
+    cellIDs = d['cellID']
+
+    # Get the coordinates of the absorbing cells in the galaxy frame
+    x, y, z = convert_frame(xAll, yAll, zAll, cellIDs)
+    planeInds, outflowInds, voidInds = select_abs_regions(x, y, z, aOutflow, aPlane, rmin, rmax) 
     
+    plot_hist( dense, temp, planeInds, axs[i][0], '{0:s} Coplanar Gas'.format(ion)) 
+    plot_hist( dense, temp, outflowInds, axs[i][1], '{0:s} Outflow Gas'.format(ion))  
+    plot_hist( dense, temp, voidInds, axs[i][2], '{0:s} Void Gas'.format(ion))  
+    plot_hist( dense, temp, allInds, axs[i][3], '{0:s} All Gas'.format(ion))  
     
+
+
+plt.tight_layout()
+s = 'inflow_outflow_phase.png'
+plt.savefig(s, dpi=300, bbox_inches='tight')
+
+sys.exit()    
 
 plot_hist( dense, temp, ind, ax, title ):
 # Plot coplanar gas
@@ -255,15 +286,7 @@ ax8.set_title('Outflow and Plane Gas')
 for axs in axes:
 
     for ax in axs:
-        ax.set_xlim(binrange[0])
-        ax.set_ylim(binrange[1])
-        ax.set_xlabel('log nH')
-        ax.set_ylabel('log T')
 
 
-
-plt.tight_layout()
-s = 'inflow_outflow_phase.png'
-plt.savefig(s, dpi=300, bbox_inches='tight')
 
 

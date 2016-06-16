@@ -130,11 +130,21 @@ else:
 
 
 
-planeInds, outflowInds, voidInds = select_regions(x, y, z, aOutflow, aPlane, rmin, rmax) 
+rmin = 0.2*rvir
+rmax = 0.75*rvir
 
 fig, axes = plt.subplots(4,4, figsize=(16,16))
 
-for ax in axes[0]:
+
+axs = axes[0]    
+
+    # Plot all gas in the box
+    planeInds, outflowInds, voidInds = select_regions(x, y, z, aOutflow, aPlane, rmin, rmax) 
+    allInds = np.array( [True for i in range(len(x))] )
+    plot_hist( dense, temp, planeInds, axs[0], 'All Coplanar Gas') 
+    plot_hist( dense, temp, outflowInds, axs[1], 'All Outflow Gas') 
+    plot_hist( dense, temp, voidInds, axs[2], 'All Void Gas') 
+    plot_hist( dense, temp, allInds, axs[3], 'All Gas') 
     
     
 plot_hist( dense, temp, ind, ax, title ):

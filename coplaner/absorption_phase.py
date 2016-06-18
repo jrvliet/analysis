@@ -98,7 +98,7 @@ inc = 90
 
 
 for galID in galIDs:
-    print '\nGalaxy = vela2b-{{0:d}'.format(galID)
+    print '\nGalaxy = vela2b-{0:d}'.format(galID)
     loc = './vela{0:d}/a{1:s}/'.format(galID,expn)
     gasbox = 'vela2b-{0:d}_GZa{1:s}.h5'.format(galID, expn)
     d = pd.read_hdf(loc+gasbox, 'data')

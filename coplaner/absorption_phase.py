@@ -18,7 +18,6 @@ def select_regions(x, y, z, aOutflow, aPlane, rmin, rmax):
 
     # To be in the plane, cell must not be in the cone with 
     # theta = arctan(aPlane)
-    print type(x), type(y), type(z), type(rmin)
     planeInds = ( ((x**2+y**2)/aPlane > z**2) & ((x**2 + y**2 + z**2) > rmin**2) & ((x**2 + y**2 + z**2) < rmax**2) )
 
     # To be in the in outflows, cell must be in the cone with
@@ -34,12 +33,17 @@ def select_regions(x, y, z, aOutflow, aPlane, rmin, rmax):
                     ((x**2 + y**2 + z**2) > rmin**2) &
                     ((x**2 + y**2 + z**2) < rmax**2) )
 
-    return planeInds, outflowInds, voidInds
+
+    # To be in the all region, just need to be between rmin and rmax
+    allInds = ( ((x**2 + y**2 + z**2) > rmin**2) &
+                ((x**2 + y**2 + z**2) < rmax**2) )
+
+    return planeInds, outflowInds, voidInds, allInds
 
 
 def plot_hist( dense, temp, ind, ax, title ):
     
-    print title
+    print '\t'+title
     numbins = 50
     binrange = [[-10,3],[2,8]]
 
@@ -94,6 +98,7 @@ inc = 90
 
 
 for galID in galIDs:
+    print '\nGalaxy = vela2b-{{0:d}'.format(galID)
     loc = './vela{0:d}/a{1:s}/'.format(galID,expn)
     gasbox = 'vela2b-{0:d}_GZa{1:s}.h5'.format(galID, expn)
     d = pd.read_hdf(loc+gasbox, 'data')
@@ -166,8 +171,7 @@ for galID in galIDs:
     axs = axes[0]    
 
     # Plot all gas in the box
-    planeInds, outflowInds, voidInds = select_regions(xAll, yAll, zAll, aOutflow, aPlane, rmin, rmax) 
-    allInds = np.array( [True for i in range(len(xAll))] )
+    planeInds, outflowInds, voidInds, allInds = select_regions(xAll, yAll, zAll, aOutflow, aPlane, rmin, rmax) 
     plot_hist( dense, temp, planeInds, axs[0], 'All Coplanar Gas') 
     plot_hist( dense, temp, outflowInds, axs[1], 'All Outflow Gas') 
     plot_hist( dense, temp, voidInds, axs[2], 'All Void Gas') 
@@ -192,8 +196,7 @@ for galID in galIDs:
         allInds = np.array( [True for j in range(len(x))] )
 
         # Might be wrong....
-        planeInds, outflowInds, voidInds = select_regions(x, y, z, aOutflow, aPlane, rmin, rmax) 
-
+        planeInds, outflowInds, voidInds, allInds = select_regions(x, y, z, aOutflow, aPlane, rmin, rmax) 
         
         plot_hist( dense, temp, planeInds, axs[i][0], '{0:s} Coplanar Gas'.format(ion)) 
         plot_hist( dense, temp, outflowInds, axs[i][1], '{0:s} Outflow Gas'.format(ion))  

@@ -11,33 +11,35 @@ outflows = 4o kpc radius cylinder cenetered on galaxy, inf thickness
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import os
 import sys
 
 def select_regions(x, y, z, aOutflow, aPlane, rmin, rmax): 
 
     # To be in the plane, cell must not be in the cone with 
     # theta = arctan(aPlane)
-    planeInds = ( (x**2+y**2)/aPlane > z**2 &
-                  (x**2 + y**2 + z**2) > rmin &
-                  (x**2 + y**2 + z**2) < rmax )
+    print type(x), type(y), type(z), type(rmin)
+    planeInds = ( ((x**2+y**2)/aPlane > z**2) & ((x**2 + y**2 + z**2) > rmin**2) & ((x**2 + y**2 + z**2) < rmax**2) )
 
     # To be in the in outflows, cell must be in the cone with
     # theta = arctan(aOutflow)
-    outflowInds = ( (x**2+y**2)/aOutflow < z**2 &
-                    (x**2 + y**2 + z**2) > rmin &
-                    (x**2 + y**2 + z**2) < rmax )
+    outflowInds = ( ((x**2+y**2)/aOutflow < z**2) &
+                    ((x**2 + y**2 + z**2) > rmin**2) &
+                    ((x**2 + y**2 + z**2) < rmax**2) )
 
 
     # To be in the void, cell must be in the plane cone and
     # not in the outflow cone
     voidInds = ( ~planeInds & ~outflowInds &
-                    (x**2 + y**2 + z**2) > rmin &
-                    (x**2 + y**2 + z**2) < rmax )
+                    ((x**2 + y**2 + z**2) > rmin**2) &
+                    ((x**2 + y**2 + z**2) < rmax**2) )
 
     return planeInds, outflowInds, voidInds
 
+
 def plot_hist( dense, temp, ind, ax, title ):
     
+    print title
     numbins = 50
     binrange = [[-10,3],[2,8]]
 
@@ -68,7 +70,7 @@ def convert_frame(xAll, yAll, zAll, cellIDs):
         y.append(yAll[index])
         z.append(zAll[index])
 
-    return x, y, z
+    return np.array(x), np.array(y), np.array(z)
 
 
 
@@ -80,126 +82,132 @@ galZCut = 5         # [kpc]
 # Define the cones
 outflowAngle = 45
 planeAngle = 70
-aOut = np.tan(np.radians(outflowAngle))
+aOutflow = np.tan(np.radians(outflowAngle))
 aPlane = np.tan(np.radians(planeAngle))
 
 # Read in the gas box
 print 'Read in gas box'
-galID = 28
-expn = '0.490'
-gasbox = 'vela2b-{0:d}_GZa{1:s}.h5'.format(galID, expn)
-d = pd.read_hdf(gasbox, 'data')
-
 ions = ['MgII', 'CIV', 'OVI']
-absfile = './i{0:d}/{1:s}/vela2b-{2:d}.{3:s}.{1:s}.abs_cells.h5'
-
-# Read in ion absorbing cells
-dIon = []
-for ion in ions:
-    absfilename = absfile.format(inc,ion,galID,expn)
-    dIon.append( pd.read_hdf(absfilename, 'data') )
+galIDs = [25, 26, 27, 28]
+expn = '0.490'
+inc = 90
 
 
-xbox = d['x']
-ybox = d['y']
-zbox = d['z']
-dense = np.log10(d['density'])
-temp = np.log10(d['temperature'])
+for galID in galIDs:
+    loc = './vela{0:d}/a{1:s}/'.format(galID,expn)
+    gasbox = 'vela2b-{0:d}_GZa{1:s}.h5'.format(galID, expn)
+    d = pd.read_hdf(loc+gasbox, 'data')
 
-# Read in the rotation matrix
-print 'Read in rotation matrix'
-rotmat = np.zeros((3,3))
-rotmatFile = 'rotmat_a{0:s}.txt'.format(expn)
-with open(rotmatFile, 'r') as f:
-    f.readline()
-    l = f.readline().split()
-    rvir = float(l[3])
-    a11 = float(l[4])
-    a12 = float(l[5])
-    a13 = float(l[6])
-    a21 = float(l[7])
-    a22 = float(l[8])
-    a23 = float(l[9])
-    a31 = float(l[10])
-    a32 = float(l[11])
-    a33 = float(l[12])
+    absfile = './i{0:d}/{1:s}/vela2b-{2:d}.{3:s}.{1:s}.i{4:d}.abs_cells.h5'
+
+    # Read in ion absorbing cells
+    dIon = []
+    for ion in ions:
+        absfilename = loc + absfile.format(inc,ion,galID,expn, inc)
+        dIon.append( pd.read_hdf(absfilename, 'data') )
 
 
-# This matrix describes the rotation from the box frame
-# to the galaxy frame
-# Convert all the cell locations from the box frame to the 
-# galaxy frame
-readin = 1
-print 'Convert to galaxy frame'
-if readin == 0:
-    xgal, ygal, zgal = [], [], []
-    f = open('galaxy.coords', 'w')
-    s = '{0:f}\t{1:f}\t{2:f}\n'
-    for i in range(len(xbox)):
-        x = a11*xbox[i] + a12*ybox[i] + a13*zbox[i] 
-        y = a21*xbox[i] + a22*ybox[i] + a23*zbox[i] 
-        z = a31*xbox[i] + a32*ybox[i] + a33*zbox[i] 
-        f.write(s.format(x, y, z))
-        
-        xgal.append(x)
-        ygal.append(y)
-        zgal.append(z)
-    f.close()
-    x = np.array(xgal)
-    y = np.array(ygal)
-    z = np.array(zgal)
-else:
-    xAll, yAll, zAll = np.loadtxt('galaxy.coords', usecols=(0,1,2), unpack=True)
-
-
-
-
-rmin = 0.2*rvir
-rmax = 0.75*rvir
-
-fig, axes = plt.subplots(4,4, figsize=(16,16))
-axs = axes[0]    
-
-# Plot all gas in the box
-planeInds, outflowInds, voidInds = select_regions(xAll, yAll, zAll, aOutflow, aPlane, rmin, rmax) 
-allInds = np.array( [True for i in range(len(x))] )
-plot_hist( dense, temp, planeInds, axs[0], 'All Coplanar Gas') 
-plot_hist( dense, temp, outflowInds, axs[1], 'All Outflow Gas') 
-plot_hist( dense, temp, voidInds, axs[2], 'All Void Gas') 
-plot_hist( dense, temp, allInds, axs[3], 'All Gas') 
-
-axs = axes[1:]
-for i,ion in enumerate(ions):
-
-    ion = ions[i]
-    
-    # Plot the MgII absorbing gas
-    d = dIon[i]
     xbox = d['x']
     ybox = d['y']
     zbox = d['z']
-    dense = d['log_nH']
-    temp = d['log_T']
-    cellIDs = d['cellID']
+    dense = np.log10(d['density'])
+    temp = np.log10(d['temperature'])
 
-    # Get the coordinates of the absorbing cells in the galaxy frame
-    x, y, z = convert_frame(xAll, yAll, zAll, cellIDs)
-    planeInds, outflowInds, voidInds = select_abs_regions(x, y, z, aOutflow, aPlane, rmin, rmax) 
-    
-    plot_hist( dense, temp, planeInds, axs[i][0], '{0:s} Coplanar Gas'.format(ion)) 
-    plot_hist( dense, temp, outflowInds, axs[i][1], '{0:s} Outflow Gas'.format(ion))  
-    plot_hist( dense, temp, voidInds, axs[i][2], '{0:s} Void Gas'.format(ion))  
-    plot_hist( dense, temp, allInds, axs[i][3], '{0:s} All Gas'.format(ion))  
-    
+    # Read in the rotation matrix
+    print 'Read in rotation matrix'
+    rotmat = np.zeros((3,3))
+    rotmatFile = loc+'rotmat_a{0:s}.txt'.format(expn)
+    with open(rotmatFile, 'r') as f:
+        f.readline()
+        l = f.readline().split()
+        rvir = float(l[3])
+        a11 = float(l[4])
+        a12 = float(l[5])
+        a13 = float(l[6])
+        a21 = float(l[7])
+        a22 = float(l[8])
+        a23 = float(l[9])
+        a31 = float(l[10])
+        a32 = float(l[11])
+        a33 = float(l[12])
 
 
-plt.tight_layout()
-s = 'inflow_outflow_phase.png'
-plt.savefig(s, dpi=300, bbox_inches='tight')
+    # This matrix describes the rotation from the box frame
+    # to the galaxy frame
+    # Convert all the cell locations from the box frame to the 
+    # galaxy frame
+    readin = 1
+    galcoordFile = 'vela2b-{0:d}_a{1:s}_galaxy.coords'.format(galID,expn)
+    print 'Convert to galaxy frame'
+    if  os.path.isfile(galcoordFile):
+        xAll, yAll, zAll = np.loadtxt(galcoordFile, usecols=(0,1,2), unpack=True)
+    else:
+        xgal, ygal, zgal = [], [], []
+        f = open(galcoordFile, 'w')
+        s = '{0:f}\t{1:f}\t{2:f}\n'
+        for i in range(len(xbox)):
+            x = a11*xbox[i] + a12*ybox[i] + a13*zbox[i] 
+            y = a21*xbox[i] + a22*ybox[i] + a23*zbox[i] 
+            z = a31*xbox[i] + a32*ybox[i] + a33*zbox[i] 
+            f.write(s.format(x, y, z))
+            
+            xgal.append(x)
+            ygal.append(y)
+            zgal.append(z)
+        f.close()
+        xAll = np.array(xgal)
+        yAll = np.array(ygal)
+        zAll = np.array(zgal)
+
+    rmin = 0.2*rvir
+    rmax = 0.75*rvir
+
+    fig, axes = plt.subplots(4,4, figsize=(16,16))
+    axs = axes[0]    
+
+    # Plot all gas in the box
+    planeInds, outflowInds, voidInds = select_regions(xAll, yAll, zAll, aOutflow, aPlane, rmin, rmax) 
+    allInds = np.array( [True for i in range(len(xAll))] )
+    plot_hist( dense, temp, planeInds, axs[0], 'All Coplanar Gas') 
+    plot_hist( dense, temp, outflowInds, axs[1], 'All Outflow Gas') 
+    plot_hist( dense, temp, voidInds, axs[2], 'All Void Gas') 
+    plot_hist( dense, temp, allInds, axs[3], 'All Gas') 
+
+    axs = axes[1:]
+    for i,ion in enumerate(ions):
+
+        ion = ions[i]
+        
+        # Plot the MgII absorbing gas
+        d = dIon[i]
+        xbox = d['x']
+        ybox = d['y']
+        zbox = d['z']
+        dense = d['log_nH']
+        temp = d['log_T']
+        cellIDs = d['cellID']
+
+        # Get the coordinates of the absorbing cells in the galaxy frame
+        x, y, z = convert_frame(xAll, yAll, zAll, cellIDs)
+        allInds = np.array( [True for j in range(len(x))] )
+
+        # Might be wrong....
+        planeInds, outflowInds, voidInds = select_regions(x, y, z, aOutflow, aPlane, rmin, rmax) 
+
+        
+        plot_hist( dense, temp, planeInds, axs[i][0], '{0:s} Coplanar Gas'.format(ion)) 
+        plot_hist( dense, temp, outflowInds, axs[i][1], '{0:s} Outflow Gas'.format(ion))  
+        plot_hist( dense, temp, voidInds, axs[i][2], '{0:s} Void Gas'.format(ion))  
+        plot_hist( dense, temp, allInds, axs[i][3], '{0:s} All Gas'.format(ion))  
+        
+
+
+    plt.tight_layout()
+    s = 'inflow_outflow_absorber_phase_vela2b-{0:d}_a{1:s}.png'.format(galID, expn)
+    plt.savefig(s, dpi=300, bbox_inches='tight')
 
 sys.exit()    
 
-plot_hist( dense, temp, ind, ax, title ):
 # Plot coplanar gas
 hPlane, xedges, yedges = np.histogram2d(nPlane, tPlane, bins=numbins, range=binrange)
 h = np.rot90(hPlane)
@@ -283,9 +291,6 @@ cbar = plt.colorbar(mesh, ax=ax8, use_gridspec=True)
 ax8.set_title('Outflow and Plane Gas')
 
 
-for axs in axes:
-
-    for ax in axs:
 
 
 

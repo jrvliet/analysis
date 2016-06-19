@@ -84,7 +84,7 @@ galRCut = 10        # [kpc]
 galZCut = 5         # [kpc] 
 
 # Define the cones
-outflowAngle = 45
+outflowAngle = 30
 planeAngle = 70
 aOutflow = np.tan(np.radians(outflowAngle))
 aPlane = np.tan(np.radians(planeAngle))

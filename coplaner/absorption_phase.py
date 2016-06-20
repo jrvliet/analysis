@@ -41,7 +41,7 @@ def select_regions(x, y, z, aOutflow, aPlane, rmin, rmax):
     return planeInds, outflowInds, voidInds, allInds
 
 
-def plot_hist( dense, temp, ind, ax, title ):
+def plot_hist( dense, temp, ind, ax, title, cmin, cmax ):
     
     print '\t'+title
     print '\t\tDense Size = ',dense.shape, max(dense), min(dense), len(dense)
@@ -60,7 +60,11 @@ def plot_hist( dense, temp, ind, ax, title ):
         h = np.flipud(h)
         h = np.ma.masked_where(h==0,h)
         h = np.log10(h)
-        mesh = ax.pcolormesh(xedges, yedges, h, cmap='viridis')
+        print h.min(), h.max()
+        if cmin != -1:
+            mesh = ax.pcolormesh(xedges, yedges, h, cmap='viridis', vmin=cmin, vmax=cmax)
+        else: 
+            mesh = ax.pcolormesh(xedges, yedges, h, cmap='viridis')
         cbar = plt.colorbar(mesh, ax=ax, use_gridspec=True)
     ax.set_title(title)
 
@@ -68,6 +72,14 @@ def plot_hist( dense, temp, ind, ax, title ):
     ax.set_ylim(binrange[1])
     ax.set_xlabel('log nH')
     ax.set_ylabel('log T')
+    
+    try:
+        vmin = h.min()
+        vmax = h.max()
+    except UnboundLocalError:
+        vmin = cmin
+        vmax = cmax
+    return vmin, vmax
 
 def convert_frame(xAll, yAll, zAll, cellIDs):
     
@@ -150,8 +162,10 @@ for galID in galIDs:
     galcoordFile = 'vela2b-{0:d}_a{1:s}_galaxy.coords'.format(galID,expn)
     print 'Convert to galaxy frame'
     if  os.path.isfile(galcoordFile):
+        print '\tRead in the coordinates'
         xAll, yAll, zAll = np.loadtxt(galcoordFile, usecols=(0,1,2), unpack=True)
     else:
+        print '\tCalculate the coordinates'
         xgal, ygal, zgal = [], [], []
         f = open(galcoordFile, 'w')
         s = '{0:f}\t{1:f}\t{2:f}\n'
@@ -177,10 +191,11 @@ for galID in galIDs:
 
     # Plot all gas in the box
     planeInds, outflowInds, voidInds, allInds = select_regions(xAll, yAll, zAll, aOutflow, aPlane, rmin, rmax) 
-    plot_hist( dense, temp, planeInds, axs[0], 'All Coplanar Gas') 
-    plot_hist( dense, temp, outflowInds, axs[1], 'All Outflow Gas') 
-    plot_hist( dense, temp, voidInds, axs[2], 'All Void Gas') 
-    plot_hist( dense, temp, allInds, axs[3], 'All Gas') 
+    cmin, cmax = -1, -1
+    cmin, cmax = plot_hist( dense, temp, allInds, axs[3], 'All Gas', cmin, cmax) 
+    plot_hist( dense, temp, planeInds, axs[0], 'All Coplanar Gas', cmin, cmax) 
+    plot_hist( dense, temp, outflowInds, axs[1], 'All Outflow Gas', cmin, cmax) 
+    plot_hist( dense, temp, voidInds, axs[2], 'All Void Gas', cmin, cmax) 
 
     axs = axes[1:]
     for i,ion in enumerate(ions):
@@ -203,10 +218,10 @@ for galID in galIDs:
         # Might be wrong....
         planeInds, outflowInds, voidInds, allInds = select_regions(x, y, z, aOutflow, aPlane, rmin, rmax) 
         
-        plot_hist( dense, temp, planeInds, axs[i][0], '{0:s} Coplanar Gas'.format(ion)) 
-        plot_hist( dense, temp, outflowInds, axs[i][1], '{0:s} Outflow Gas'.format(ion))  
-        plot_hist( dense, temp, voidInds, axs[i][2], '{0:s} Void Gas'.format(ion))  
-        plot_hist( dense, temp, allInds, axs[i][3], '{0:s} All Gas'.format(ion))  
+        cmin, cmax = plot_hist( dense, temp, allInds, axs[i][3], '{0:s} All Gas'.format(ion), -1, -1)  
+        plot_hist( dense, temp, planeInds, axs[i][0], '{0:s} Coplanar Gas'.format(ion), cmin, cmax) 
+        plot_hist( dense, temp, outflowInds, axs[i][1], '{0:s} Outflow Gas'.format(ion), cmin, cmax)  
+        plot_hist( dense, temp, voidInds, axs[i][2], '{0:s} Void Gas'.format(ion), cmin, cmax)  
         
 
 

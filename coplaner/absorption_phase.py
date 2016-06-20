@@ -44,19 +44,24 @@ def select_regions(x, y, z, aOutflow, aPlane, rmin, rmax):
 def plot_hist( dense, temp, ind, ax, title ):
     
     print '\t'+title
+    print '\t\tDense Size = ',dense.shape, max(dense), min(dense), len(dense)
+    print '\t\tTemp Size  = ',temp.shape, max(temp), min(temp), len(temp)
+    print '\t\tNumber of cells in region = ', np.sum(ind)
+
     numbins = 50
     binrange = [[-10,3],[2,8]]
+    if np.sum(ind)>1:
 
-    n = dense[ind]
-    t = temp[ind]
+        n = dense[ind]
+        t = temp[ind]
 
-    h, xedges, yedges = np.histogram2d(n, t, bins=numbins, range=binrange)
-    h = np.rot90(h)
-    h = np.flipud(h)
-    h = np.ma.masked_where(h==0,h)
-    h = np.log10(h)
-    mesh = ax.pcolormesh(xedges, yedges, h)
-    cbar = plt.colorbar(mesh, ax=ax, use_gridspec=True)
+        h, xedges, yedges = np.histogram2d(n, t, bins=numbins, range=binrange)
+        h = np.rot90(h)
+        h = np.flipud(h)
+        h = np.ma.masked_where(h==0,h)
+        h = np.log10(h)
+        mesh = ax.pcolormesh(xedges, yedges, h, cmap='viridis')
+        cbar = plt.colorbar(mesh, ax=ax, use_gridspec=True)
     ax.set_title(title)
 
     ax.set_xlim(binrange[0])

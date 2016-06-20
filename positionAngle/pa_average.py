@@ -40,7 +40,6 @@ ewcut = 0.1
 
 location = '/mnt/cluster/abs/cgm/vela2b/'
 halo_list = [25, 26, 27, 28]
-halo_list = [27, 28]
 expn = '0.490'
 incline = 90
 ions = ['HI', 'MgII', 'CIV', 'OVI']

@@ -87,7 +87,7 @@ for ion, ax in zip(ions, axes):
     binrange = [[0,max(b)],[0,max(b)]]
     # Make 2d histogram of x, y position on sky, with bin value
     bin_means, x_edges, y_edges, binnumber = stats.binned_statistic_2d(x,y,ew,
-            statistic='mean', bins=numbins,range=binrange)
+            statistic='sum', bins=numbins,range=binrange)
     bin_means = np.rot90(bin_means)
     bin_means = np.flipud(bin_means)
     whereNans = np.isnan(bin_means)
@@ -113,7 +113,7 @@ for ion, ax in zip(ions, axes):
     ax.plot(x,y,linestyle='dotted',color='k')
 
 fig.tight_layout()
-fig.savefig('pahist_vela2b-All_ew_{1:s}_ewcut{2:d}mA.pdf'.format(galNum, statname, int(1000*ewcut)), bbox_inches='tight')
+fig.savefig('pahist_vela2b-All_ew_{1:s}_ewcut{2:d}mA_sum.pdf'.format(galNum, statname, int(1000*ewcut)), bbox_inches='tight')
 
 
 

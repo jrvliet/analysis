@@ -88,9 +88,10 @@ for galNum in halo_list:
         logN = dabs['logN'][ dabs['logN']>0 ]
 
     
+        binrange = [[0,max(b)],[0,max(b)]]
         # Make 2d histogram of x, y position on sky, with bin value
         bin_means, x_edges, y_edges, binnumber = stats.binned_statistic_2d(x,y,ew,
-                statistic='mean', bins=numbins)
+                statistic='mean', bins=numbins, range=binrange)
         bin_means = np.rot90(bin_means)
         bin_means = np.flipud(bin_means)
         whereNans = np.isnan(bin_means)

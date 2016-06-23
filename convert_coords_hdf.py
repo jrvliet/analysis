@@ -74,9 +74,9 @@ for gal in baseGals:
             zgal = a31*xbox[i] + a32*ybox[i] + a33*zbox[i]
 
             # Convert to sky frame
-            xsky = gts_a11*xgal + gts_a12*ygal + gta_13*zgal 
-            ysky = gts_a21*xgal + gts_a22*ygal + gta_23*zgal 
-            zsky = gts_a31*xgal + gts_a32*ygal + gta_33*zgal
+            xsky = gts_a11*xgal + gts_a12*ygal + gts_a13*zgal 
+            ysky = gts_a21*xgal + gts_a22*ygal + gts_a23*zgal 
+            zsky = gts_a31*xgal + gts_a32*ygal + gts_a33*zgal
 
             coord[i,0] = i+1
             coord[i,1] = xbox[i]

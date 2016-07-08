@@ -1,7 +1,9 @@
 
 '''
-Calculates the EW distribution as a funciton of 
+Calculates the vlos distribution as a funciton of 
 position angle of the LOS around the galaxy.
+
+Define vlos as calcualted from the 
 '''
 
 from __future__ import print_function

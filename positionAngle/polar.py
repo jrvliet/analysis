@@ -169,17 +169,17 @@ for i in range(20):
     vrange.append(np.random.random()*25.0)
 
 fig = figure(1,figsize=(10,10))
-fig, ((a1, a2),(a3,a4)) = subplots(2,2,figsize=(10,10))
+#fig, ((a1, a2),(a3,a4)) = subplots(2,2,figsize=(10,10))
 
-ax1, aux_ax1 = setup_axes(fig,a1,theta=[0.0,90.0],radius=[0,210], quad=1)
-ax2, aux_ax2 = setup_axes(fig,a2,theta=[0.0,90.0],radius=[0,210], quad=2)
-ax3, aux_ax3 = setup_axes(fig,a3,theta=[0.0,90.0],radius=[0,210], quad=3)
-ax4, aux_ax4 = setup_axes(fig,a4,theta=[0.0,90.0],radius=[0,210], quad=4)
+#ax1, aux_ax1 = setup_axes(fig,a1,theta=[0.0,90.0],radius=[0,210], quad=1)
+#ax2, aux_ax2 = setup_axes(fig,a2,theta=[0.0,90.0],radius=[0,210], quad=2)
+#ax3, aux_ax3 = setup_axes(fig,a3,theta=[0.0,90.0],radius=[0,210], quad=3)
+#ax4, aux_ax4 = setup_axes(fig,a4,theta=[0.0,90.0],radius=[0,210], quad=4)
 
-#ax1, aux_ax1 = setup_axes(fig,221,theta=[0.0,90.0],radius=[0,210], quad=1)
-#ax2, aux_ax2 = setup_axes(fig,222,theta=[0.0,90.0],radius=[0,210], quad=2)
-#ax3, aux_ax3 = setup_axes(fig,223,theta=[0.0,90.0],radius=[0,210], quad=3)
-#ax4, aux_ax4 = setup_axes(fig,224,theta=[0.0,90.0],radius=[0,210], quad=4)
+ax1, aux_ax1 = setup_axes(fig,221,theta=[0.0,90.0],radius=[0,210], quad=1)
+ax2, aux_ax2 = setup_axes(fig,222,theta=[0.0,90.0],radius=[0,210], quad=2)
+ax3, aux_ax3 = setup_axes(fig,223,theta=[0.0,90.0],radius=[0,210], quad=3)
+ax4, aux_ax4 = setup_axes(fig,224,theta=[0.0,90.0],radius=[0,210], quad=4)
 
 aux_ax1.scatter(pa,d,s=vrange,marker='o',zorder=30,c='#602C6E',
                 linewidth=0,alpha=0.9)

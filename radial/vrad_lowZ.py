@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -16,6 +17,7 @@ for galID, a, ax in zip(galnum, expn, axes):
 
     loc = '{0:s}vela{1:d}/a{2:s}/'.format(baseloc,galID,a)
     fname = '{0:s}vela2b-{1:d}_GZa{2:s}.h5'.format(loc,galID,a)
+    print(fname)
 
     dfull = pd.read_hdf(fname, 'data')
     zCut = dfull.quantile(0.1)['SNII']
@@ -31,6 +33,7 @@ for galID, a, ax in zip(galnum, expn, axes):
     ax.hist(vrad, bins=20, histtype='step', log=True, color='blue', label='Z$<${0:.1f}'.format(np.log10(zCut)))
     ax.hist(vradfull, bins=20, histtype='step', log=True, color='green', label='Full Box')
     ax.legend(frameon=False)
+    ax.set_xlim([-6000,6000])
     ax.set_xlabel('Radial Velocity [km/s]')
     ax.set_title('Vela2b-{0:d}'.format(galID))
 

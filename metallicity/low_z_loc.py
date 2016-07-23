@@ -13,7 +13,7 @@ expn[galnum.index(24)] = '0.450'
 fig1 = plt.figure(figsize=(15,15))
 fig2 = plt.figure(figsize=(15,15))
 
-filename = '{0:s}vela{1:d}/a{2:s}/vela2b-{1:d}_GZa{2:s}.lowZ.h5'
+filename = '{0:s}vela{1:d}/a{2:s}/vela2b-{1:d}-lowZ_GZa{2:s}.h5'
 i = 1
 zcut = 10**(-3.5)
 
@@ -21,7 +21,7 @@ for galID, a in zip(galnum, expn):
 
     fname = filename.format(baseloc,galID,a)
     d = pd.read_hdf(fname,  'data')
-    box = pd.read_hdf(fname.replace('.lowZ',''), 'data')
+    box = pd.read_hdf(fname.replace('-lowZ',''), 'data')
     lowZBox = box[(box.SNII < zcut)]
 
     print('Vela2b-{0:d}\n\t{1:d} cells in cloud'.format(galID, d.size))
@@ -29,7 +29,7 @@ for galID, a in zip(galnum, expn):
 
     ax = fig1.add_subplot(3, 3, i, projection='3d')
     ax.scatter(d['x'], d['y'], d['z'], c='k', marker='.')
-    ax.scatter(lowZBox['x'], lowZBox['y'], lowZBox['z'], c='g', marker='.')
+    ax.scatter(lowZBox['x'], lowZBox['y'], lowZBox['z'], facecolors='g', edgecolors='none', marker='.')
     ax.view_init(elev=90, azim=0)
     ax.set_xlabel('x')
     ax.set_ylabel('y')
@@ -38,7 +38,7 @@ for galID, a in zip(galnum, expn):
 
     ax = fig2.add_subplot(3, 3, i, projection='3d')
     ax.scatter(d['x'], d['y'], d['z'], c='k', marker='.')
-    ax.scatter(lowZBox['x'], lowZBox['y'], lowZBox['z'], c='g', marker='.')
+    ax.scatter(lowZBox['x'], lowZBox['y'], lowZBox['z'], facecolors='g', edgecolors='none', marker='.')
     ax.view_init(elev=0, azim=90)
     ax.set_xlabel('x')
     ax.set_ylabel('y')

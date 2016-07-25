@@ -19,6 +19,7 @@ def schechter(l, phi, lstar, alpha):
 
 
 ion_list = ['HI', 'MgII', 'CIV', 'OVI']
+ion_list = ['HI', 'MgII']
 # Initial guess for Schechter parameters
 # Phi = 1
 # Lstar = -0.100
@@ -115,8 +116,8 @@ for ion in ion_list:
                 linestyle='none', label='Data')
 
     # Overplot fit
-    y = []
     x = []
+    y = []
     for l in xdata:
         val = schechter(l, phi, lstar, alpha)
         y.append(np.log10(val))

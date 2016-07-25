@@ -38,16 +38,18 @@ for galID,a,ax in zip(galnum,expn,axes):
     snIIpercent = log10(box['SNII'].quantile(0.1))
     Zpercent = log10(cool['Zcell'].quantile(0.1))
     galname = 'vela2b-{0:d}'.format(galID)
-    f.write(s.format(galname,snIIStats[3],snIIStats[7],snIIStats[1],snIIStats[2],snIIpercent,
-                     ZStats[3],ZStats[7],ZStats[1],ZStats[2],Zpercent))
+    line = s.format(galname,snIIStats[3],snIIStats[7],snIIStats[1],snIIStats[2],snIIpercent,
+                     ZStats[3],ZStats[7],ZStats[1],ZStats[2],Zpercent)
+    f.write(line)
+    print(line)
 
-    ax.loglog(box['SNII'], cool['Zcell'], 'k.')
-    ax.set_xlabel('SNII MF')
-    ax.set_ylabel('Zcell')
-    ax.set_title('Vela2b-{0:d}'.format(galID))
+#    ax.loglog(box['SNII'], cool['Zcell'], 'k.')
+#    ax.set_xlabel('SNII MF')
+#    ax.set_ylabel('Zcell')
+#    ax.set_title('Vela2b-{0:d}'.format(galID))
 
-fig.tight_layout()
-fig.savefig('metallicity_comparison.png', bbox_inches='tight', dpi=300)
+#fig.tight_layout()
+#fig.savefig('metallicity_comparison.png', bbox_inches='tight', dpi=300)
 
 f.close()
 

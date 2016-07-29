@@ -19,7 +19,6 @@ def schechter(l, phi, lstar, alpha):
 
 
 ion_list = ['HI', 'MgII', 'CIV', 'OVI']
-ion_list = ['HI', 'MgII']
 # Initial guess for Schechter parameters
 # Phi = 1
 # Lstar = -0.100

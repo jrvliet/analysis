@@ -4,9 +4,10 @@ import pandas as pd
 
 
 baseLoc = '/mnt/cluster/abs/cgm/'
-baseGals = ['vela2a', 'vela2a']
-galNums = [25,26,27,28]
-expn = '0.490'
+baseGals = ['vela2a', 'vela2b']
+galNums = range(21,30)
+expns = ['0.490']*len(galNums)
+expns[galNums.index(24)] = '0.450'
 header = ['cellID', 'xbox', 'ybox','zbox','xgal','ygal','zgal','xsky','ysky','zsky']
 
 incdeg = 90
@@ -40,7 +41,7 @@ gts_a33 = np.cos(inc)
 
 
 for gal in baseGals:
-    for galNum in galNums:
+    for galNum, expn in zip(galNums,expns):
 
         loc = '{0:s}/{1:s}/vela{2:d}/a{3:s}/'.format(baseLoc,gal,galNum,expn)
         boxfile = loc+'{0:s}-{1:d}_GZa{2:s}.txt'.format(gal,galNum,expn)

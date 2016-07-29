@@ -109,12 +109,13 @@ aPlane = np.tan(np.radians(planeAngle))
 # Read in the gas box
 print 'Read in gas box'
 ions = ['MgII', 'CIV', 'OVI']
-galIDs = [25, 26, 27, 28]
-expn = '0.490'
+galIDs = range(21,30)
+expns = ['0.490']*len(galIDs)
+expns[galIDs.index(24)] = '0.450'
 inc = 90
 
 
-for galID in galIDs:
+for galID, expn in zip(galIDs,expns):
     print '\nGalaxy = vela2b-{0:d}'.format(galID)
     loc = './vela{0:d}/a{1:s}/'.format(galID,expn)
     gasbox = 'vela2b-{0:d}_GZa{1:s}.h5'.format(galID, expn)

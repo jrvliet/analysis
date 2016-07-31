@@ -91,7 +91,7 @@ for gal in baseGals:
             coord[i,9] = zsky
         
         # Write to file
-        outfile = '{0:s}/cell_i{1:d}.coords'.format(loc,incdeg)
+        outfile = '{0:s}/{1:s}-{2:d}_a{3:s}_i{4:d}_cellCoords.h5'.format(loc,gal,galNum,expn,incdeg)
         df = pd.DataFrame(coord, columns=header)
         df.to_hdf(outfile, 'data', mode='w')
      

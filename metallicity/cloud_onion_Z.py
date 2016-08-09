@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import scipy.linalg as sl
 import pandas as pd
 import sklearn.cluster as skc
+import sys
 
 # Define cloud parameters
 numClouds = 3
@@ -22,11 +23,11 @@ expns[galNums.index(24)] = '0.450'
 
 baseLoc = '/home/jacob/research/velas/vela2b/vela{0:d}/a{1:s}/'
 
-data = np.zeros((len(galNums),19))
-header = ['galNum','x1','y1','z1','r1','theta1','phi1',
-        'x2','y2','z2','r2','theta2','phi2',
-        'x3','y3','z3','r3','theta3','phi3']
+header = ['galNum','x1','y1','z1','r1','theta1','phi1','sn1','vrad1',
+        'x2','y2','z2','r2','theta2','phi2','sn2','vrad2'
+        'x3','y3','z3','r3','theta3','phi3','sn3','vrad3']
 
+data = np.zeros((len(galNums),len(header)))
 
 for i,(galNum, a) in enumerate(zip(galNums, expns)):
 
@@ -71,9 +72,14 @@ for i,(galNum, a) in enumerate(zip(galNums, expns)):
         z = cLoc['z'].mean()
 
         # Convert to spherical coordinates
+        cloud.loc[:,'dist'] = np.sqrt( cloud['x']**2 + cloud['y']**2 + cloud['z']**2)
         r = np.sqrt(x**2 + y**2 + z**2)
-        theta = np.arctan2(y,x)
-        phi = np.arccos(z/r)
+        theta = np.arctan2(y,x)*(180.0/np.pi)
+        phi = np.arccos(z/r)*(180.0/np.pi)
+
+        # Calculate the mean radial velocity
+        cloud.loc[:,'radvel'] = (cloud['x']*cloud['vx'] + cloud['y']*cloud['vy'] + 
+                            cloud['z']*cloud['vz'] ) / cloud['dist']
         
         row = j*6
         data[i,row+1] = x
@@ -82,7 +88,9 @@ for i,(galNum, a) in enumerate(zip(galNums, expns)):
         data[i,row+4] = r
         data[i,row+5] = theta
         data[i,row+6] = phi
-
+        data[i,row+7] = cloud['SNII'].mean()
+        data[i,row+8] = cloud['radvel'].mean()
+        
         # Normalize the cells by subtracting out their mean
         locM = cLoc - cLoc.mean()
 
@@ -133,13 +141,13 @@ for i,(galNum, a) in enumerate(zip(galNums, expns)):
         ax.set_xlabel('Distance [kpc]')
         ax.set_ylabel('Metals [mass fraction]')
         ax.set_yscale('log')
-        ax.set_title('Cloud {0:d}'.format(i+1))    
+        ax.set_title('Cloud {0:d}'.format(j+1))    
 
         axb.plot(locM['dist'], locM['metal'], '.', alpha=0.01, label='Cloud {0:d}'.format(j+1))
         axb.set_xlabel('Distance [kpc]')
         axb.set_ylabel('Metals [mass fraction]')
         axb.set_yscale('log')
-        axb.set_title('Cloud {0:d}'.format(i+1))    
+        axb.set_title('Cloud {0:d}'.format(j+1))    
 
     axb.legend()
     fig.tight_layout()
@@ -148,7 +156,7 @@ for i,(galNum, a) in enumerate(zip(galNums, expns)):
     fig.savefig(s1, bbox_inches='tight',dpi=300)
     figb.savefig(s2, bbox_inches='tight',dpi=300)
 
-hdf5file = 'vela2b_cloud_loc_stats.out'
+hdf5file = 'vela2b_cloud_loc_stats.h5'
 df = pd.DataFrame(data,columns=header)
 df.to_hdf(hdf5file,'data',mode='w')
 

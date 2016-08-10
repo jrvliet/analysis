@@ -7,10 +7,59 @@ from the line of best fit along the the "cloud"
 from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.axes3d import Axes3D
 import scipy.linalg as sl
 import pandas as pd
 import sklearn.cluster as skc
+import sklearn.metrics as sm
 import sys
+
+def plotting3d(cloud, ax3da, ax3db, ax3dc):
+
+    elev, azim = 90, 0
+    colors = ['red','blue','green']
+    ax3da.scatter(cloud['x'],cloud['y'],cloud['z'], marker='o',c=colors[j], alpha=0.01)
+    ax3da.scatter(x,y,z,marker='x',c='black',edgecolor='white')
+    ax3da.view_init(elev=elev, azim=azim)
+    ax3da.set_xlabel('x')
+    ax3da.set_ylabel('y')
+    ax3da.set_zlabel('z')
+    ax3da.set_title('Elev={0:d}, Azim={1:d}'.format(elev,azim))
+    
+    elev, azim = 0, 0
+    ax3db.scatter(cloud['x'],cloud['y'],cloud['z'], marker='o',c=colors[j], alpha=0.01)
+    ax3db.scatter(x,y,z,marker='x',c='black',edgecolor='white')
+    ax3db.view_init(elev=elev, azim=azim)
+    ax3db.set_xlabel('x')
+    ax3db.set_ylabel('y')
+    ax3db.set_zlabel('z')
+    ax3db.set_title('Elev={0:d}, Azim={1:d}'.format(elev,azim))
+    
+    elev, azim = 90, 90
+    ax3dc.scatter(cloud['x'],cloud['y'],cloud['z'], marker='o',c=colors[j], alpha=0.01)
+    ax3dc.scatter(x,y,z,marker='x',c='black',edgecolor='white')
+    ax3dc.view_init(elev=elev, azim=azim)
+    ax3dc.set_xlabel('x')
+    ax3dc.set_ylabel('y')
+    ax3dc.set_zlabel('z')
+    ax3dc.set_title('Elev={0:d}, Azim={1:d}'.format(elev,azim))
+
+
+def plotting2d(ax, axb, locM, j):
+    ax.plot(locM['dist'], locM['metal'], '.', alpha=0.01)
+    ax.set_xlabel('Distance [kpc]')
+    ax.set_ylabel('Metals [mass fraction]')
+    ax.set_yscale('log')
+    ax.set_title('Cloud {0:d}'.format(j+1))    
+
+    axb.plot(locM['dist'], locM['metal'], '.', alpha=0.01, label='Cloud {0:d}'.format(j+1))
+    axb.set_xlabel('Distance [kpc]')
+    axb.set_ylabel('Metals [mass fraction]')
+    axb.set_yscale('log')
+    axb.set_title('Cloud {0:d}'.format(j+1))    
+
+
+plotting = 0
 
 # Define cloud parameters
 numClouds = 3
@@ -22,6 +71,7 @@ expns = ['0.490']*len(galNums)
 expns[galNums.index(24)] = '0.450'
 
 baseLoc = '/home/jacob/research/velas/vela2b/vela{0:d}/a{1:s}/'
+baseLoc = '/mnt/cluster/abs/cgm/vela2b/vela{0:d}/a{1:s}/'
 
 header = ['galNum','x1','y1','z1','r1','theta1','phi1','sn1','vrad1',
         'x2','y2','z2','r2','theta2','phi2','sn2','vrad2'
@@ -54,11 +104,22 @@ for i,(galNum, a) in enumerate(zip(galNums, expns)):
     km.fit(dloc)
     labels = km.labels_
     results = pd.DataFrame([dataset.index,labels]).T
+    silhouette = sm.silhouette_score(dloc, labels, metric='euclidean')
+
+    
+
+
+
     print('\tClustering done')
 
     fig, (ax1,ax2,ax3) = plt.subplots(3,1,figsize=(5,15))
     axes = [ax1,ax2,ax3]
     figb, axb = plt.subplots(1,1,figsize=(10,10))
+    fig3d = plt.figure(figsize=(15,10))
+    ax3da = fig3d.add_subplot(131,projection='3d')
+    ax3db = fig3d.add_subplot(132,projection='3d')
+    ax3dc = fig3d.add_subplot(133,projection='3d')
+
     # Loop through the seperate 'clouds'
     for j in range(numClouds):
         print('\t\tCloud {0:d}'.format(j+1))
@@ -71,6 +132,10 @@ for i,(galNum, a) in enumerate(zip(galNums, expns)):
         y = cLoc['y'].mean()
         z = cLoc['z'].mean()
 
+        # Plot the 3D 
+        if plotting==1:
+            plotting3d(cloud, ax3da, ax3db, ax3dc)
+        
         # Convert to spherical coordinates
         cloud.loc[:,'dist'] = np.sqrt( cloud['x']**2 + cloud['y']**2 + cloud['z']**2)
         r = np.sqrt(x**2 + y**2 + z**2)
@@ -136,25 +201,23 @@ for i,(galNum, a) in enumerate(zip(galNums, expns)):
         # Get the metallicity of each of these cells
         locM['metal'] = cloud['SNII'] + cloud['SNIa']
 
-        ax = axes[j]
-        ax.plot(locM['dist'], locM['metal'], '.', alpha=0.01)
-        ax.set_xlabel('Distance [kpc]')
-        ax.set_ylabel('Metals [mass fraction]')
-        ax.set_yscale('log')
-        ax.set_title('Cloud {0:d}'.format(j+1))    
+        if plotting==1:
+            ax = axes[j]
+            plotting2d(ax, axb, locM, j)
+        
+    if plotting==1:
+        axb.legend()
+        fig.tight_layout()
+        fig3d.tight_layout()
+        s1 = 'vela2b-{0:d}_cloud_onion.png'.format(galNum)
+        s2 = s1.replace('onion','onion_all')
+        s3d = s1.replace('onion','clustering')
+        fig.savefig(s1, bbox_inches='tight',dpi=300)
+        figb.savefig(s2, bbox_inches='tight',dpi=300)
+        fig3d.savefig(s3d, bbox_inches='tight',dpi=300)
 
-        axb.plot(locM['dist'], locM['metal'], '.', alpha=0.01, label='Cloud {0:d}'.format(j+1))
-        axb.set_xlabel('Distance [kpc]')
-        axb.set_ylabel('Metals [mass fraction]')
-        axb.set_yscale('log')
-        axb.set_title('Cloud {0:d}'.format(j+1))    
-
-    axb.legend()
-    fig.tight_layout()
-    s1 = 'vela2b-{0:d}_cloud_onion.png'.format(galNum)
-    s2 = s1.replace('onion','onion_all')
-    fig.savefig(s1, bbox_inches='tight',dpi=300)
-    figb.savefig(s2, bbox_inches='tight',dpi=300)
+        plt.cla()
+        plt.clf()
 
 hdf5file = 'vela2b_cloud_loc_stats.h5'
 df = pd.DataFrame(data,columns=header)

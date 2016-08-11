@@ -17,6 +17,7 @@ numClouds = 3
 loT, hiT = 10**4, 10**4.5
 loN, hiN = 10**-5, 10**-4.5
 baseLoc = '/home/jacob/research/velas/vela2b/vela{0:d}/a{1:s}/'
+baseLoc = '/mnt/cluster/abs/cgm/vela2b/vela{0:d}/a{1:s}/'
 
 galNums = range(21,30)
 expns = ['0.490']*len(galNums)

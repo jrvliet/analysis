@@ -106,10 +106,6 @@ for i,(galNum, a) in enumerate(zip(galNums, expns)):
     results = pd.DataFrame([dataset.index,labels]).T
     silhouette = sm.silhouette_score(dloc, labels, metric='euclidean')
 
-    
-
-
-
     print('\tClustering done')
 
     fig, (ax1,ax2,ax3) = plt.subplots(3,1,figsize=(5,15))

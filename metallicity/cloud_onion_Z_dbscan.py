@@ -22,17 +22,17 @@ loT, hiT = 10**4, 10**4.5
 loN, hiN = 10**-5, 10**-4.5
 
 # Define DBSCAN parameters
-eps = 10        # Maximum distance between cells in a cluster
+eps = 20        # Maximum distance between cells in a cluster
 minPart = 100   # Minimum number of cells to be called a cluster
 
 # Define filenames
 baseloc = '/mnt/cluster/abs/cgm/vela2b/vela{0:d}/a{1:s}/'
 filename = 'vela2b-{0:d}_GZa{1:s}.h5'
-outfile = 'vela2b_onion_DBSCAN_results.dat'
+outfile = 'vela2b_onion_DBSCAN_eps{0:d}_min{1:d}_results.dat'.format(eps,minPart)
 f = open(outfile, 'w')
-header = 'GalNum\tnCluster\tnOutliers\nnTotal\t%In\n'
+header = 'GalNum\tnCluster\tnOutliers\tnTotal\t%In\n'
 f.write(header)
-s = '{0:d}\t{1:d}\t{2:d}\t{3:d}\t{4:.1%}\n'
+ss = '{0:d}\t{1:d}\t\t{2:d}\t{3:d}\t{4:.1%}\n'
 
 
 # Loop over galaxies
@@ -45,8 +45,8 @@ for galNum, a in zip(galNums, expns):
     df = pd.read_hdf(dataloc+fname, 'data')
 
     # Select out the cloud
-    cloudInds = ( (d['temperature']<hiT) & (d['temperature']>loT) &
-                  (d['density']<hiN) & (d['density']>loN) )
+    cloudInds = ( (df['temperature']<hiT) & (df['temperature']>loT) &
+                  (df['density']<hiN) & (df['density']>loN) )
     cloud = df[cloudInds]
 
     # Select out only the coordinates for the fitting
@@ -57,15 +57,15 @@ for galNum, a in zip(galNums, expns):
 
     # Pull out the results of the clustering analysis
     core_samples_mask = np.zeros_like(db.labels_,dtype=bool)
-    core_samples_mask[db.core_samples_indicies_] = True
+    core_samples_mask[db.core_sample_indices_] = True
     labels = db.labels_
     nClusters = len(set(labels)) - (1 if -1 in labels else 0)
 
     # Write results to output
-    nOutliers = labels.count(-1)
+    nOutliers = list(labels).count(-1)
     nTotal = len(df)
     fraction = (nTotal-nOutliers)/float(nTotal)
-    f.write(s.format(galNun,nClusters,nOutliers,nTotal,fraction)) 
+    f.write(ss.format(galNum,nClusters,nOutliers,nTotal,fraction)) 
     
     # Loop over each cluster
     for i in range(nClusters):

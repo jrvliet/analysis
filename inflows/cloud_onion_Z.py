@@ -108,8 +108,8 @@ for i,(galNum, a) in enumerate(zip(galNums, expns)):
 
     print('\tClustering done')
 
-    fig, (ax1,ax2,ax3) = plt.subplots(3,1,figsize=(5,15))
-    axes = [ax1,ax2,ax3]
+    fig, ((ax1,ax2),(ax3,ax4),(ax5,ax6))) = plt.subplots(3,2,figsize=(10,15))
+    axes = [ax1,ax2,ax3,ax4,ax5,ax6]
     figb, axb = plt.subplots(1,1,figsize=(10,10))
     fig3d = plt.figure(figsize=(15,10))
     ax3da = fig3d.add_subplot(131,projection='3d')

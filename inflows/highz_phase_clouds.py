@@ -11,6 +11,7 @@ from mpl_toolkits.mplot3d.axes3d import Axes3D
 
 galNums = range(21,30)
 expns = ['0.250','0.280','0.340','0.490']
+redshifts = [1/float(a) - 1 for a in expns]
 
 loT, hiT = 10**4, 10**4.5
 loN, hiN = 10**-5, 10**-4.5
@@ -24,7 +25,7 @@ for galNum in galNums:
     print galNum
     fig = plt.figure(figsize=(20,20))
 
-    for row, a in enumerate(expns):
+    for row, (a,z) in enumerate(zip(expns,redshifts)):
 
         if galNum==24 and a=='0.490':
             a = '0.450'
@@ -67,7 +68,7 @@ for galNum in galNums:
         ax.set_xlabel('x')      
         ax.set_ylabel('y')      
         ax.set_zlabel('z')      
-        ax.set_title(a)
+        ax.set_title('a = {0:s}, z = {1:.3f}'.format(a,z))
 
         ax = fig.add_subplot(4,4,4*row+4,projection='3d')
         ax.scatter(d['x'],d['y'],d['z'],marker='o',alpha=0.01,color='green')

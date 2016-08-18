@@ -6,6 +6,8 @@ inflows
 
 
 from __future__ import print_function
+import matplotlib as mpl
+mpl.use('Agg')
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -28,7 +30,7 @@ loT, hiT = 10**4, 10**4.5
 loN, hiN = 10**-5, 10**-4.5
 
 # Define DBSCAN parameters
-eps = 60        # Maximum distance between cells in a cluster
+eps = 100        # Maximum distance between cells in a cluster
 minPart = 500   # Minimum number of cells to be called a cluster
 
 # Define filenames

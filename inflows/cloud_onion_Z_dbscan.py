@@ -30,7 +30,7 @@ loT, hiT = 10**4, 10**4.5
 loN, hiN = 10**-5, 10**-4.5
 
 # Define DBSCAN parameters
-eps = 100        # Maximum distance between cells in a cluster
+eps = 60        # Maximum distance between cells in a cluster
 minPart = 500   # Minimum number of cells to be called a cluster
 
 # Define filenames

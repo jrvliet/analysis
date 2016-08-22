@@ -33,6 +33,7 @@ loN, hiN = 10**-5, 10**-4.5
 # Define DBSCAN parameters
 epsList = range(20,100,10)
 minPartList = range(100,2000,200)
+numCombos = len(epsList)*len(minPartList)
 
 #eps = 60        # Maximum distance between cells in a cluster
 #minPart = 1000   # Minimum number of cells to be called a cluster
@@ -43,6 +44,8 @@ filename = 'vela2b-{0:d}_GZa{1:s}.h5'
 
 # Loop over galaxies
 for galNum, a in zip(galNums, expns):
+
+    print('Galaxy = {0:d}, a = {1:s}'.format(galNum,a))
 
     dataloc = baseloc.format(galNum,a)
     fname = filename.format(galNum,a)
@@ -58,10 +61,13 @@ for galNum, a in zip(galNums, expns):
     # Select out only the coordinates for the fitting
     dloc = cloud[['x','y','z']].as_matrix()
 
+    count = 0
 
     # Loop over all combinations of DBSCAN paramters
     for combo in it.product(epsList,minPartList):
 
+        count += 1
+        print('\tIteration {0:d} of {1:d}'.format(count,numCombos))
         eps = combo[0]
         minPart = combo[1]
 

@@ -3,3 +3,5 @@
 *.pdf
 *.out
 *.swp
+*.dat
+*.h5

@@ -17,6 +17,8 @@ import scipy.linalg as sl
 import scipy.stats as st
 import itertools as it
 
+plotting = 0 
+
 pd.options.mode.chained_assignment = None  # default='warn'
 colors = ['blue','red','green','black','cyan','coral','purple','goldenrod','gray','orange']
 markers = ['o','^','d','s','v']
@@ -34,6 +36,9 @@ loN, hiN = 10**-5, 10**-4.5
 epsList = range(20,100,10)
 minPartList = range(100,2000,200)
 numCombos = len(epsList)*len(minPartList)
+epsList = [40, 50, 60, 70, 80, 90]
+minPartList = [100, 500, 900, 110, 1700]
+numCombos = len(epsList)
 
 #eps = 60        # Maximum distance between cells in a cluster
 #minPart = 1000   # Minimum number of cells to be called a cluster
@@ -63,8 +68,14 @@ for galNum, a in zip(galNums, expns):
 
     count = 0
 
+    velfile = 'vela2b-{0:d}_onion_DBSCAN_stats.h5'.format(galNum)
+    velheader = ['eps','minPart','cluster','nMembers','vr_mean','vr_min','vr_max','vr_std','r_mean','r_min','r_max','r_std']
+    numcols = len(velheader)
+    veldf = np.zeros(numcols)
+
     # Loop over all combinations of DBSCAN paramters
-    for combo in it.product(epsList,minPartList):
+    #for combo in it.product(epsList,minPartList):
+    for eps,minPart in zip(epsList,minPartList):
 
         count += 1
         print('\tIteration {0:d} of {1:d}'.format(count,numCombos))
@@ -72,22 +83,17 @@ for galNum, a in zip(galNums, expns):
         minPart = combo[1]
 
         # Open files
-        outfile = 'vela2b_onion_DBSCAN_eps{0:d}_min{1:d}_results.dat'.format(eps,minPart)
+        outfile = 'vela2b-{0:d}_onion_DBSCAN_eps{1:d}_min{2:d}_results.dat'.format(galNum,eps,minPart)
         f = open(outfile, 'w')
         header = 'GalNum\tnCluster\tnOutliers\tnTotal\t%In\n'
         f.write(header)
         ss = '{0:d}\t{1:d}\t\t{2:d}\t\t{3:d}\t{4:.1%}\n'
 
-        fitfile = 'vela2b_onion_DBSCAN_eps{0:d}_min{1:d}_fit.dat'.format(eps,minPart)
+        fitfile = 'vela2b-{0:d}_onion_DBSCAN_eps{1:d}_min{2:d}_fit.dat'.format(galNum,eps,minPart)
         fitf = open(fitfile, 'w')
         header = 'GalNum\tCluster\tSlope\tInter\tR\tP\tStd_err\n'
         fitf.write(header)
         fits = '{0:d}\t{1:d}\t{2:.3e}\t{3:.3e}\t{4:.3f}\t{5:.3f}\t{6:.3f}\n'
-
-        velfile = 'vela2b_onion_DBSCAN_eps{0:d}_min{1:d}_velocity.h5'.format(eps,minPart)
-        velheader = ['GalNum','Cluster','vr_mean','vr_min','vr_max','vr_std','r_mean','r_min','r_max','r_std']
-        numcols = len(velheader)
-        veldf = np.zeros(numcols)
 
         # Perform the DBSCAN
         db = skc.DBSCAN(eps=eps, min_samples=minPart).fit(dloc)
@@ -107,8 +113,10 @@ for galNum, a in zip(galNums, expns):
         # Print out to screen
         print('Galaxy Number = {0:d}\tNumber of Clusters = {1:d}'.format(galNum,nClusters))
         
-        fig = plt.figure(figsize=(15,15))
-        ax = fig.add_subplot(111, projection='3d')
+        if plotting==1:
+            fig = plt.figure(figsize=(15,15))
+            ax = fig.add_subplot(111, projection='3d')
+
         # Loop over each cluster
         for i in range(nClusters):
             
@@ -116,10 +124,11 @@ for galNum, a in zip(galNums, expns):
             cluster = cloud[ind]
             clusterLoc = cluster[['x','y','z']]
 
-            m = i%len(markers)
-            c = i%len(colors)
-            ax.scatter(cluster['x'],cluster['y'],cluster['z'],
-                        marker=markers[m],color=colors[c],alpha=0.01)
+            if plotting==1:
+                m = i%len(markers)
+                c = i%len(colors)
+                ax.scatter(cluster['x'],cluster['y'],cluster['z'],
+                            marker=markers[m],color=colors[c],alpha=0.01)
 
             # Determine the radial properties of this cluster
             cluster['r'] = np.sqrt(cluster['x']**2 + cluster['y']**2 + cluster['z']**2)
@@ -132,16 +141,18 @@ for galNum, a in zip(galNums, expns):
             zmean = cluster['z'].mean()
 
             clust = np.zeros(numcols)
-            clust[0] = galNum
-            clust[1] = i
-            clust[2] = cluster['vr'].mean()
-            clust[3] = cluster['vr'].min()
-            clust[4] = cluster['vr'].max()
-            clust[5] = cluster['vr'].std()
-            clust[6] = cluster['r'].mean()
-            clust[7] = cluster['r'].min()
-            clust[8] = cluster['r'].max()
-            clust[9] = cluster['r'].std()
+            clust[0] = eps
+            clust[1] = minPart
+            clust[2] = i
+            clust[3] = len(clusterLoc)
+            clust[4] = cluster['vr'].mean()
+            clust[5] = cluster['vr'].min()
+            clust[6] = cluster['vr'].max()
+            clust[7] = cluster['vr'].std()
+            clust[8] = cluster['r'].mean()
+            clust[9] = cluster['r'].min()
+            clust[10] = cluster['r'].max()
+            clust[11] = cluster['r'].std()
 
             veldf = np.vstack((veldf,clust))
 
@@ -178,19 +189,23 @@ for galNum, a in zip(galNums, expns):
             fitf.write(fits.format(galNum,i,slope,intercept,r_value,p_value,std_err))
 
         # Save the plot to file
-        ax.view_init(elev=0,azim=0)
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        ax.set_zlabel('z')
-        ax.set_xlim([-300,300])
-        ax.set_ylim([-300,300])
-        ax.set_zlim([-300,300])
-        fig.savefig('vela2b-{0:d}_eps{1:d}_min{2:d}_dbscanClusters.png'.format(galNum,eps,minPart),bbox_inches='tight',dpi=300)
+        if plotting==1:
+            ax.view_init(elev=0,azim=0)
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
+            ax.set_zlabel('z')
+            ax.set_xlim([-300,300])
+            ax.set_ylim([-300,300])
+            ax.set_zlim([-300,300])
+            fig.savefig('vela2b-{0:d}_eps{1:d}_min{2:d}_dbscanClusters.png'.format(galNum,eps,minPart),bbox_inches='tight',dpi=300)
 
-f.close()
-fitf.close()
-df = pd.DataFrame(veldf,columns=velheader)
-df.to_hdf(velfile,'data',mode='w')
+        f.close()
+        fitf.close()
+
+    # Write the dataframe to file
+    veldf = np.delete(veldf, (0), axis=0)
+    df = pd.DataFrame(veldf,columns=velheader)
+    df.to_hdf(velfile,'data',mode='w')
 
 
 

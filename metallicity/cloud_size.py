@@ -9,7 +9,6 @@ import gc
 import statsmodels as sm
 
 galNums = range(21,30)
-galNums = [27]
 expns = np.arange(0.200,0.500,0.01) 
 #expns = ['{0:.3f}'.format(i) for i in a]
 
@@ -35,8 +34,9 @@ for galNum in galNums:
         loT, hiT = 10**3, 10**4.5
         loN = 10**-6
 
-        baseInds = ( (d['temperature']<=hiT) & (d['temperature']>=loT) & 
-                      (d['x']<0) & (d['z']>0) & (np.abs(d['y'])<300))
+        #baseInds = ( (d['temperature']<=hiT) & (d['temperature']>=loT) & 
+        #              (d['x']<0) & (d['z']>0) & (np.abs(d['y'])<300))
+        baseInds = ( (d['temperature']<=hiT) & (d['temperature']>=loT) )
 
         fig = plt.figure(figsize=(20,15))
         for i,n in enumerate(dense):
@@ -53,9 +53,9 @@ for galNum in galNums:
             ax.set_xlabel('x')
             ax.set_ylabel('y')
             ax.set_zlabel('z')
-            ax.set_xlim([-3,0])
-            ax.set_ylim([-2,2])
-            ax.set_zlim([-0.5,3])
+            ax.set_xlim([-3,3])
+            ax.set_ylim([-3,3])
+            ax.set_zlim([-3,3])
             ax.view_init(elev=30, azim=0)
             ax.set_title('{0:.2f} $<$ log(nH) $<$ {1:.2f}'.format(np.log10(loN),np.log10(hiN)))
 

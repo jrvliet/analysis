@@ -19,6 +19,10 @@ import itertools as it
 
 plotting = 0 
 
+cm2kpc = 3.086e21
+g2Ms  = 1.989e33
+u2g = 1.661e-24
+
 pd.options.mode.chained_assignment = None  # default='warn'
 colors = ['blue','red','green','black','cyan','coral','purple','goldenrod','gray','orange']
 markers = ['o','^','d','s','v']
@@ -69,7 +73,8 @@ for galNum, a in zip(galNums, expns):
     count = 0
 
     velfile = 'vela2b-{0:d}_onion_DBSCAN_stats.h5'.format(galNum)
-    velheader = ['eps','minPart','cluster','nMembers','vr_mean','vr_min','vr_max','vr_std','r_mean','r_min','r_max','r_std']
+    velheader = ['eps','minPart','cluster','nMembers','vr_mean','vr_min','vr_max',
+                'vr_std','r_mean','r_min','r_max','r_std','mass']
     numcols = len(velheader)
     veldf = np.zeros(numcols)
 
@@ -79,8 +84,8 @@ for galNum, a in zip(galNums, expns):
 
         count += 1
         print('\tIteration {0:d} of {1:d}'.format(count,numCombos))
-        eps = combo[0]
-        minPart = combo[1]
+        #eps = combo[0]
+        #minPart = combo[1]
 
         # Open files
         outfile = 'vela2b-{0:d}_onion_DBSCAN_eps{1:d}_min{2:d}_results.dat'.format(galNum,eps,minPart)
@@ -134,7 +139,11 @@ for galNum, a in zip(galNums, expns):
             cluster['r'] = np.sqrt(cluster['x']**2 + cluster['y']**2 + cluster['z']**2)
             cluster['vr'] = (cluster['vx']*cluster['x'] + cluster['vy']*cluster['y'] + 
                                 cluster['vz']*cluster['z']) / cluster['r']
-            
+        
+            # Determine the mass of each cell
+            cf = cm2kpc**3 * u2g * g2Ms
+            cluster['mass'] = cluster['density'] * cluster['cell_size']**3 * cf
+    
             # Determine the mean parameters
             xmean = cluster['x'].mean()
             ymean = cluster['y'].mean()
@@ -153,6 +162,7 @@ for galNum, a in zip(galNums, expns):
             clust[9] = cluster['r'].min()
             clust[10] = cluster['r'].max()
             clust[11] = cluster['r'].std()
+            clust[12] = np.log10(cluster['mass'].sum())
 
             veldf = np.vstack((veldf,clust))
 

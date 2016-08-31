@@ -49,6 +49,7 @@ numCombos = len(epsList)
 
 # Define filenames
 baseloc = '/mnt/cluster/abs/cgm/vela2b/vela{0:d}/a{1:s}/'
+baseloc = '/home/jacob/research/velas/vela2b/vela{0:d}/a{1:s}/'
 filename = 'vela2b-{0:d}_GZa{1:s}.h5'
 
 # Loop over galaxies
@@ -116,7 +117,7 @@ for galNum, a in zip(galNums, expns):
         f.write(ss.format(galNum,nClusters,nOutliers,nTotal,fraction)) 
 
         # Print out to screen
-        print('Galaxy Number = {0:d}\tNumber of Clusters = {1:d}'.format(galNum,nClusters))
+        #print('Galaxy Number = {0:d}\tNumber of Clusters = {1:d}'.format(galNum,nClusters))
         
         if plotting==1:
             fig = plt.figure(figsize=(15,15))

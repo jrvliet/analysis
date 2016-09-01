@@ -5,7 +5,7 @@ of vela2b-27 as a funciton of galactocentric distance
 '''
 
 from __future__ import print_function
-import pandas as np
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -22,13 +22,13 @@ for a in expns:
 
     z = 1./a - 1.0
 
-    fn = loc.format(a) + fname.format(a)
+    fn = fname.format(a)
 
     df = pd.read_hdf(fn,'data')
 
     index = ( (df['temperature']<hiT) & (df['temperature']>loT) &
                 (df['density']<hiN) & (df['density']>loN) & 
-                (df['x']<0) & (df['z']>0) & (np.abs(d['y'])<300) )
+                (df['x']<0) & (df['z']>0) & (np.abs(df['y'])<300) )
 
     cloud = df[index]
 

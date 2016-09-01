@@ -9,6 +9,7 @@ import gc
 import statsmodels as sm
 
 galNums = range(21,30)
+galNums = range(27,30)
 expns = np.arange(0.200,0.500,0.01) 
 #expns = ['{0:.3f}'.format(i) for i in a]
 

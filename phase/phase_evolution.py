@@ -10,7 +10,10 @@ mp.use('Agg')
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.stats as st
 
+def spread(x):
+    return max(x)-min(x)
 
 baseloc = '/mnt/cluster/abs/cgm/vela2b/vela{0:d}/a{1:.3f}/'
 basefile = '{0:s}vela2b-{1:d}_GZa{2:.3f}.h5'
@@ -19,6 +22,7 @@ numbins = 50
 binrange = [[-10,2],[2,8]]
 
 galNums = range(21,30)
+galNums = [27]
 expns = np.arange(0.200, 0.500, 0.01)
 
 for galNum in galNums:
@@ -40,15 +44,21 @@ for galNum in galNums:
 
         
         # Bin
-        H, xedges, yedges = np.histogram2d(np.log10(df['density']), np.log10(df['temperature']), 
-                                            bins=numbins, range=binrange)
+        #H, xedges, yedges = np.histogram2d(np.log10(df['density']), np.log10(df['temperature']), 
+        #                                    bins=numbins, range=binrange)
+        H, xedges, yedges, binnumber = st.binned_statistic_2d(np.log10(df['density']), 
+                                                              np.log10(df['temperature']),
+                                                              df['SNII'],
+                                                              statistic=spread,
+                                                              bins=50, range=binrange)
         H = np.rot90(H)
         H = np.flipud(H)
+        H[np.isnan(H)] = 0.0
         H = np.ma.masked_where(H==0,H)
         H = np.log10(H)
 
         fig, ax = plt.subplots(1,1,figsize=(5,5))
-        mesh = ax.pcolormesh(xedges,yedges,H)
+        mesh = ax.pcolormesh(xedges,yedges,H, cmap='viridis')
         ax.set_xlim(binrange[0])
         ax.set_ylim(binrange[1])
         ax.set_xlabel('Density')
@@ -60,7 +70,7 @@ for galNum in galNums:
         cbar.ax.set_ylabel('Counts', rotation=270, fontsize=12)
 
 
-        s = 'vela2b-{0:d}_a{1:.3f}_phase.png'.format(galNum,a)
+        s = './phaseDiagram/vela2b-{0:d}_a{1:.3f}_phase_Zspread.png'.format(galNum,a)
         fig.savefig(s,bbox_inches='tight',dpi=300)
 
 

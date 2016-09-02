@@ -12,8 +12,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-datafile = '/mnt/cluster/abs/cgm/vela2b/vela2/a{0:.3f}/vela2b-27_GZa{0:.3f}.h5'
-rotmatfile = '/mnt/cluster/abs/cgm/vela2b/vela2/a{0:.3f}/rotmat_a{0:.3f}.txt'
+datafile = '/mnt/cluster/abs/cgm/vela2b/vela27/a{0:.3f}/vela2b-27_GZa{0:.3f}.h5'
+rotmatfile = '/mnt/cluster/abs/cgm/vela2b/vela27/a{0:.3f}/rotmat_a{0:.3f}.txt'
 
 loT,hiT = 10**3.25, 10**4.5
 loN,hiN = 10**-6.25,10**-2.25
@@ -36,7 +36,7 @@ for a in expns:
     df = pd.read_hdf(datafile.format(a), 'data')
 
     index = ( (df['temperature']<hiT) & (df['temperature']>loT) &
-                (df['density']<hiN) a& (df['density']>loN) &
+                (df['density']<hiN) & (df['density']>loN) &
                 (df['x']<0) & (df['z']>0) & (np.abs(df['y'])<300) )
 
     cloud = df[index]
@@ -51,23 +51,23 @@ for a in expns:
     
     fig,(ax1,ax2,ax3) = plt.subplots(1,3,figsize=(9,3))
     
-    ax1.plot(cloud['x']/rvir, cloud['y']/rvir, 'o', c=df['SNII'], alpha=0.01)
+    ax1.scatter(cloud['x']/rvir, cloud['y']/rvir, marker='o', c=cloud['SNII'].values, alpha=0.01)
     ax1.set_xlabel('x')
     ax1.set_ylabel('y')
-    ax1.set_xlim([-2.5,0])
-    ax1.set_ylim([-2.5,2.5])
+    ax1.set_xlim([0,-3])
+    ax1.set_ylim([-3,3])
 
-    ax2.plot(cloud['x']/rvir, cloud['z']/rvir, 'o', c=df['SNII'], alpha=0.01)
+    ax2.scatter(cloud['x']/rvir, cloud['z']/rvir, marker='o', c=cloud['SNII'].values, alpha=0.01)
     ax2.set_xlabel('x')
     ax2.set_ylabel('z')
-    ax2.set_xlim([-2.5,0])
-    ax2.set_ylim([0,2.5])
+    ax2.set_xlim([0,-3])
+    ax2.set_ylim([0,3])
     
-    ax3.plot(cloud['y']/rvir, cloud['z']/rvir, 'o', c=df['SNII'], alpha=0.01)
+    ax3.scatter(cloud['y']/rvir, cloud['z']/rvir, marker='o', c=cloud['SNII'].values, alpha=0.01)
     ax3.set_xlabel('y')
     ax3.set_ylabel('z')
-    ax3.set_xlim([-2.5,2.5])
-    ax3.set_ylim([0,2.5])
+    ax3.set_xlim([-3,3])
+    ax3.set_ylim([0,3])
 
 
     ax2.set_title('z = {0:.3f}'.format(z))
@@ -78,9 +78,9 @@ for a in expns:
 
     
         
-print('X Limits = {0:.3f} - {1:.3f}'.format(min(xmin),max(xmax))
-print('Y Limits = {0:.3f} - {1:.3f}'.format(min(ymin),max(ymax))
-print('Z Limits = {0:.3f} - {1:.3f}'.format(min(zmin),max(zmax))
+print('X Limits = {0:.3f} - {1:.3f}'.format(min(xmin),max(xmax)))
+print('Y Limits = {0:.3f} - {1:.3f}'.format(min(ymin),max(ymax)))
+print('Z Limits = {0:.3f} - {1:.3f}'.format(min(zmin),max(zmax)))
 
 
 

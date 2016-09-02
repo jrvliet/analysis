@@ -28,7 +28,7 @@ colors = ['blue','red','green','black','cyan','coral','purple','goldenrod','gray
 markers = ['o','^','d','s','v']
 
 # Define which galaxies to use
-galNums = [27]
+galNum = 27
 expns = np.arange(0.200,0.500,0.01)
 
 # Define cloud parameters
@@ -48,10 +48,22 @@ baseloc = '/mnt/cluster/abs/cgm/vela2b/vela{0:d}/a{1:s}/'
 baseloc = '/home/jacob/research/velas/vela2b/vela{0:d}/a{1:s}/'
 filename = 'vela2b-{0:d}_GZa{1:s}.h5'
 
-# Loop over galaxies
-for galNum, a in zip(galNums, expns):
+velfile = 'vela2b-{0:d}_onion_DBSCAN_stats.h5'.format(galNum)
+velheader = ['eps','minPart','cluster','nMembers','vr_mean','vr_min','vr_max',
+            'vr_std','r_mean','r_min','r_max','r_std','mass']
+numcols = len(velheader)
+veldf = np.zeros(numcols)
 
-    print('Galaxy = {0:d}, a = {1:s}'.format(galNum,a))
+
+fitfile = 'vela2b-{0:d}_onion_DBSCAN_eps{1:d}_min{2:d}_fit.dat'.format(galNum,eps,minPart)
+fitf = open(fitfile, 'w')
+header = 'GalNum\tCluster\tSlope\tInter\tR\tP\tStd_err\n'
+fitf.write(header)
+fits = '{0:d}\t{1:d}\t{2:.3e}\t{3:.3e}\t{4:.3f}\t{5:.3f}\t{6:.3f}\n'
+
+
+# Loop over galaxies
+for a in expns:
 
     dataloc = baseloc.format(galNum,a)
     fname = filename.format(galNum,a)
@@ -70,11 +82,6 @@ for galNum, a in zip(galNums, expns):
 
     count = 0
 
-    velfile = 'vela2b-{0:d}_onion_DBSCAN_stats.h5'.format(galNum)
-    velheader = ['eps','minPart','cluster','nMembers','vr_mean','vr_min','vr_max',
-                'vr_std','r_mean','r_min','r_max','r_std','mass']
-    numcols = len(velheader)
-    veldf = np.zeros(numcols)
 
     # Loop over all combinations of DBSCAN paramters
     #for combo in it.product(epsList,minPartList):
@@ -92,13 +99,7 @@ for galNum, a in zip(galNums, expns):
         f.write(header)
         ss = '{0:d}\t{1:d}\t\t{2:d}\t\t{3:d}\t{4:.1%}\n'
 
-        fitfile = 'vela2b-{0:d}_onion_DBSCAN_eps{1:d}_min{2:d}_fit.dat'.format(galNum,eps,minPart)
-        fitf = open(fitfile, 'w')
-        header = 'GalNum\tCluster\tSlope\tInter\tR\tP\tStd_err\n'
-        fitf.write(header)
-        fits = '{0:d}\t{1:d}\t{2:.3e}\t{3:.3e}\t{4:.3f}\t{5:.3f}\t{6:.3f}\n'
-
-        # Perform the DBSCAN
+              # Perform the DBSCAN
         db = skc.DBSCAN(eps=eps, min_samples=minPart).fit(dloc)
 
         # Pull out the results of the clustering analysis

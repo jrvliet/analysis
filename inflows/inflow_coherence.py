@@ -20,7 +20,7 @@ pd.options.mode.chained_assignment = None
 
 loT, hiT = 10**3.25, 10**4.5
 loN, hiN = 10**-6.25, 10**-2.25
-numbins = 20
+numbins = 200
 
 dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/a0.490/'
 dataloc = '/home/jacob/research/velas/vela2b/vela27/a0.490/'
@@ -34,6 +34,7 @@ index = ( (df['temperature']>loT) & (df['temperature']<hiT) &
 
 cloud = df[index]
 cloudLoc = cloud[['x','y','z']]
+print('Number of samples = {0:d}'.format(len(cloudLoc)))
 
 # Perform a PCA to find the line of best fit
 
@@ -57,31 +58,68 @@ u2 = u[2,0]
 locM['a0'] = u2*locM['y'] - u1*locM['z']
 locM['a1'] = u0*locM['z'] - u2*locM['x']
 locM['a2'] = u1*locM['x'] - u0*locM['y']
-locM['dist'] = np.sqrt(locM['a0']**2 + locM['a1']**2 + locM['a2'])
-
-print(locM['dist'].min())
-print(locM['dist'].max())
-print(locM['dist'].mean())
+locM['dist'] = np.sqrt(locM['a0']**2 + locM['a1']**2 + locM['a2']**2)
 
 out = pd.cut(locM['dist'], bins=numbins)
 counts = pd.value_counts(out, sort=False)
-print(counts)
-print(type(counts))
 counts.to_csv('counts.out',sep=' ',index=True,header=False)
-
-(mu, sigma) = st.norm.fit(locM['dist'])
-print('mu = {0:.3f}\nsigma = {1:.3f}'.format(mu,sigma))
+normedCounts = counts/sum(counts)
 
 # Plot historgram of dist
-fig, ax = plt.subplots(figsize=(5,5))
-n, bins, patches = ax.hist(locM['dist'], bins=numbins, range=[locM['dist'].min(),locM['dist'].max()],histtype='step',normed=True)
-y = mlab.normpdf(bins, mu, sigma)
-l = ax.plot(bins, y, 'r--', linewidth=2)
+fig, (ax1,ax2) = plt.subplots(1,2,figsize=(10,5))
+n, bins, patches = ax1.hist(locM['dist'], bins=numbins, 
+                            range=[locM['dist'].min(),locM['dist'].max()],
+                            histtype='step',normed=True)
+n, bins, patches = ax2.hist(locM['dist'], bins=numbins, 
+                            range=[locM['dist'].min(),locM['dist'].max()],
+                            histtype='step',normed=True,cumulative=True)
+
+#distNames = [ 'weibull_max', 'rayleigh']
+#for distName in distNames:
+#    print(distName)
+#    dist = getattr(st, distName)
+#    param = dist.fit(y)
+#    print(param)
+#    pdfFitted = dist.pdf(x, *param[:-2], loc=param[-2], scale=param[-1])
+
+
+# Fit a rayleigh curve to the data
+y = locM['dist']
+
+# Perform fits and 
+x = np.linspace(y.min(), y.max(), 10000)
+
+print('\nRayleigh Distribution')
+param = st.rayleigh.fit(locM['dist'])
+print(param)
+y = st.rayleigh.pdf(x, *param[:-2], loc=param[-2], scale=param[-1])
+ax1.plot(x, y, label='Rayleigh')
+results = st.ks_2samp(locM['dist'],y)
+print('KS-Test: ',results)
+#results = st.anderson_ksamp([locM['dist'],y])
+print('Anderson: ',results)
+y = st.rayleigh.cdf(x, *param[:-2], loc=param[-2], scale=param[-1])
+ax2.plot(x, y, label='Rayleigh')
+
+
+print('\nWeibull Distribution')
+param = st.weibull_max.fit(locM['dist'])
+print(param)
+y = st.weibull_max.pdf(x, *param[:-2], loc=param[-2], scale=param[-1])
+ax1.plot(x, y, label='Weibull Max')
+results = st.ks_2samp(locM['dist'],y)
+print('KS-Test: ',results)
+#results = st.anderson_ksamp([locM['dist'],y])
+print('Anderson: ',results)
+y = st.weibull_max.cdf(x, *param[:-2], loc=param[-2], scale=param[-1])
+ax2.plot(x, y, label='Weibull Max')
+
 
 #pd.DataFrame.hist(locM,column='dist',ax=ax,bins=numbins,color='r')
-ax.set_xlabel('Distance from line')
-ax.set_title(r'$\mu = {0:.3f},\ \sigma = {1:.3f}$'.format(mu,sigma))
+ax1.set_xlabel('Distance from line')
+ax2.set_xlabel('Distance from line')
 
+plt.legend()
 s = 'vela2b-27_inflow_coherence.png'
 fig.savefig(s, bbox_inches='tight', dpi=300)
 

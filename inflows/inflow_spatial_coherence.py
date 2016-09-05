@@ -24,8 +24,8 @@ loT, hiT = 10**3.25, 10**4.5
 loN, hiN = 10**-6.25, 10**-2.25
 numbins = 200
 
-dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/a{0:.3f}/'
 dataloc = '/home/jacob/research/velas/vela2b/vela27/a{0:.3f}/'
+dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
 
 expns = np.arange(0.200,0.500,0.01)
 
@@ -36,8 +36,9 @@ fout.write(header)
 form = '{0:.3f}\t{1:d}\t{2:.3f}\t{3:.3f}\t{4:.3f}\t{5:.3f}\t{6:.3f}\n'
 
 for a in expns:
+    print(a)
 
-    fname = '{0:s}vela2b-27_GZa{1:s}.h5'.format(dataloc,a)
+    fname = '{0:s}a{1:.3f}/vela2b-27_GZa{1:.3f}.h5'.format(dataloc,a)
 
     df = pd.read_hdf(fname, 'data')
 
@@ -86,7 +87,6 @@ for a in expns:
 
     param = st.rayleigh.fit(locM['dist'])
     y = st.rayleigh.pdf(x, *param[:-2], loc=param[-2], scale=param[-1])
-    ax1.plot(x, y, label='Rayleigh')
     results = st.ks_2samp(locM['dist'],y)
     ks = results[0]
 
@@ -97,8 +97,7 @@ for a in expns:
     rayVar = st.rayleigh.var(loc=loc,scale=scale)
     distVar = locM['dist'].var()
 
-
-    fout.write(form.format(a,numcells,scale,loc,rayVar,distVar,ks))
+    fout.write(form.format(a,numCells,scale,loc,rayVar,distVar,ks))
 
 fout.close()
 

@@ -1,4 +1,5 @@
 
+
 '''
 Determines the coherence of the inflows
 Focus on the poster child inflow in vela2b-27
@@ -80,21 +81,37 @@ cloudVel['perp'] = np.sqrt(cloudVel['perp0']**2 +
 
 
 # Plot historgram of dist
-fig, (ax1,ax2) = plt.subplots(1,2,figsize=(10,5))
-n, bins, patches = ax1.hist(cloudVel['speed'], bins=numbins, 
+fig, ((ax1,ax2,ax3),(ax4,ax5,ax6)) = plt.subplots(2,3,figsize=(15,10))
+ax1.hist(cloudVel['vx'], bins=numbins, histtype='step', log=True, label='Cloud')
+ax1.hist(df['vx'], bins=numbins, histtype='step', log=True, label='All')
+
+ax2.hist(cloudVel['vy'], bins=numbins, histtype='step', log=True, label='Cloud')
+ax2.hist(df['vy'], bins=numbins, histtype='step', log=True, label='All')
+
+ax3.hist(cloudVel['vz'], bins=numbins, histtype='step', log=True, label='Cloud')
+ax3.hist(df['vz'], bins=numbins, histtype='step', log=True, label='All')
+
+n, bins, patches = ax4.hist(cloudVel['speed'], bins=numbins, 
                             range=[loSpeed,hiSpeed],
                             histtype='step')
 #n, bins, patches = ax2.hist(cloudVel['speed'], bins=numbins, 
 #                            range=[loSpeed,hiSpeed],
 #                            histtype='step',normed=True,cumulative=True)
-n, bins, patches = ax2.hist(cloudVel['along'], bins=numbins, 
+n, bins, patches = ax5.hist(cloudVel['along'], bins=numbins, 
                             histtype='step',label='V Par')
-n, bins, patches = ax2.hist(cloudVel['perp'], bins=numbins, 
+n, bins, patches = ax6.hist(cloudVel['perp'], bins=numbins, 
                             histtype='step', label='V Perp')
 
-ax1.set_xlabel('Speed')
-ax2.set_xlabel('Speed')
+ax1.set_xlabel('Vx')
+ax2.set_xlabel('Vy')
+ax3.set_xlabel('Vz')
+ax4.set_xlabel('Speed')
+ax5.set_xlabel('V Along')
+ax6.set_xlabel('V Perp')
+ax1.legend()
 ax2.legend()
+ax3.legend()
+fig.tight_layout()
 s = 'vela2b-27_inflow_velocity_coherence.png'
 fig.savefig(s, bbox_inches='tight', dpi=300)
 

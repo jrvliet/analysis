@@ -10,6 +10,31 @@ mp.use('Agg')
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import scipy.stats as st
+
+
+def mkHist(ax,x,y,z,numbins,binrange,xlab,ylab):
+
+    h, xedges, yedges, binnumber = st.binned_statistic_2d(x,y,z,
+                                    statistic='count', bins=numbins,
+                                    range=binrange)
+    h = np.rot90(h)
+    h = np.flipud(h)
+    h[np.isnan(h)] = 0.0
+    h = np.ma.masked_where(h==0,h)
+    h = np.log10(h)
+
+    mesh = ax.pcolormesh(xedges, yedges, h)
+    ax.set_xlim(binrange[0])
+    ax.set_ylim(binrange[1])
+    ax.set_xlabel(xlab)
+    ax.set_ylabel(ylab)
+    
+    cbar = plt.colorbar(mesh,ax=ax,use_gridspec=True)
+    cbar.ax.get_yaxis().labelpad = 20
+    cbar.ax.set_ylabel('Counts',rotation=270,fontsize=12)
+    
+
 
 
 datafile = '/mnt/cluster/abs/cgm/vela2b/vela27/a{0:.3f}/vela2b-27_GZa{0:.3f}.h5'
@@ -23,6 +48,8 @@ ymin, ymax = [], []
 zmin, zmax = [], []
 
 expns = np.arange(0.200,0.500,0.010)
+numbins = 50
+scatter = 0
 
 for a in expns:
     
@@ -51,23 +78,34 @@ for a in expns:
     
     fig,(ax1,ax2,ax3) = plt.subplots(1,3,figsize=(9,3))
     
-    ax1.scatter(cloud['x']/rvir, cloud['y']/rvir, marker='o', c=cloud['SNII'].values, alpha=0.01)
-    ax1.set_xlabel('x')
-    ax1.set_ylabel('y')
-    ax1.set_xlim([0,-3])
-    ax1.set_ylim([-3,3])
+    if scatter==1:
+        ax1.scatter(cloud['x']/rvir, cloud['y']/rvir, marker='o', c=cloud['SNII'].values, alpha=0.01)
+        ax1.set_xlabel('x')
+        ax1.set_ylabel('y')
+        ax1.set_xlim([0,-3])
+        ax1.set_ylim([-3,3])
 
-    ax2.scatter(cloud['x']/rvir, cloud['z']/rvir, marker='o', c=cloud['SNII'].values, alpha=0.01)
-    ax2.set_xlabel('x')
-    ax2.set_ylabel('z')
-    ax2.set_xlim([0,-3])
-    ax2.set_ylim([0,3])
-    
-    ax3.scatter(cloud['y']/rvir, cloud['z']/rvir, marker='o', c=cloud['SNII'].values, alpha=0.01)
-    ax3.set_xlabel('y')
-    ax3.set_ylabel('z')
-    ax3.set_xlim([-3,3])
-    ax3.set_ylim([0,3])
+        ax2.scatter(cloud['x']/rvir, cloud['z']/rvir, marker='o', c=cloud['SNII'].values, alpha=0.01)
+        ax2.set_xlabel('x')
+        ax2.set_ylabel('z')
+        ax2.set_xlim([0,-3])
+        ax2.set_ylim([0,3])
+        
+        ax3.scatter(cloud['y']/rvir, cloud['z']/rvir, marker='o', c=cloud['SNII'].values, alpha=0.01)
+        ax3.set_xlabel('y')
+        ax3.set_ylabel('z')
+        ax3.set_xlim([-3,3])
+        ax3.set_ylim([0,3])
+
+    else:
+        x = cloud['x']/rvir
+        y = cloud['y']/rvir
+        z = cloud['z']/rvir
+        c = (cloud['SNII']+cloud['SNIa']).values
+
+        mkHist(ax1,x,y,c,numbins,binrange,'x','y')
+        mkHist(ax2,x,z,c,numbins,binrange,'x','z')
+        mkHist(ax3,y,z,c,numbins,binrange,'y','z')
 
 
     ax2.set_title('z = {0:.3f}'.format(z))

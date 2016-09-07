@@ -53,8 +53,8 @@ scatter = 0
 
 for a in expns:
     
-    z = 1./a -1
-    print('a = {0:.3f}, z = {1:.3f}'.format(a,z))
+    red = 1./a -1
+    print('a = {0:.3f}, z = {1:.3f}'.format(a,red))
 
     with open(rotmatfile.format(a), 'r') as f:
         f.readline()
@@ -103,12 +103,17 @@ for a in expns:
         z = cloud['z']/rvir
         c = (cloud['SNII']+cloud['SNIa']).values
 
+        binrange = [[-2.5,0],[-2.5,2.5]]
         mkHist(ax1,x,y,c,numbins,binrange,'x','y')
+
+        binrange = [[-2.5,0],[0,2.5]]
         mkHist(ax2,x,z,c,numbins,binrange,'x','z')
+
+        binrange = [[-2.5,2.5],[0,2.5]]
         mkHist(ax3,y,z,c,numbins,binrange,'y','z')
 
 
-    ax2.set_title('z = {0:.3f}'.format(z))
+    ax2.set_title('z = {0:.3f}'.format(red))
 
     fig.tight_layout()
     s = 'vela2b-27_a{0:.3f}_cloud1_densityColor.png'.format(a)

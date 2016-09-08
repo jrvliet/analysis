@@ -14,6 +14,24 @@ import scipy.linalg as sl
 import scipy.stats as st
 
 
+def mkHist(ax,x,y,z,stat,binrange,xlab,ylab,zlab):
+    
+    h, xedges, yedges, binnumber = st.binned_statistic_2d(x,y,z, 
+                                statistic=stat, bins=50, range=binrange)
+    h = np.rot90(h)
+    h = np.flipud(h)
+    h[np.isnan(h)] = 0.0
+    h = np.ma.masked_where(h==0,h)
+    h = np.log10(h)
+    mesh = ax.pcolormesh(xedges, yedges, h)
+    ax.set_xlim(binrange[0])
+    ax.set_ylim(binrange[1])
+    ax.set_xlabel(xlab)
+    ax.set_ylabel(ylab)
+    cbar = plt.colorbar(mesh,ax=ax,use_gridspec=True)
+    cbar.ax.get_yaxis().labelpad = 20
+    cbar.ax.set_ylabel(zlab,rotation=270,fontsize=12)
+    
 pd.options.mode.chained_assignment = None
 
 galNum = 27
@@ -58,62 +76,20 @@ for a in expns:
     
     locM['metal'] = cloud['SNII'] + cloud['SNIa']
     locM['logmetal'] = np.log10(locM['metal'])
+    cloud['r'] = np.sqrt( cloud['x']**2 + cloud['y']**2 + cloud['z']**2 )
 
     binrange = [[0,200],[-6,-1]]
 
     fig, (ax1,ax2,ax3) = plt.subplots(1,3,figsize=(15,5))
-    h, xedges, yedges, binnumber = st.binned_statistic_2d(locM['dist'],locM['logmetal'],
-                                cloud['density'], statistic='count', bins=50,
-                                range=binrange)
 
-    print(np.sum(h))
-    h = np.rot90(h)
-    h = np.flipud(h)
-    h[np.isnan(h)] = 0.0
-    h = np.ma.masked_where(h==0,h)
-    h = np.log10(h)
-    mesh = ax1.pcolormesh(xedges, yedges, h)
-    ax1.set_xlim(binrange[0])
-    ax1.set_ylim(binrange[1])
-    ax1.set_xlabel('Transverse Distance [kpc]')
-    ax1.set_ylabel('Metallicity [MF]')
-    cbar = plt.colorbar(mesh,ax=ax1,use_gridspec=True)
-    cbar.ax.get_yaxis().labelpad = 20
-    cbar.ax.set_ylabel('Counts',rotation=270,fontsize=12)
-    
-    h, xedges, yedges, binnumber = st.binned_statistic_2d(locM['dist'],locM['logmetal'],
-                                cloud['density'], statistic='mean', bins=50, 
-                                range=binrange)
-    h = np.rot90(h)
-    h = np.flipud(h)
-    h[np.isnan(h)] = 0.0
-    h = np.ma.masked_where(h==0,h)
-    h = np.log10(h)
-    mesh = ax2.pcolormesh(xedges, yedges, h)
-    ax2.set_xlim(binrange[0])
-    ax2.set_ylim(binrange[1])
-    ax2.set_xlabel('Transverse Distance [kpc]')
-    ax2.set_ylabel('Metallicity [MF]')
-    cbar = plt.colorbar(mesh,ax=ax2,use_gridspec=True)
-    cbar.ax.get_yaxis().labelpad = 20
-    cbar.ax.set_ylabel('Mean Density',rotation=270,fontsize=12)
-    
-
-    sc = ax3.scatter(locM['dist'],locM['logmetal'], c=np.log10(cloud['density'].values), 
-                    s=10, marker='o', alpha=0.01)
-    binMeans, binEdges, binNumber = st.binned_statistic(locM['dist'], locM['logmetal'], 
-                            statistic='mean', bins=20)
-    binWidth = (binEdges[1]-binEdges[0])
-    binCenters = binEdges[1:] - binWidth/2.
-    ax3.hlines(binMeans, binEdges[:-1], binEdges[1:], colors='r', lw=2, label='Binned')
-    cbar = plt.colorbar(sc, ax=ax3,use_gridspec=True)
-    cbar.ax.set_ylabel('Density')
-    ax3.set_xlim(binrange[0])
-    ax3.set_ylim(binrange[1])
-    ax3.set_xlabel('Distance from Line [kpc]')
-    ax3.set_ylabel('Metallicity [MF]')
-    
-
+    xlab = 'Transverse Distance [kpc]'
+    ylab = 'Metallicity [MF]'
+    mkHist(ax1,locM['dist'],locM['logmetal'],cloud['density'],'count',binrange,
+            xlab,ylab,'Counts')
+    mkHist(ax2,locM['dist'],locM['logmetal'],cloud['density'],'mean',binrange,
+            xlab,ylab,'Mean Density')
+    mkHist(ax3,locM['dist'],locM['logmetal'],cloud['r'],'mean',binrange,
+            xlab,ylab,'Log (Mean Distance [kpc]) ')
 
     fig.tight_layout()
     figName = 'vela2b-27_a{0:.3f}_Zgrandiant.png'.format(a)

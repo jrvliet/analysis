@@ -48,30 +48,38 @@ for a in expns:
                 (df['density']>loN) & (df['density']<hiN) &
                 (df['x']>0) & (df['z']>0) & (np.abs(df['y'])<300) )
 
-
-    # Start working with velocities
-    df['speed'] = np.sqrt(df['vx']**2 + df['vy']**2 + df['vz']**2 )
-
-    # Determine the speed of each cell
-    loSpeed = df['speed'].min()
-    hiSpeed = df['speed'].max()
-
-    # Calculate the spherical coordinates
-    df['r'] = np.sqrt(df['vx']**2 + df['vy']**2 + df['vz']**2 )
-    df['theta'] = np.arctan2(df['y'],df['x'])
-    df['phi'] = np.arccos(df['z']/df['r'])
-    
-    # Calculate the spherical velocities
-    df['vr'] = (df['x']*df['vx'] + df['y']*df['vy'] + 
-                    df['z']*df['vz']) / df['r']
-    df['vtheta'] = ( (df['x']*df['vy'] - df['y']*df['vx']) /
-                        (df['x']**2 + df['y']**2 ) )
-    df['vphi'] = ( (-1 / np.sqrt( 1 - (df['z']/df['r'])**2)) * 
-                        (df['vz']/df['r'] - df['z']*df['vr']/df['r']**2) )
-
     cloud = df[index]
     cloudLoc = cloud[['x','y','z']]
     print('Number of samples = {0:d}'.format(len(cloud)))
+
+    #####################################################
+    # Start working with velocities
+    cloud['speed'] = np.sqrt(cloud['vx']**2 + cloud['vy']**2 + cloud['vz']**2 )
+
+    # Determine the speed of each cell
+    loSpeed = cloud['speed'].min()
+    hiSpeed = cloud['speed'].max()
+
+    # Calculate the spherical coordinates
+    cloud['r'] = np.sqrt(cloud['vx']**2 + cloud['vy']**2 + cloud['vz']**2 )
+    cloud['theta'] = np.arctan2(cloud['y'],cloud['x'])
+    cloud['phi'] = np.arccos(cloud['z']/cloud['r'])
+    
+    # Calculate the spherical velocities
+    cloud['vr'] = (cloud['x']*cloud['vx'] + cloud['y']*cloud['vy'] + 
+                    cloud['z']*cloud['vz']) / cloud['r']
+
+    cloud['thetadot'] = ( (cloud['x']*cloud['vy'] - cloud['y']*cloud['vx']) /
+                        (cloud['x']**2 + cloud['y']**2 ) )
+    cloud['vtheta'] = cloud['r']*np.sin(cloud['phi'])*cloud['thetadot']
+
+    cloud['phidot'] = ( (-1 / np.sqrt( 1 - (cloud['z']/cloud['r'])**2)) * 
+                        (cloud['vz']/cloud['r'] - cloud['z']*cloud['vr']/cloud['r']**2) )
+    cloud['vphi'] = cloud['r']*cloud['phidot']
+
+
+
+    #######################################################
 
     # Perform a PCA to find the line of best fit
     # Start by normalizing the cells
@@ -105,6 +113,8 @@ for a in expns:
     cloud['perp'] = np.sqrt(cloud['perp0']**2 + 
                         cloud['perp1']**2 + cloud['perp2']**2)
 
+    #######################################################
+    
 
     # Plot historgram of dist
     fig, ((ax1,ax2,ax3),(ax4,ax5,ax6),(ax7,ax8,ax9)) = plt.subplots(3,3,figsize=(15,15))
@@ -124,15 +134,15 @@ for a in expns:
     log = True
     lims = [cloud['vr'].min(), cloud['vr'].max()]
     mkHist(ax4, cloud['vr'], lims, numbins, 'cloud', 'vr', log)
-    mkHist(ax4, df['vr'], lims, numbins, 'all', 'vr', log)
+    #mkHist(ax4, df['vr'], lims, numbins, 'all', 'vr', log)
 
     lims = [cloud['vphi'].min(), cloud['vphi'].max()]
     mkHist(ax5, cloud['vphi'], lims, numbins, 'cloud', 'vphi', log)
-    mkHist(ax5, df['vphi'], lims, numbins, 'all', 'vphi', log)
+    #mkHist(ax5, df['vphi'], lims, numbins, 'all', 'vphi', log)
 
     lims = [cloud['vtheta'].min(), cloud['vtheta'].max()]
     mkHist(ax6, cloud['vtheta'], lims, numbins, 'cloud', 'vtheta', log)
-    mkHist(ax6, df['vtheta'], lims, numbins, 'all', 'vtheta', log)
+    #mkHist(ax6, df['vtheta'], lims, numbins, 'all', 'vtheta', log)
     
     ax4.legend()
     ax5.legend()
@@ -152,6 +162,30 @@ for a in expns:
     fig.tight_layout()
     s = 'vela2b-27_a{0:.3f}_inflowVelocity.png'.format(a)
     fig.savefig(s, bbox_inches='tight', dpi=300)
+
+    
+    #######################################################
+
+
+    kinematics = cloud[['vx','vy','vz','vr','vphi','vtheta','speed','along','perp']]
+    
+    stats = kinematics.describe().transpose()
+    print(stats)
+    print(type(stats))
+    
+    sf = 'inflow_velocity_stats.out'
+    stats.to_csv(sf, sep='\t', float_format='%.3f')
+    
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -18,154 +18,140 @@ import scipy.linalg as sl
 import scipy.stats as st
 import sys
 
+def mkHist(ax,x,lims,numbins,label,xlab, log=False):
+
+    ax.hist(x,bins=numbins,range=lims,histtype='step',log=log,label=label)
+    ax.set_xlabel(xlab)
+    ax.set_ylabel('Counts')
+
 pd.options.mode.chained_assignment = None
 
 loT, hiT = 10**3.25, 10**4.5
 loN, hiN = 10**-6.25, 10**-2.25
 numbins = 200
 
-dataloc = '/home/jacob/research/velas/vela2b/vela27/a0.490/'
-fname = '{0:s}vela2b-27_GZa0.490.h5'.format(dataloc)
+expns = [0.490]
 
-df = pd.read_hdf(fname, 'data')
+baseloc = '/home/jacob/research/velas/vela2b/vela27/a{0:.3f}/'
+basename = '{0:s}vela2b-27_GZa{1:.3f}.h5'
 
-index = ( (df['temperature']>loT) & (df['temperature']<hiT) & 
-            (df['density']>loN) & (df['density']<hiN) &
-            (df['x']>0) & (df['z']>0) & (np.abs(df['y'])<300) )
+for a in expns:
 
-cloud = df[index]
-cloudLoc = cloud[['x','y','z']]
-cloudVel = cloud[['vx','vy','vz']]
-print('Number of samples = {0:d}'.format(len(cloudLoc)))
+    print('a = {0:.3f}'.format(a))
+    
+    loc = baseloc.format(a)
+    fname = basename.format(loc,a)
+    
+    df = pd.read_hdf(fname, 'data')
 
-# Perform a PCA to find the line of best fit
-
-# Start by normalizing the cells
-locM = cloudLoc - cloudLoc.mean()
-
-# Get the covariance matrix
-covar = locM.cov()
-
-# Determine the single value decomposition of the covariance matrix
-(u,s,v) = sl.svd(covar)
-
-# The first column of u is the directional vector of the line
-# of best fit for the cloud
-u0 = u[0,0]
-u1 = u[1,0]
-u2 = u[2,0]
+    index = ( (df['temperature']>loT) & (df['temperature']<hiT) & 
+                (df['density']>loN) & (df['density']<hiN) &
+                (df['x']>0) & (df['z']>0) & (np.abs(df['y'])<300) )
 
 
-# Determine the speed of each cell
-cloudVel['speed'] = np.sqrt(cloud['vx']**2 + cloud['vy']**2 + cloud['vz']**2 )
-loSpeed = cloudVel['speed'].min()
-hiSpeed = cloudVel['speed'].max()
+    # Start working with velocities
+    df['speed'] = np.sqrt(df['vx']**2 + df['vy']**2 + df['vz']**2 )
+
+    # Determine the speed of each cell
+    loSpeed = df['speed'].min()
+    hiSpeed = df['speed'].max()
+
+    # Calculate the spherical coordinates
+    df['r'] = np.sqrt(df['vx']**2 + df['vy']**2 + df['vz']**2 )
+    df['theta'] = np.arctan2(df['y'],df['x'])
+    df['phi'] = np.arccos(df['z']/df['r'])
+    
+    # Calculate the spherical velocities
+    df['vr'] = (df['x']*df['vx'] + df['y']*df['vy'] + 
+                    df['z']*df['vz']) / df['r']
+    df['vtheta'] = ( (df['x']*df['vy'] - df['y']*df['vx']) /
+                        (df['x']**2 + df['y']**2 ) )
+    df['vphi'] = ( (-1 / np.sqrt( 1 - (df['z']/df['r'])**2)) * 
+                        (df['vz']/df['r'] - df['z']*df['vr']/df['r']**2) )
+
+    cloud = df[index]
+    cloudLoc = cloud[['x','y','z']]
+    print('Number of samples = {0:d}'.format(len(cloud)))
+
+    # Perform a PCA to find the line of best fit
+    # Start by normalizing the cells
+    locM = cloudLoc - cloudLoc.mean()
+
+    # Get the covariance matrix
+    covar = locM.cov()
+
+    # Determine the single value decomposition of the covariance matrix
+    (u,s,v) = sl.svd(covar)
+
+    # The first column of u is the directional vector of the line
+    # of best fit for the cloud
+    u0 = u[0,0]
+    u1 = u[1,0]
+    u2 = u[2,0]
+
+    adotb = cloud['vx']*u0 + cloud['vy']*u1 + cloud['vz']*u2
+    bdotb = u0**2 + u1**2 + u2**2
+    factor = adotb/bdotb
+
+    cloud['along0'] = factor*u0
+    cloud['along1'] = factor*u1
+    cloud['along2'] = factor*u2
+    cloud['along'] = np.sqrt(cloud['along0']**2 + 
+                        cloud['along1']**2 + cloud['along2']**2)
+
+    cloud['perp0'] = cloud['vx'] - cloud['along0']
+    cloud['perp1'] = cloud['vy'] - cloud['along1']
+    cloud['perp2'] = cloud['vz'] - cloud['along2']
+    cloud['perp'] = np.sqrt(cloud['perp0']**2 + 
+                        cloud['perp1']**2 + cloud['perp2']**2)
 
 
-adotb = cloudVel['vx']*u0 + cloudVel['vy']*u1 + cloudVel['vz']*u2
-bdotb = u0**2 + u1**2 + u2**2
-factor = adotb/bdotb
+    # Plot historgram of dist
+    fig, ((ax1,ax2,ax3),(ax4,ax5,ax6),(ax7,ax8,ax9)) = plt.subplots(3,3,figsize=(15,15))
+    log = False
 
+    # Plot cartesian velocities
+    lims = [cloud['vx'].min(), cloud['vx'].max()]
+    mkHist(ax1, cloud['vx'], lims, numbins, 'cloud', 'vx', log)
 
-cloudVel['along0'] = factor*u0
-cloudVel['along1'] = factor*u1
-cloudVel['along2'] = factor*u2
-cloudVel['along'] = np.sqrt(cloudVel['along0']**2 + 
-                    cloudVel['along1']**2 + cloudVel['along2']**2)
+    lims = [cloud['vy'].min(), cloud['vy'].max()]
+    mkHist(ax2, cloud['vy'], lims, numbins, 'cloud', 'vy', log)
 
-cloudVel['perp0'] = cloudVel['vx'] - cloudVel['along0']
-cloudVel['perp1'] = cloudVel['vy'] - cloudVel['along1']
-cloudVel['perp2'] = cloudVel['vz'] - cloudVel['along2']
-cloudVel['perp'] = np.sqrt(cloudVel['perp0']**2 + 
-                    cloudVel['perp1']**2 + cloudVel['perp2']**2)
+    lims = [cloud['vz'].min(), cloud['vz'].max()]
+    mkHist(ax3, cloud['vz'], lims, numbins, 'cloud', 'vz', log)
 
+    # Plot spherical velocities
+    log = True
+    lims = [cloud['vr'].min(), cloud['vr'].max()]
+    mkHist(ax4, cloud['vr'], lims, numbins, 'cloud', 'vr', log)
+    mkHist(ax4, df['vr'], lims, numbins, 'all', 'vr', log)
 
-# Plot historgram of dist
-fig, ((ax1,ax2,ax3),(ax4,ax5,ax6)) = plt.subplots(2,3,figsize=(15,10))
-ax1.hist(cloudVel['vx'], bins=numbins, histtype='step', log=True, label='Cloud')
-ax1.hist(df['vx'], bins=numbins, histtype='step', log=True, label='All')
+    lims = [cloud['vphi'].min(), cloud['vphi'].max()]
+    mkHist(ax5, cloud['vphi'], lims, numbins, 'cloud', 'vphi', log)
+    mkHist(ax5, df['vphi'], lims, numbins, 'all', 'vphi', log)
 
-ax2.hist(cloudVel['vy'], bins=numbins, histtype='step', log=True, label='Cloud')
-ax2.hist(df['vy'], bins=numbins, histtype='step', log=True, label='All')
+    lims = [cloud['vtheta'].min(), cloud['vtheta'].max()]
+    mkHist(ax6, cloud['vtheta'], lims, numbins, 'cloud', 'vtheta', log)
+    mkHist(ax6, df['vtheta'], lims, numbins, 'all', 'vtheta', log)
+    
+    ax4.legend()
+    ax5.legend()
+    ax5.legend()
+    
+    # Plot the speeds
+    log = False
+    lims = [cloud['speed'].min(), cloud['speed'].max()]
+    mkHist(ax7, cloud['speed'], lims, numbins, 'cloud', 'Speed')
 
-ax3.hist(cloudVel['vz'], bins=numbins, histtype='step', log=True, label='Cloud')
-ax3.hist(df['vz'], bins=numbins, histtype='step', log=True, label='All')
+    lims = [cloud['along'].min(), cloud['along'].max()]
+    mkHist(ax8, cloud['along'], lims, numbins, 'cloud', 'Along')
 
-n, bins, patches = ax4.hist(cloudVel['speed'], bins=numbins, 
-                            range=[loSpeed,hiSpeed],
-                            histtype='step')
-#n, bins, patches = ax2.hist(cloudVel['speed'], bins=numbins, 
-#                            range=[loSpeed,hiSpeed],
-#                            histtype='step',normed=True,cumulative=True)
-n, bins, patches = ax5.hist(cloudVel['along'], bins=numbins, 
-                            histtype='step',label='V Par')
-n, bins, patches = ax6.hist(cloudVel['perp'], bins=numbins, 
-                            histtype='step', label='V Perp')
-
-ax1.set_xlabel('Vx')
-ax2.set_xlabel('Vy')
-ax3.set_xlabel('Vz')
-ax4.set_xlabel('Speed')
-ax5.set_xlabel('V Along')
-ax6.set_xlabel('V Perp')
-ax1.legend()
-ax2.legend()
-ax3.legend()
-fig.tight_layout()
-s = 'vela2b-27_inflow_velocity_coherence.png'
-fig.savefig(s, bbox_inches='tight', dpi=300)
-
-sys.exit()
-
-# Fit a rayleigh curve to the data
-y = cloudVel['speed']
-
-# Perform fits and 
-x = np.linspace(y.min(), y.max(), 10000)
-
-
-print('\nRayleigh Distribution')
-param = st.rayleigh.fit(y)
-
-y = st.rayleigh.pdf(x, *param[:-2], loc=param[-2], scale=param[-1])
-ax1.plot(x, y, label='Rayleigh')
-results = st.ks_2samp(locM['dist'],y)
-print('KS-Test: ',results)
-#results = st.anderson_ksamp([locM['dist'],y])
-print('Anderson: ',results)
-y = st.rayleigh.cdf(x, *param[:-2], loc=param[-2], scale=param[-1])
-ax2.plot(x, y, label='Rayleigh')
-rayParam = param
-
-
-#pd.DataFrame.hist(locM,column='dist',ax=ax,bins=numbins,color='r')
-rayVar = st.rayleigh.var(loc=rayParam[-2],scale=rayParam[-1])
-weiVar = st.weibull_max.var(c=weiParam[0], loc=weiParam[1],scale=weiParam[2])
-distVar = locM['dist'].var()
-
-print('Rayleigh Variance:     {0:.3f}'.format(rayVar))
-print('Weibull Variance:      {0:.3f}'.format(weiVar))
-print('Distribution Variance: {0:.3f}'.format(distVar))
-
-# Compute standard deviation
-rayStd = st.rayleigh.std(loc=rayParam[-2],scale=rayParam[-1])
-weiStd = st.weibull_max.std(c=weiParam[0], loc=weiParam[1],scale=weiParam[2])
-distStd = locM['dist'].std()
-
-print('Rayleigh Std Dev:     {0:.3f}'.format(rayStd))
-print('Weibull Std Dev:      {0:.3f}'.format(weiStd))
-print('Distribution Std Dev: {0:.3f}'.format(distStd))
-
-
-
-
-
-
-
-
-
-
-
+    lims = [cloud['perp'].min(), cloud['perp'].max()]
+    mkHist(ax9, cloud['perp'], lims, numbins, 'cloud', 'V Perp')
+    
+    fig.tight_layout()
+    s = 'vela2b-27_a{0:.3f}_inflowVelocity.png'.format(a)
+    fig.savefig(s, bbox_inches='tight', dpi=300)
 
 
 

@@ -99,6 +99,17 @@ for a in expns:
 
     fout.write(form.format(a,numCells,scale,loc,rayVar,distVar,ks))
 
+
+    # Plot
+    fig, ax = plt.subplots(1,1,figsize=(5,5)
+    ax.hist(locM['dist'], bins=numbins, range=[locM['dist'].min(),locM['dist'].max()],
+            histtype='step', normed=True, 'Data')
+    ax.plot(x,y,label='Rayleigh Fit')
+    ax.set_xlabel('Distance from Line')
+    s
+
+
+
 fout.close()
 
 

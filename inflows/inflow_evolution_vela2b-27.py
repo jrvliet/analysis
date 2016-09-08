@@ -64,7 +64,8 @@ for a in expns:
 
     index = ( (df['temperature']<hiT) & (df['temperature']>loT) &
                 (df['density']<hiN) & (df['density']>loN) &
-                (df['x']<0) & (df['z']>0) & (np.abs(df['y'])<300) )
+                (df['x']<0) & (np.abs(df['y'])<300) )
+                #(df['x']<0) & (df['z']>0) & (np.abs(df['y'])<300) )
 
     cloud = df[index]
 
@@ -89,13 +90,13 @@ for a in expns:
         ax2.set_xlabel('x')
         ax2.set_ylabel('z')
         ax2.set_xlim([0,-3])
-        ax2.set_ylim([0,3])
+        ax2.set_ylim([-3,3])
         
         ax3.scatter(cloud['y']/rvir, cloud['z']/rvir, marker='o', c=cloud['SNII'].values, alpha=0.01)
         ax3.set_xlabel('y')
         ax3.set_ylabel('z')
         ax3.set_xlim([-3,3])
-        ax3.set_ylim([0,3])
+        ax3.set_ylim([-3,3])
 
     else:
         x = cloud['x']/rvir
@@ -106,10 +107,10 @@ for a in expns:
         binrange = [[-2.5,0],[-2.5,2.5]]
         mkHist(ax1,x,y,c,numbins,binrange,'x','y')
 
-        binrange = [[-2.5,0],[0,2.5]]
+        binrange = [[-2.5,0],[-2.5,2.5]]
         mkHist(ax2,x,z,c,numbins,binrange,'x','z')
 
-        binrange = [[-2.5,2.5],[0,2.5]]
+        binrange = [[-2.5,2.5],[-2.5,2.5]]
         mkHist(ax3,y,z,c,numbins,binrange,'y','z')
 
 

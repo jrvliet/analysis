@@ -61,7 +61,7 @@ for a in expns:
     hiSpeed = cloud['speed'].max()
 
     # Calculate the spherical coordinates
-    cloud['r'] = np.sqrt(cloud['vx']**2 + cloud['vy']**2 + cloud['vz']**2 )
+    cloud['r'] = np.sqrt(cloud['x']**2 + cloud['y']**2 + cloud['z']**2 )
     cloud['theta'] = np.arctan2(cloud['y'],cloud['x'])
     cloud['phi'] = np.arccos(cloud['z']/cloud['r'])
     

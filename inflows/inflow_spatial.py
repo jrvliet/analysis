@@ -1,9 +1,10 @@
 
-
 '''
-Determines the coherence of the inflows
-Focus on the poster child inflow in vela2b-27
-at a=0.490
+Determines the spatial location of the 
+inflow at z=1 in terms of spherical coordinates.
+Then steps through higher redshift gas to determine
+the density range that maximizes the fraction 
+of cloud gas that lies within that spatial section
 '''
 
 
@@ -35,8 +36,90 @@ expns = [0.490]
 baseloc = '/home/jacob/research/velas/vela2b/vela27/a{0:.3f}/'
 basename = '{0:s}vela2b-27_GZa{1:.3f}.h5'
 
+rotfile = '{0:s}rotmat_a{1:.3f}.txt'
+
+# Get the physical limits of the cloud at z=1
+a = 0.490
+    
+loc = baseloc.format(a)
+fname = basename.format(loc,a)
+with open(rotfile.format(loc,a),'r') as f:
+    f.readline()
+    rvir = float(f.readline().split()[3])
+
+print(rvir)
+
+df = pd.read_hdf(fname, 'data')
+
+index = ( (df['temperature']>loT) & (df['temperature']<hiT) & 
+            (df['density']>loN) & (df['density']<hiN) &
+            (df['x']>0) & (df['z']>0) & (np.abs(df['y'])<300) )
+
+cloud = df[index]
+cloudLoc = cloud[['x','y','z']]
+
+# Calculate the spherical coordinates
+cloud['r'] = np.sqrt(cloud['x']**2 + cloud['y']**2 + cloud['z']**2 )
+cloud['theta'] = np.degrees(np.arctan(cloud['y'],cloud['x']))
+cloud['phi'] = np.degrees(np.arccos(cloud['z']/cloud['r']))
+
+closeInds = cloud['r']>0.5*rvir
+close = cloud[closeInds]
+
+
+# Plot historgram of dist
+fig, ((ax1,ax2,ax3),(ax4,ax5,ax6),(ax7,ax8,ax9)) = plt.subplots(3,3,figsize=(15,15))
+#fig, ((ax1,ax2,ax3),(ax4,ax5,ax6)) = plt.subplots(2,3,figsize=(15,10))
+log = False
+
+# Plot cartesian coordinates
+lims = [cloud['x'].min(), cloud['x'].max()]
+mkHist(ax1, cloud['x'], lims, numbins, 'cloud', 'x', log)
+
+lims = [cloud['y'].min(), cloud['y'].max()]
+mkHist(ax2, cloud['y'], lims, numbins, 'cloud', 'y', log)
+
+lims = [cloud['z'].min(), cloud['z'].max()]
+mkHist(ax3, cloud['y'], lims, numbins, 'cloud', 'z', log)
+
+# Plot spherical coordinates
+lims = [cloud['r'].min(), cloud['r'].max()]
+mkHist(ax4, cloud['r'], lims, numbins, 'cloud', 'r', log)
+
+lims = [cloud['theta'].min(), cloud['theta'].max()]
+mkHist(ax5, cloud['theta'], lims, numbins, 'cloud', 'theta', log)
+
+lims = [cloud['phi'].min(), cloud['phi'].max()]
+mkHist(ax6, cloud['phi'], lims, numbins, 'cloud', 'phi', log)
+
+
+# Plot spherical coordinates
+lims = [close['r'].min(), close['r'].max()]
+mkHist(ax7, close['r'], lims, numbins, 'close', 'Close r', log)
+
+lims = [close['theta'].min(), close['theta'].max()]
+mkHist(ax8, close['theta'], lims, numbins, 'close', 'Close theta', log)
+
+lims = [close['phi'].min(), close['phi'].max()]
+mkHist(ax9, close['phi'], lims, numbins, 'close', 'Close phi', log)
+
+
+fig.tight_layout()
+s = 'vela2b-27_a{0:.3f}_inflowLocation.png'.format(a)
+fig.savefig(s, bbox_inches='tight', dpi=300)
+
+# Stats
+space = cloud[['x','y','z','r','phi','theta']]
+stat = space.describe().transpose()
+
+print(stat)
+
+
+sys.exit()
+
 for a in expns:
 
+    print('Number of samples = {0:d}'.format(len(cloud)))
     print('a = {0:.3f}'.format(a))
     
     loc = baseloc.format(a)
@@ -50,7 +133,6 @@ for a in expns:
 
     cloud = df[index]
     cloudLoc = cloud[['x','y','z']]
-    print('Number of samples = {0:d}'.format(len(cloud)))
 
     #####################################################
     # Start working with velocities
@@ -61,7 +143,7 @@ for a in expns:
     hiSpeed = cloud['speed'].max()
 
     # Calculate the spherical coordinates
-    cloud['r'] = np.sqrt(cloud['x']**2 + cloud['y']**2 + cloud['z']**2 )
+    cloud['r'] = np.sqrt(cloud['vx']**2 + cloud['vy']**2 + cloud['vz']**2 )
     cloud['theta'] = np.arctan2(cloud['y'],cloud['x'])
     cloud['phi'] = np.arccos(cloud['z']/cloud['r'])
     
@@ -131,6 +213,7 @@ for a in expns:
     mkHist(ax3, cloud['vz'], lims, numbins, 'cloud', 'vz', log)
 
     # Plot spherical velocities
+    log = True
     lims = [cloud['vr'].min(), cloud['vr'].max()]
     mkHist(ax4, cloud['vr'], lims, numbins, 'cloud', 'vr', log)
     #mkHist(ax4, df['vr'], lims, numbins, 'all', 'vr', log)
@@ -143,6 +226,9 @@ for a in expns:
     mkHist(ax6, cloud['vtheta'], lims, numbins, 'cloud', 'vtheta', log)
     #mkHist(ax6, df['vtheta'], lims, numbins, 'all', 'vtheta', log)
     
+    ax4.legend()
+    ax5.legend()
+    ax5.legend()
     
     # Plot the speeds
     log = False

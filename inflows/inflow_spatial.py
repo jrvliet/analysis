@@ -60,7 +60,7 @@ cloudLoc = cloud[['x','y','z']]
 
 # Calculate the spherical coordinates
 cloud['r'] = np.sqrt(cloud['x']**2 + cloud['y']**2 + cloud['z']**2 )
-cloud['theta'] = np.degrees(np.arctan(cloud['y'],cloud['x']))
+cloud['theta'] = np.degrees(np.arctan(cloud['y']/cloud['x']))
 cloud['phi'] = np.degrees(np.arccos(cloud['z']/cloud['r']))
 
 closeInds = cloud['r']>0.5*rvir
@@ -109,7 +109,7 @@ s = 'vela2b-27_a{0:.3f}_inflowLocation.png'.format(a)
 fig.savefig(s, bbox_inches='tight', dpi=300)
 
 # Stats
-space = cloud[['x','y','z','r','phi','theta']]
+space = close[['x','y','z','r','phi','theta']]
 stat = space.describe().transpose()
 
 print(stat)

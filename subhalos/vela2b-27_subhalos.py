@@ -3,6 +3,7 @@
 from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 
 
@@ -18,12 +19,11 @@ xpoint = []
 ypoint = []
 cpoint = []
 
-outfile = 'vela2b_cloud1_subhalos.dat'
-f = open(outfile,'w')
-header = 'a\tz\tMR\tx\ty\tz\tr\tphi\ttheta\n'
-f.write(header)
-st = '{0:.3f}\t{1:.3f}\t{2:.2f}\t{3:.3f}\t{4:.3f}\t{5:.3f}\t{6:.3f}\t{7:.3f}\t{8:.3f}\n'
+outfile = loc+'vela2b-27_cloud1_subhalos.h5'
 
+header = ['a','redshift','MR','x','y','z','r','phi','theta','vr']
+#st = '{0:.3f}\t{1:.3f}\t{2:.2f}\t{3:.3f}\t{4:.3f}\t{5:.3f}\t{6:.3f}\t{7:.3f}\t{8:.3f}\n'
+st = np.zeros(len(header))
 for a,red in zip(expns, reds):
     
     fname = basename.format(loc,a)
@@ -35,7 +35,7 @@ for a,red in zip(expns, reds):
         mhost = float(l[7])
         rhost = float(l[8])
 
-    mvir, rvir, xc, yc, zc = np.loadtxt(fname,skiprows=3,usecols=(7,8,15,16,17), unpack=True)
+    mvir, rvir, xc, yc, zc, vx, vy, vz = np.loadtxt(fname,skiprows=3,usecols=(7,8,15,16,17,4,5,6), unpack=True)
 
     r.append(rhost)
     d = [np.sqrt(x**2+y**2+z**2)/rhost for x,y,z in zip(xc,yc,zc)]
@@ -51,12 +51,25 @@ for a,red in zip(expns, reds):
             else:
                 theta = np.degrees(np.arctan(yc[i]/xc[i]))
                 phi = np.degrees(np.arccos(zc[i]/d[i]))
+                vr = (vx[i]*xc[i] + vy[i]*yc[i] + vz[i]*zc[i]) / d[i]
                 print('Major halo at z = {0:.2f}:\n\tMR = {1:.2f}'.format(red,mass[i]))
                 print('\tx = {0:.3f}\ty = {1:.3f}\tz = {2:.3f}'.format(xc[i],yc[i],zc[i]))
                 print('\tr = {0:.3f}\tphi = {1:.2f}\ttheta = {2:.2f}'.format(d[i],phi,theta))
                 if xc[i]<0 and zc[i]>0:
+                    halo = np.zeros(len(header))
+                    halo[0] = a
+                    halo[1] = z
+                    halo[2] = mass[i]
+                    halo[3] = xc[i]
+                    halo[4] = yc[i]
+                    halo[5] = zc[i]
+                    halo[6] = d[i]
+                    halo[7] = phi
+                    halo[8] = theta
+                    halo[9] = vr
+                    st = np.vstack((st,halo))
                     print('\tIn Cloud 1')
-                    f.write(st.format(a,red,mass[i],xc[i],yc[i],zc[i],d[i],phi,theta))
+                    #f.write(st.format(a,red,mass[i],xc[i],yc[i],zc[i],d[i],phi,theta))
                 if mass[i]>0.3 and mass[i]<0.5:
                     cpoint.append('cyan')
                 else:
@@ -83,6 +96,8 @@ ax.set_ylabel('Distance [Rvir]')
 s = 'vela2b-27_subalos.png'
 fig.savefig(s, bbox_inches='tight', dpi=300)
 
-f.close()
+st = np.delete(st, (0), axis=0)
+df = pd.DataFrame(st,columns=header)
+df.to_hdf(outfile, 'data', mode='w')
 
 

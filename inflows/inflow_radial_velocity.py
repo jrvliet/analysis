@@ -8,16 +8,23 @@ from __future__ import print_function
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
+
+base = '/mnt/cluster/abs/cgm/'
+base = '/home/jacob/research/velas/'
+
+fname = base+'vela2b/vela27/a{0:.3f}/vela2b-27_GZa{0:.3f}.h5'
+rname = base+'vela2b/vela27/a{0:.3f}/rotmat_a{0:.3f}.txt'
+sname = base+'vela2b/vela27/subhalos/vela2b-27_cloud1_subhalos.h5'
 
 
-fname = '/mnt/cluster/abs/cgm/vela2b/vela27/a{0:.3f}/vela2b-27_GZa{0:.3f}.h5'
-rname = '/mnt/cluster/abs/cgm/vela2b/vela27/a{0:.3f}/rotmat_a{0:.3f}.txt'
+subhalos = pd.read_hdf(sname,'data')
 
 
 loT, hiT = 10**3, 10**4.5
 loN, hiN = 10**-6, 10**-2.25
 
-expns = np.arange(0.200,0.510,0.01)
+expns = np.arange(0.200,0.500,0.01)
 
 minv, maxv = [],[]
 
@@ -52,12 +59,30 @@ for a in expns:
     negcloud = cloud[negInds]
     minv.append(cloud['vr'].min())
     maxv.append(cloud['vr'].max())
-    print(cloud['r'].max()/rvir)
     
     fig, ax = plt.subplots(1,1,figsize=(10,10))
     
-    ax.plot(poscloud['r']/rvir, poscloud['vr'], 'ob', alpha=0.01)
-    ax.plot(negcloud['r']/rvir, negcloud['vr'], 'or', alpha=0.01)
+    ax.plot(poscloud['r']/rvir, poscloud['vr'], 'o', color='cyan', alpha=0.01)
+    ax.plot(negcloud['r']/rvir, negcloud['vr'], 'o', color='salmon', alpha=0.01)
+
+
+    # Plot subhalos
+    subs = subhalos[subhalos['a']==a]
+    for i in range(len(subs)):
+        d = subs['r'].iloc[i]
+        vr = subs['vr'].iloc[i]
+        subRvir = subs['rvir'].iloc[i]
+        radius = subRvir/rvir
+    
+        print(a,z,d,vr,subRvir,radius)
+
+        circle = plt.Circle((d,vr), radius, color='k')
+        #ax.add_artist(circle)
+        ax.vlines(d,-500,500,colors='purple')
+        lab = '{0:.2f}'.format(subs['MR'].iloc[i])
+        ax.text(d,300,lab,fontsize=20)
+
+
     ax.set_xlim([0,5.0])
     ax.set_ylim([-500,500])
     ax.set_xlabel('Galactocentric Distance [kpc]')
@@ -65,7 +90,8 @@ for a in expns:
     ax.set_title('z = {0:.3f}'.format(z))
 
     s = 'vela2b-27_a{0:.3f}_cloud_radVel.png'.format(a)
-    fig.savefig(s, bbox_inches='tight', dpi=250)
+    fig.savefig(s, bbox_inches='tight', dpi=200)
+
 
     
     

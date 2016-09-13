@@ -21,7 +21,7 @@ cpoint = []
 
 outfile = loc+'vela2b-27_cloud1_subhalos.h5'
 
-header = ['a','redshift','MR','x','y','z','r','phi','theta','vr']
+header = ['a','redshift','MR','x','y','z','r','phi','theta','vr','rvir']
 #st = '{0:.3f}\t{1:.3f}\t{2:.2f}\t{3:.3f}\t{4:.3f}\t{5:.3f}\t{6:.3f}\t{7:.3f}\t{8:.3f}\n'
 st = np.zeros(len(header))
 for a,red in zip(expns, reds):
@@ -67,6 +67,7 @@ for a,red in zip(expns, reds):
                     halo[7] = phi
                     halo[8] = theta
                     halo[9] = vr
+                    halo[10] = rvir[i]
                     st = np.vstack((st,halo))
                     print('\tIn Cloud 1')
                     #f.write(st.format(a,red,mass[i],xc[i],yc[i],zc[i],d[i],phi,theta))

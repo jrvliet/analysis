@@ -24,7 +24,7 @@ loT, hiT = 10**3.25, 10**4.5
 loN, hiN = 10**-6.25, 10**-2.25
 numbins = 200
 
-dataloc = '/home/jacob/research/velas/vela2b/vela27/a{0:.3f}/'
+dataloc = '/home/jacob/research/velas/vela2b/vela27/'
 dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
 
 expns = np.arange(0.200,0.500,0.01)
@@ -37,6 +37,7 @@ form = '{0:.3f}\t{1:d}\t{2:.3f}\t{3:.3f}\t{4:.3f}\t{5:.3f}\t{6:.3f}\n'
 
 for a in expns:
     print(a)
+    redshift = 1./a - 1
 
     fname = '{0:s}a{1:.3f}/vela2b-27_GZa{1:.3f}.h5'.format(dataloc,a)
 
@@ -101,12 +102,16 @@ for a in expns:
 
 
     # Plot
-    fig, ax = plt.subplots(1,1,figsize=(5,5)
+    fig, ax = plt.subplots(1,1,figsize=(5,5))
     ax.hist(locM['dist'], bins=numbins, range=[locM['dist'].min(),locM['dist'].max()],
-            histtype='step', normed=True, 'Data')
+            histtype='step', normed=True, label='Data')
     ax.plot(x,y,label='Rayleigh Fit')
     ax.set_xlabel('Distance from Line')
-    s
+    ax.set_ylabel('Counts')
+    ax.set_title('z = {0:.3f}'.format(redshift))
+    
+    s = './spatialCoherence/vela2b-27_a{0:.3f}_spatialCoherence.png'.format(a)
+    fig.savefig(s,bbox_inches='tight',dpi=300)
 
 
 

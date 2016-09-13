@@ -31,8 +31,10 @@ loN, hiN = 10**-6.25, 10**-2.25
 numbins = 200
 
 expns = [0.490]
+expns = np.arange(0.200,0.500,0.010)
 
 baseloc = '/home/jacob/research/velas/vela2b/vela27/a{0:.3f}/'
+baseloc = '/mnt/cluster/abs/cgm/vela2b/vela27/a{0:.3f}/'
 basename = '{0:s}vela2b-27_GZa{1:.3f}.h5'
 
 for a in expns:
@@ -166,10 +168,10 @@ for a in expns:
     kinematics = cloud[['vx','vy','vz','vr','vphi','vtheta','speed','along','perp']]
     
     stats = kinematics.describe().transpose()
-    print(stats)
-    print(type(stats))
+    #print(stats)
+    #print(type(stats))
     
-    sf = 'inflow_velocity_stats.out'
+    sf = 'inflowVelocity_a{0:.3f}_stats.out'.format(a)
     stats.to_csv(sf, sep='\t', float_format='%.3f')
     
 

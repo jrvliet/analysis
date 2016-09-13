@@ -101,12 +101,18 @@ for a in expns:
 
 
     # Plot
-    fig, ax = plt.subplots(1,1,figsize=(5,5)
+    fig, ax = plt.subplots(1,1,figsize=(5,5))
     ax.hist(locM['dist'], bins=numbins, range=[locM['dist'].min(),locM['dist'].max()],
-            histtype='step', normed=True, 'Data')
+            histtype='step', normed=True, label='Data')
     ax.plot(x,y,label='Rayleigh Fit')
     ax.set_xlabel('Distance from Line')
-    s
+    redshift = 1./a - 1.
+    ax.set_title('z = {0:.3f}'.format(redshift))
+
+    s = './spatialCoherence/vela2b-27_a{0:.3f}_spatialCoherence.png'.format(a)
+    fig.savefig(s,bbox_inches='tight',dpi=300)
+
+
 
 
 

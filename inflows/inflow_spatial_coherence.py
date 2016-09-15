@@ -21,27 +21,45 @@ pd.options.mode.chained_assignment = None
 plotting = 0
 
 loT, hiT = 10**3.25, 10**4.5
-loN, hiN = 10**-6.25, 10**-2.25
+#loN, hiN = 10**-6.25, 10**-2.25
 numbins = 200
 
+# Read in the cloud limits
+clFile = 'cloudLimits.csv'
+limits = pd.read_csv(clFile)
+
+
 dataloc = '/home/jacob/research/velas/vela2b/vela27/'
-dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
+#dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
 
-expns = np.arange(0.200,0.500,0.01)
+expns = np.arange(0.200,0.500,0.02)
+expns0 = range(20,50)
+expns = [i/100. for i in expns0]
 
-outfilename = 'vela2b-27_cloud1_rayleightFit.dat'
+outfilename = 'vela2b-27_cloud1_rayleighFit.dat'
 fout = open(outfilename, 'w')
 header = 'Expn\tNumber\tScale\tLoc\tRayVary\tDataVar\tKS\n'
 fout.write(header)
 form = '{0:.3f}\t{1:d}\t{2:.3f}\t{3:.3f}\t{4:.3f}\t{5:.3f}\t{6:.3f}\n'
 
 for a in expns:
-    print(a)
+    
+    if a==0.21:
+        continue
     redshift = 1./a - 1
 
     fname = '{0:s}a{1:.3f}/vela2b-27_GZa{1:.3f}.h5'.format(dataloc,a)
 
     df = pd.read_hdf(fname, 'data')
+
+    print('\n{0:.3f}'.format(a))
+
+    # Select out the appropriate cloud limits
+    nRange = limits[limits.expn==a]
+
+    print(len(nRange))
+    loN = 10**(nRange['loN'].values[0])
+    hiN = 10**(nRange['hiN'].values[0])
 
     index = ( (df['temperature']>loT) & (df['temperature']<hiT) & 
                 (df['density']>loN) & (df['density']<hiN) &
@@ -50,6 +68,7 @@ for a in expns:
     cloud = df[index]
     cloudLoc = cloud[['x','y','z']]
     numCells = len(cloudLoc)
+    print(loN,hiN,numCells)
 
     # Perform a PCA to find the line of best fit
 

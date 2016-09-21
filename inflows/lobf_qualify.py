@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import scipy.linalg as sl
 import scipy.stats as st
+import sys
 
 pd.options.mode.chained_assignment = None
 
@@ -54,6 +55,7 @@ def impact(u0,u1,u2,mean):
 # File paths
 dataloc = '/home/jacob/research/velas/vela2b/vela27/'
 basename = '{0:s}a{1:.3f}/vela2b-27_GZa{1:.3f}.h5'
+rotname = '{0:s}a{1:.3f}/rotmat_a{1:.3f}.txt'
 
 # Full ranges
 loT, hiT = 10**3.5, 10**4.5
@@ -87,15 +89,23 @@ for a in expns:
     fitparams = np.zeros(len(header))
     fitparams[0] = a
 
+    # Read in rvir
+    rot = rotname.format(dataloc,a)
+    with open(rot,'r') as f:
+        f.readline()
+        line = f.readline()
+        rvir = float(line.split()[3])
+
     #############################################################3
 
     # Full cut
     loN, hiN = -6.25, -2.25
     index = ( (df['temperature']>loT) & (df['temperature']<hiT) & 
                 (df['density']>10**loN) & (df['density']<10**hiN) &
-                (df['x']>0) & (df['z']>0) & (np.abs(df['y'])<300) )
+                (df['x']<0) & (df['z']>0) & (np.abs(df['y'])<300) )
     cloud = df[index]
     cloudLoc = cloud[['x','y','z']]
+    fullcloud = cloudLoc
     
     fullu0, fullu1, fullu2 = fitLine(cloudLoc)
     fullmean = cloudLoc.mean() 
@@ -119,7 +129,7 @@ for a in expns:
     hiN = nRange['hiN'].values[0]
     index = ( (df['temperature']>loT) & (df['temperature']<hiT) & 
                 (df['density']>10**loN) & (df['density']<10**hiN) &
-                (df['x']>0) & (df['z']>0) & (np.abs(df['y'])<300) )
+                (df['x']<0) & (df['z']>0) & (np.abs(df['y'])<300) )
     cloud = df[index]
     cloudLoc = cloud[['x','y','z']]
     
@@ -141,29 +151,65 @@ for a in expns:
     #############################################################3
 
     # Plot the lines
-    fig = plt.figure(figsize=(5,5))
-    ax = fig.add_subplot(1,1,1,projection='3d')
+    #fig = plt.figure(figsize=(5,5))
+    #ax = fig.add_subplot(1,1,1,projection='3d')
 
-    t = np.linspace(-100,100,1000)
+    fig, (ax1,ax2,ax3) = plt.subplots(1,3,figsize=(15,5))
+
+    l1 = ax1.scatter(fullcloud['x']/rvir,fullcloud['y']/rvir,c='plum',marker='o',alpha=0.01)
+    ax2.scatter(fullcloud['x']/rvir,fullcloud['z']/rvir,c='plum',marker='o',alpha=0.01)
+    ax3.scatter(fullcloud['y']/rvir,fullcloud['z']/rvir,c='plum',marker='o',alpha=0.01)
+
+    l2 = ax1.scatter(cloud['x']/rvir,cloud['y']/rvir,c='lime',marker='o',alpha=0.01)
+    ax2.scatter(cloud['x']/rvir,cloud['z']/rvir,c='lime',marker='o',alpha=0.01)
+    ax3.scatter(cloud['y']/rvir,cloud['z']/rvir,c='lime',marker='o',alpha=0.01)
+
+    t = np.linspace(-1000,1000,1000)
     x, y, z = [],[],[]
     for i in range(len(t)):
-        x.append(fullmean['x']+t[i]*fullu0)
-        y.append(fullmean['y']+t[i]*fullu1)
-        z.append(fullmean['z']+t[i]*fullu2)
-    ax.plot(x,y,z,'b')
+        x.append((fullmean['x']+t[i]*fullu0)/rvir)
+        y.append((fullmean['y']+t[i]*fullu1)/rvir)
+        z.append((fullmean['z']+t[i]*fullu2)/rvir)
+    l3 = ax1.plot(x,y,color='crimson',linestyle='-',label='Full')
+    ax2.plot(x,z,color='crimson',linestyle='-',label='Full')
+    ax3.plot(y,z,color='crimson',linestyle='-',label='Full')
 
     x, y, z = [],[],[]
     for i in range(len(t)):
-        x.append(narrowmean['x']+t[i]*narrowu0)
-        y.append(narrowmean['y']+t[i]*narrowu1)
-        z.append(narrowmean['z']+t[i]*narrowu2)
-    ax.plot(x,y,z,'r')
+        x.append((narrowmean['x']+t[i]*narrowu0)/rvir)
+        y.append((narrowmean['y']+t[i]*narrowu1)/rvir)
+        z.append((narrowmean['z']+t[i]*narrowu2)/rvir)
+    l4 = ax1.plot(x,y,color='lawngreen',linestyle='--',label='Narrow')
+    ax2.plot(x,z,color='lawngreen',linestyle='--',label='Narrow')
+    ax3.plot(y,z,color='lawngreen',linestyle='--',label='Narrow')
 
-    ax.view_init(elev=30, azim=0)
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
-    ax.set_title('a = {0:.3f}, z = {0:.3f}'.format(a,redshift))
+
+    ax1.set_xlim([-3,0])
+    ax2.set_xlim([-3,0])
+    ax3.set_xlim([-3,3])
+
+    ax1.set_ylim([-3,3])
+    ax2.set_ylim([0,3])
+    ax3.set_ylim([0,3])
+
+    ax1.set_xlabel('x')
+    ax2.set_xlabel('x')
+    ax3.set_xlabel('z')
+
+    ax1.set_ylabel('y')
+    ax2.set_ylabel('z')
+    ax3.set_ylabel('z')
+
+    lines = (l1,l2,l3,l4)
+    labels = ('Full','Narrow','Full Line','Narrow Line')
+    lines = (l3,l4)
+    labels = ('Full Line','Narrow Line')
+#    fig.legend(lines,labels,loc=(0.45,0.88),ncol=4,fontsize=12)
+
+
+    fig.suptitle('a = {0:.3f}, z = {1:.3f}'.format(a,redshift))
+    fig.tight_layout()
+    fig.subplots_adjust(top=0.9)
 
     s = 'lobf_3d_a{0:.3f}.png'.format(a)
     fig.savefig(s,bbox_inches='tight',dpi=300)

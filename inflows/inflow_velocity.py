@@ -197,7 +197,11 @@ for a in expns:
         lims = [cl['speed'].min(), cl['speed'].max()]
         vspeedLims.append(lims[0])
         vspeedLims.append(lims[1])
-        l7 = mkHist(ax7, cl['speed'], lims, numbins, labels[i], colors[i], 'Speed')
+        l7 = ax7.scatter(cl['along'],vl['vr'])
+        ax7.set_xlabel('Valong')
+        ax7.set_ylabel('Vr')
+        ax7Lims = ax7.get_ylim()
+        #l7 = mkHist(ax7, cl['speed'], lims, numbins, labels[i], colors[i], 'Speed')
 
         lims = [cl['along'].min(), cl['along'].max()]
         valongLims.append(lims[0])
@@ -213,6 +217,7 @@ for a in expns:
     # Set limits
     for ax in axes:
         ax.set_ylim(ymin=0)
+    ax7.set_ylim(ax7Lims)
 
     ax1.set_xlim([-400,400])
     ax2.set_xlim([-400,400])

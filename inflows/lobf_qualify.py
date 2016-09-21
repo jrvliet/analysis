@@ -194,7 +194,7 @@ for a in expns:
 
     ax1.set_xlabel('x')
     ax2.set_xlabel('x')
-    ax3.set_xlabel('z')
+    ax3.set_xlabel('y')
 
     ax1.set_ylabel('y')
     ax2.set_ylabel('z')
@@ -211,7 +211,7 @@ for a in expns:
     fig.tight_layout()
     fig.subplots_adjust(top=0.9)
 
-    s = 'lobf_3d_a{0:.3f}.png'.format(a)
+    s = './lobfPlots/lobf_3d_a{0:.3f}.png'.format(a)
     fig.savefig(s,bbox_inches='tight',dpi=300)
 
 
@@ -240,7 +240,7 @@ for ax in axes:
     ax.legend()
 
 fig.tight_layout()
-s = 'lobf_qualify.png'
+s = './lobfPlots/lobf_properties.png'
 fig.savefig(s,bbox_inches='tight',dpi=300)
 
 

@@ -23,7 +23,7 @@ aM = []
 
 for i,a in enumerate(expns):
 
-    time = timeSteps.iloc[i]
+    time = timeSteps.iloc[i]*1e6*3.154e7
 
 
     with open(rotmat.format(a), 'r') as f:

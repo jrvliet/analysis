@@ -197,7 +197,7 @@ for a in expns:
         lims = [cl['speed'].min(), cl['speed'].max()]
         vspeedLims.append(lims[0])
         vspeedLims.append(lims[1])
-        l7 = ax7.scatter(cl['along'],vl['vr'])
+        l7 = ax7.scatter(cl['along'],cl['vr'])
         ax7.set_xlabel('Valong')
         ax7.set_ylabel('Vr')
         ax7Lims = ax7.get_ylim()

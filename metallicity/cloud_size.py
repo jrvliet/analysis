@@ -47,7 +47,8 @@ for galNum in galNums:
                 loN = 10**(dense[i-1])
             hiN = 10**n
             cloudInds = (baseInds & (d['density']<=hiN) & (d['density']>=loN))
-            #print 'log(loN) = {0:.2f}\tlog(hiN) = {1:.2f}\tsum(cloudInds) = {2:d}'.format(np.log10(loN),np.log10(hiN),sum(cloudInds))
+            print 'log(loN) = {0:.2f}\tlog(hiN) = {1:.2f}\tsum(cloudInds) = {2:d}'.format(np.log10(loN),
+                    np.log10(hiN),sum(cloudInds))
             cloud = d[cloudInds]
             ax = fig.add_subplot(3, 4, i+1, projection='3d')
             ax.scatter(cloud['x']/rvir, cloud['y']/rvir, cloud['z']/rvir, c=cloud['SNII'], marker='o', alpha=0.01)

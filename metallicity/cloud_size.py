@@ -8,6 +8,11 @@ from mpl_toolkits.mplot3d import Axes3D
 import gc
 import statsmodels as sm
 
+
+mH = 1.6737e-24
+pc2cm = 3.086e18
+mSun = 1.989e33
+
 galNums = range(21,30)
 galNums = range(27,30)
 galNums = [27]
@@ -16,8 +21,10 @@ expns = np.arange(0.200,0.500,0.01)
 
 for galNum in galNums:
     for a in expns:
+        print a
 
         dataloc = '/mnt/cluster/abs/cgm/vela2b/vela{0:d}/a{1:.3f}/'.format(galNum,a)
+        dataloc = '/home/jacob/research/velas/vela2b/vela{0:d}/a{1:.3f}/'.format(galNum,a)
         boxfile = '{0:s}vela2b-{1:d}_GZa{2:.3f}.h5'.format(dataloc,galNum,a)
         rotmatFile = '{0:s}rotmat_a{1:.3f}.txt'.format(dataloc,a)
         try:
@@ -50,8 +57,18 @@ for galNum in galNums:
             print 'log(loN) = {0:.2f}\tlog(hiN) = {1:.2f}\tsum(cloudInds) = {2:d}'.format(np.log10(loN),
                     np.log10(hiN),sum(cloudInds))
             cloud = d[cloudInds]
+
+            # Calculate mass weighted metallicity mean
+            cloud['mass'] = cloud['density']*mH* (cloud['cell_size']*pc2cm)**3 / mSun
+
+            cloud['weight'] = cloud['mass']*cloud['SNII']
+            cloud['meanZ'] = np.log10(cloud['weight'].sum() / cloud['mass'].sum())
+            print cloud['meanZ'].min(), cloud['meanZ'].max()
+
+
             ax = fig.add_subplot(3, 4, i+1, projection='3d')
-            ax.scatter(cloud['x']/rvir, cloud['y']/rvir, cloud['z']/rvir, c=cloud['SNII'], marker='o', alpha=0.01)
+            ax.scatter(cloud['x']/rvir, cloud['y']/rvir, cloud['z']/rvir, c=cloud['meanZ'], 
+                        vmin=-8, vmax=-1, marker='o', alpha=0.01)
             ax.view_init(elev=90, azim=0)
             ax.set_xlabel('x')
             ax.set_ylabel('y')

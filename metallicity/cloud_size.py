@@ -7,11 +7,14 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import gc
 import statsmodels as sm
+import sys
 
 
 mH = 1.6737e-24
 pc2cm = 3.086e18
 mSun = 1.989e33
+
+vmin, vmax = -8, -1
 
 galNums = range(21,30)
 galNums = range(27,30)
@@ -48,6 +51,7 @@ for galNum in galNums:
         #baseInds = ( (d['temperature']<=hiT) & (d['temperature']>=loT) )
 
         fig = plt.figure(figsize=(20,15))
+        axes = []
         for i,n in enumerate(dense):
             print i
             if i>=1:
@@ -67,8 +71,9 @@ for galNum in galNums:
 
 
             ax = fig.add_subplot(3, 4, i+1, projection='3d')
-            ax.scatter(cloud['x']/rvir, cloud['y']/rvir, cloud['z']/rvir, c=cloud['meanZ'], 
-                        vmin=-8, vmax=-1, marker='o', alpha=0.01)
+            axes.append(ax)
+            im = ax.scatter(cloud['x']/rvir, cloud['y']/rvir, cloud['z']/rvir, c=cloud['meanZ'], 
+                        vmin=vmin, vmax=vmax, marker='o', alpha=0.01)
             ax.view_init(elev=90, azim=0)
             ax.set_xlabel('x')
             ax.set_ylabel('y')
@@ -80,9 +85,20 @@ for galNum in galNums:
             ax.set_title('{0:.2f} $<$ log(nH) $<$ {1:.2f}'.format(np.log10(loN),np.log10(hiN)))
 
 
+
         z = 1.0/float(a) - 1
         fig.suptitle('a = {0:.2f}, Rvir = {1:.1f}'.format(a,rvir))
         fig.tight_layout()
+    
+        norm = mp.colors.Normalize(vmin=vmin,vmax=vmax)
+        fig.subplots_adjust(right=0.8)
+        cbar_ax = fig.add_axes([0.85,0.05,0.02,0.9])
+        mp.colorbar.ColorbarBase(cbar_ax, cmap='viridis', norm=norm)
+        #fig.colorbar(im,cax=cbar_ax)
+        #cax, kw = mp.colorbar.make_axes(axes)
+        #cbar = fig.colorbar(im,cax=cax, **kw)
+        #cbar.set_clim(-8,-1)
+
         s = './density_plots/vela2b-{0:d}_a{1:.3f}_cloudSize.png'.format(galNum,a)
         fig.savefig( s, bbox_inches='tight', pdi=300)
         

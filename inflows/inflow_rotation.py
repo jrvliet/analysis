@@ -104,28 +104,33 @@ def plot_gradients(fullCloud,fullBox,field,savename):
 
     # Plot the metallicity gradients 
     fig, (ax1,ax2) = plt.subplots(1,2,figsize=(10,5))
-    ax1.scatter(fullCloud['theta'],np.log10(fullCloud[field]),color='lime',marker='o',alpha=0.01)
+    ax1.scatter(fullCloud['theta'],np.log10(fullCloud[field]),color='green',marker='o',alpha=0.01)
     ax2.scatter(fullBox['theta'],np.log10(fullBox[field]),color='plum',marker='o',alpha=0.01)
 
     # Fit lines
-    t = np.linspace(0,90,1000)
+    t = np.linspace(0,180,1000)
     mCloud,bCloud = fit_line2d(fullCloud['theta'],np.log10(fullCloud[field]))
     mBox,bBox = fit_line2d(fullBox['theta'],np.log10(fullBox[field]))
     y = mCloud*t + bCloud
     ax1.plot(t,y,'k')
     y = mBox*t + bBox
     ax2.plot(t,y,'k')
+    print('\nFits for {0:s}'.format(field))
+    print('mCloud = {0:.3f}\tbCloud = {1:.3f}'.format(mCloud,bCloud))
+    print('mBox   = {0:.3f}\tbBox   = {1:.3f}'.format(mCloud,bCloud))
 
     # Annotate fit parameters
+    yloc = fullCloud[field].max()
     s = 'm={0:.3f}\nb={1:.3f}'.format(mCloud,bCloud)
-    ax1.annotate(s=s,xy=[5,1])
+    ax1.annotate(s=s,xy=[yloc,1])
+    yloc = fullBox[field].max()
     s = 'm={0:.3f}\nb={1:.3f}'.format(mBox,bBox)
-    ax2.annotate(s=s,xy=[5,1])
+    ax2.annotate(s=s,xy=[yloc,1])
     
 
     # Polish plots
-    ax1.set_xlabel('Theta [deg]')
-    ax2.set_xlabel('Theta [deg]')
+    ax1.set_xlabel('theta [deg]')
+    ax2.set_xlabel('theta [deg]')
     ax1.set_ylabel(field)
     ax2.set_ylabel(field)
     ax1.set_title('Cloud')
@@ -138,9 +143,9 @@ def plot_gradients(fullCloud,fullBox,field,savename):
 
 
 
-dataloc = 'home/jacob/research/velas/vela2b/vela27/a0.490/'
+dataloc = '/home/jacob/research/velas/vela2b/vela27/a0.490/'
 filename = 'vela2b-27_GZa0.490.h5'
-rotfile = 'rotmat_a0.490.txt'
+rotfile = dataloc+'rotmat_a0.490.txt'
 
 with open(rotfile,'r') as f:
     f.readline()
@@ -161,12 +166,13 @@ spaceInd = (df['x']<0) & (df['z']>0) & (np.abs(df['y'])<300)
 cl = df[ tempInd & denseInd & spaceInd ]
 
 # Fit a line
-u = fit_line3d(sl)
+u = fit_line3d(cl)
 
 # Get the rotation angle
 # Will rotate around the y-axis to make the inflow lie along 
 # the positive z-axis. To do this the angle between the
 # line of best fit and the current x-axis is needed
+x = [1,0,0]
 theta = vector_angle(x,u)
 
 # This actually will put the inflow along the negative z-axis, 
@@ -174,7 +180,7 @@ theta = vector_angle(x,u)
 theta += np.pi
 
 # Create the rotation matrix
-rot = np.array([[np.cos(a),0,np.sin(a)],[0,1,0],[-1*np.sin(a),0,np.cos(a)]])
+rot = np.array([[np.cos(theta),0,np.sin(theta)],[0,1,0],[-1*np.sin(theta),0,np.cos(theta)]])
 
 # Rotate the coordinates
 clRot = cl[['x','y','z']].dot(rot)
@@ -189,7 +195,7 @@ clRot['phi'] = np.degrees(np.arctan2(clRot['yRot'],clRot['xRot']))
 fullCloud = cl.join(clRot)
 
 # Rotate the entire box
-boxLocRot = boxLoc[['x','y','z']].dot(rot)
+boxLocRot = df[['x','y','z']].dot(rot)
 boxLocRot.rename(columns={0:'xRot', 1:'yRot', 2:'zRot'}, inplace=True)
 
 # Get the spherical coordinates for the full, rotated box

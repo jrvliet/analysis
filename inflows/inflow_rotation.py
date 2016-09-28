@@ -5,6 +5,8 @@ Rotates inflow to z-axis
 
 
 from __future__ import print_function
+import matplotlib as mp
+mp.use('Agg')
 import numpy as np
 import pandas as pd
 import scipy.linalg as sl
@@ -144,6 +146,7 @@ def plot_gradients(fullCloud,fullBox,field,savename):
 
 
 dataloc = '/home/jacob/research/velas/vela2b/vela27/a0.490/'
+dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/a0.490/'
 filename = 'vela2b-27_GZa0.490.h5'
 rotfile = dataloc+'rotmat_a0.490.txt'
 
@@ -181,6 +184,7 @@ theta += np.pi
 
 # Create the rotation matrix
 rot = np.array([[np.cos(theta),0,np.sin(theta)],[0,1,0],[-1*np.sin(theta),0,np.cos(theta)]])
+np.savetxt('inflow_rot_mat.dat',rot)
 
 # Rotate the coordinates
 clRot = cl[['x','y','z']].dot(rot)
@@ -206,10 +210,13 @@ boxLocRot['phi'] = np.degrees(np.arctan2(boxLocRot['yRot'],boxLocRot['xRot']))
 # Join this to the full, rotated box
 fullBox = df.join(boxLocRot)
 
+# Write to file
+foutname = filename.replace('.h5','rot.h5')
+fullBox.to_hdf(foutname, 'data', mode='w')
 
 # Plot gradients
-plot_gradients(fullCloud,fullBox,'SNII','inflow_SNII_thetaGradient.png')
-plot_gradients(fullCloud,fullBox,'density','inflow_nH_thetaGradient.png')
+#plot_gradients(fullCloud,fullBox,'SNII','inflow_SNII_thetaGradient.png')
+#plot_gradients(fullCloud,fullBox,'density','inflow_nH_thetaGradient.png')
 
 
 

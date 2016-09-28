@@ -145,78 +145,88 @@ def plot_gradients(fullCloud,fullBox,field,savename):
 
 
 
-dataloc = '/home/jacob/research/velas/vela2b/vela27/a0.490/'
-dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/a0.490/'
-filename = 'vela2b-27_GZa0.490.h5'
-rotfile = dataloc+'rotmat_a0.490.txt'
+dataloc = '/home/jacob/research/velas/vela2b/vela27/a{0:.3f}/'
+dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/a{0:.3f}/'
+filename = 'vela2b-27_GZa{0:.3f}.h5'
+rotfile = dataloc+'rotmat_a{0:.3f}.txt'
 
-with open(rotfile,'r') as f:
-    f.readline()
-    rvir = float(f.readline().split()[3])
 
 # Define phase
 loT, hiT = 10**3.5, 10**4.5
 loN, hiN = 10**-4, 10**-3.75
 
-# Read in data
-df = pd.read_hdf(dataloc+filename, 'data')
+# Read in rotation matrix
+rot = np.loadtxt('inflow_rot_mat.dat')
 
-# Select inflow
-tempInd = (df['temperature']<hiT) & (df['temperature']>loT)
-denseInd = (df['density']<hiN) & (df['density']>loN)
-spaceInd = (df['x']<0) & (df['z']>0) & (np.abs(df['y'])<300)
+expns = np.arange(0.200,0.500,0.01)
 
-cl = df[ tempInd & denseInd & spaceInd ]
+for a in expns:
 
-# Fit a line
-u = fit_line3d(cl)
+    with open(rotfile.format(a),'r') as f:
+        f.readline()
+        rvir = float(f.readline().split()[3])
 
-# Get the rotation angle
-# Will rotate around the y-axis to make the inflow lie along 
-# the positive z-axis. To do this the angle between the
-# line of best fit and the current x-axis is needed
-x = [1,0,0]
-theta = vector_angle(x,u)
 
-# This actually will put the inflow along the negative z-axis, 
-# so need to add pi to it
-theta += np.pi
+    # Read in data
+    fname = dateloc.format(a) + filename.format(a)
+    df = pd.read_hdf(fname, 'data')
 
-# Create the rotation matrix
-rot = np.array([[np.cos(theta),0,np.sin(theta)],[0,1,0],[-1*np.sin(theta),0,np.cos(theta)]])
-np.savetxt('inflow_rot_mat.dat',rot)
+    # Select inflow
+    tempInd = (df['temperature']<hiT) & (df['temperature']>loT)
+    denseInd = (df['density']<hiN) & (df['density']>loN)
+    spaceInd = (df['x']<0) & (df['z']>0) & (np.abs(df['y'])<300)
 
-# Rotate the coordinates
-clRot = cl[['x','y','z']].dot(rot)
-clRot.rename( columns={0:'xRot', 1:'yRot', 2:'zRot'}, inplace=True )
+    cl = df[ tempInd & denseInd & spaceInd ]
 
-# Get the spherical coordinates of the inflow
-clRot['r'] = np.sqrt(clRot['xRot']**2 + clRot['yRot']**2 + clRot['zRot']**2)
-clRot['theta'] = np.degrees(np.arccos(clRot['zRot']/clRot['r']))
-clRot['phi'] = np.degrees(np.arctan2(clRot['yRot'],clRot['xRot']))
+    # Fit a line
+    u = fit_line3d(cl)
 
-# Join this to the full dataset for the inflow 
-fullCloud = cl.join(clRot)
+    # Get the rotation angle
+    # Will rotate around the y-axis to make the inflow lie along 
+    # the positive z-axis. To do this the angle between the
+    # line of best fit and the current x-axis is needed
+    x = [1,0,0]
+    theta = vector_angle(x,u)
 
-# Rotate the entire box
-boxLocRot = df[['x','y','z']].dot(rot)
-boxLocRot.rename(columns={0:'xRot', 1:'yRot', 2:'zRot'}, inplace=True)
+    # This actually will put the inflow along the negative z-axis, 
+    # so need to add pi to it
+    theta += np.pi
 
-# Get the spherical coordinates for the full, rotated box
-boxLocRot['r'] = np.sqrt(boxLocRot['xRot']**2 + boxLocRot['yRot']**2 + boxLocRot['zRot']**2)
-boxLocRot['theta'] = np.degrees(np.arccos(boxLocRot['zRot']/boxLocRot['r']))
-boxLocRot['phi'] = np.degrees(np.arctan2(boxLocRot['yRot'],boxLocRot['xRot']))
+    # Create the rotation matrix
+    rot = np.array([[np.cos(theta),0,np.sin(theta)],[0,1,0],[-1*np.sin(theta),0,np.cos(theta)]])
+    np.savetxt('inflow_rot_mat.dat',rot)
 
-# Join this to the full, rotated box
-fullBox = df.join(boxLocRot)
+    # Rotate the coordinates
+    clRot = cl[['x','y','z']].dot(rot)
+    clRot.rename( columns={0:'xRot', 1:'yRot', 2:'zRot'}, inplace=True )
 
-# Write to file
-foutname = filename.replace('.h5','rot.h5')
-fullBox.to_hdf(foutname, 'data', mode='w')
+    # Get the spherical coordinates of the inflow
+    clRot['r'] = np.sqrt(clRot['xRot']**2 + clRot['yRot']**2 + clRot['zRot']**2)
+    clRot['theta'] = np.degrees(np.arccos(clRot['zRot']/clRot['r']))
+    clRot['phi'] = np.degrees(np.arctan2(clRot['yRot'],clRot['xRot']))
 
-# Plot gradients
-#plot_gradients(fullCloud,fullBox,'SNII','inflow_SNII_thetaGradient.png')
-#plot_gradients(fullCloud,fullBox,'density','inflow_nH_thetaGradient.png')
+    # Join this to the full dataset for the inflow 
+    fullCloud = cl.join(clRot)
+
+    # Rotate the entire box
+    boxLocRot = df[['x','y','z']].dot(rot)
+    boxLocRot.rename(columns={0:'xRot', 1:'yRot', 2:'zRot'}, inplace=True)
+
+    # Get the spherical coordinates for the full, rotated box
+    boxLocRot['r'] = np.sqrt(boxLocRot['xRot']**2 + boxLocRot['yRot']**2 + boxLocRot['zRot']**2)
+    boxLocRot['theta'] = np.degrees(np.arccos(boxLocRot['zRot']/boxLocRot['r']))
+    boxLocRot['phi'] = np.degrees(np.arctan2(boxLocRot['yRot'],boxLocRot['xRot']))
+
+    # Join this to the full, rotated box
+    fullBox = df.join(boxLocRot)
+
+    # Write to file
+    foutname = filename.replace('.h5','rot.h5')
+    fullBox.to_hdf(foutname, 'data', mode='w')
+
+    # Plot gradients
+    #plot_gradients(fullCloud,fullBox,'SNII','inflow_SNII_thetaGradient.png')
+    #plot_gradients(fullCloud,fullBox,'density','inflow_nH_thetaGradient.png')
 
 
 

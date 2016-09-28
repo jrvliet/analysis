@@ -50,15 +50,18 @@ for a in expns:
     cloud = df[index]
 
     cloud['r'] = np.sqrt(cloud['x']**2 + cloud['y']**2 + cloud['z']**2)
-    cloud['vr'] = ( cloud['vx']*cloud['x'] + cloud['vy']*cloud['y'] + 
-                    cloud['vz']*cloud['z'] ) / cloud['r']
 
-    posInds = (cloud['vr']>0)
-    negInds = (cloud['vr']<0)
-    poscloud = cloud[posInds]
-    negcloud = cloud[negInds]
-    minv.append(cloud['vr'].min())
-    maxv.append(cloud['vr'].max())
+    cgm = cloud[cloud['r']>0.1*rvir]
+
+    cgm['vr'] = ( cgm['vx']*cgm['x'] + cgm['vy']*cgm['y'] + 
+                    cgm['vz']*cgm['z'] ) / cgm['r']
+
+    posInds = (cgm['vr']>0)
+    negInds = (cgm['vr']<0)
+    poscloud = cgm[posInds]
+    negcloud = cgm[negInds]
+    minv.append(cgm['vr'].min())
+    maxv.append(cgm['vr'].max())
     
     fig, ax = plt.subplots(1,1,figsize=(10,10))
     
@@ -76,7 +79,7 @@ for a in expns:
     
         print(a,z,d,vr,subRvir,radius)
 
-        circle = plt.Circle((d,vr), radius, color='k')
+        #circle = plt.Circle((d,vr), radius, color='k')
         #ax.add_artist(circle)
         ax.vlines(d,-500,500,colors='purple')
         lab = '{0:.2f}'.format(subs['MR'].iloc[i])

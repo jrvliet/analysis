@@ -11,33 +11,27 @@ mp.use('Agg')
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import scipy.stats as st
 
 
 def mkPlot(x1,y1,z1,x2,y2,z2,a):
 
-    fig, (ax1,ax2,ax3) = plt.subplots(1,3,figsize=(15,3))
-    ax1.scatter(x1,y1,marker='o',color='green',alpha=0.01)
-    ax2.scatter(x1,z1,marker='o',color='green',alpha=0.01)
-    ax3.scatter(y1,z1,marker='o',color='green',alpha=0.01)
-    ax1.scatter(x2,y2,marker='o',color='plum',alpha=0.01)
-    ax2.scatter(x2,z2,marker='o',color='plum',alpha=0.01)
-    ax3.scatter(y2,z2,marker='o',color='plum',alpha=0.01)
-    
-    ax1.set_xlabel('x')
-    ax1.set_ylabel('y')
 
-    ax2.set_xlabel('x')
-    ax2.set_ylabel('z')
+    fig, ((ax1,ax2,ax3),(ax4,ax5,ax6)) = plt.subplots(2,3,figsize=(15,10))
 
-    ax3.set_xlabel('y')
-    ax3.set_ylabel('z')
+    mkHist(ax1,x1,y1,'x','y')
+    mkHist(ax2,x1,z1,'x','z')
+    mkHist(ax3,y1,z1,'y','z')
 
-    ax1.set_xlim([-1,1])
-    ax1.set_ylim([-1,1])
-    ax2.set_xlim([-1,1])
-    ax2.set_ylim([-1,1])
-    ax3.set_xlim([-1,1])
-    ax3.set_ylim([-1,1])
+    mkHist(ax4,x2,y2,'x','y')
+    mkHist(ax5,x2,z2,'x','z')
+    mkHist(ax6,y2,z2,'y','z')
+
+
+    for ax in [ax1,ax2,ax3]:
+        ax.set_title('Inflow')
+    for ax in [ax4,ax5,ax6]:
+        ax.set_title('Cloud')
 
     redshift = 1./a - 1.
     ax2.set_title('a = {0:.3f}, z = {1:.3f}'.format(a,redshift))
@@ -47,7 +41,32 @@ def mkPlot(x1,y1,z1,x2,y2,z2,a):
     fig.savefig(savename,bbox_inches='tight',dpi=300)
 
 
+def mkHist(ax,x,y,xlab,ylab):
+
+    stat = 'count'
+    numbins = 50
+    binrange = [[-1,1],[-1,1]]
+
+    h,xedges,yedges,binnumber = st.binned_statistic_2d(x1,y1,z1,
+                                statistic=stat, bins=numbins,
+                                range=binrange)
+    h = np.rot90(h)
+    h = np.flipud(h)
+    h[np.isnan(h)] = 0.0
+    h = np.ma.masked_where(h==0,h)
+    h = np.log10(h)
+    mesh = ax.pcolormesh(xedges, yedges, h)
+    ax.set_xlim(binrange[0])
+    ax.set_ylim(binrange[1])
+    ax.set_xlabel(xlab)
+    ax.set_ylabel(ylab)
+    cbar = plt.colorbar(mesh,ax=ax,use_gridspec=True)
+    cbar.ax.get_yaxis().labelpad = 20
+    cbar.ax.set_ylabel('Counts',rotation=270,fontsize=12)
+    
+
 baseloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
+baseloc = '/home/jacob/research/velas//vela2b/vela27/'
 filename = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.rot.h5'
 rotmat = 'a{0:.3f}/rotmat_a{0:.3f}.txt'
 limitsFile = 'cloudLimits.csv'
@@ -84,6 +103,9 @@ for a in expns:
     inflow = df[index1]
     cloud = df[index2]
 
+    print('Inflow size = {0:d}'.format(len(inflow['x'])))
+    print('Cloud size  = {0:d}'.format(len(cloud['x'])))
+
     x1 = inflow['x']/rvir
     y1 = inflow['y']/rvir
     z1 = inflow['z']/rvir
@@ -93,6 +115,7 @@ for a in expns:
     z2 = cloud['z']/rvir
 
     mkPlot(x1,y1,z1,x2,y2,z2,a)
+
 
 
 

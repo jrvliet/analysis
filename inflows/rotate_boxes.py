@@ -32,6 +32,11 @@ for a in expns:
 
     cl = cl.join(clRot)
 
+    clRot = cl[['vx','vy','vz']].dot(rot)
+    clRot.rename( columns={0:'vxRot', 1:'vyRot', 2:'vzRot'}, inplace=True)
+
+    cl = cl.join(clRot)
+
     outname = fname.replace('.h5','.rot.h5')
     cl.to_hdf(outname,'data',mode='w')
 

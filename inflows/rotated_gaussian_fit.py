@@ -4,7 +4,7 @@ Fits a 2d gaussian to the xy-distribuiton of
 cell that fit the inflow phase as a funciton of z
 '''
 
-from __future__ import print_funciton
+from __future__ import print_function
 import matplotlib as mp
 mp.use('Agg')
 import pandas as pd
@@ -14,21 +14,23 @@ import matplotlib.pyplot as plt
 
 
 baseloc = '/home/jacob/research/vela2b/vela27/rotatedBox/'
-filename = 'vela2b-27_GZa{0:.3f}.rot.h5'
-rotmatname = 'rotmat_a{0:.3f}.txt'
+baseloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
+filename = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.rot.h5'
+rotmatname = 'a{0:.3f}/rotmat_a{0:.3f}.txt'
 
 # Inflow parameters
 loT, hiT = 10**3.5, 10**4.5
 loN, hiN = 10**-6.25, 10**-2.25
 
-expns = np.arange(0.200,0.500,0.01)
 expns = ['0.490']
+expns = np.arange(0.200,0.500,0.05)
 
-
-fig, (ax1,ax2,a3) = plt.subplots(1,3,figsize=(15,5))
+fig, (ax1,ax2,ax3) = plt.subplots(1,3,figsize=(15,5))
 
 
 for a in expns:
+
+    print(a)
 
     # Get rvir
     with open(baseloc+rotmatname.format(a), 'r') as f:
@@ -43,13 +45,13 @@ for a in expns:
     densInd = (df['density']>loN) & (df['density']<hiN)
     spacInd = (df['zRot']>0)
     
-    fil = df[tempInd & denseInd & spacInd]
+    fil = df[tempInd & densInd & spacInd]
     
     # Bin the data
     numbins = 20
     zbinEdges = np.linspace(fil['zRot'].min(), fil['zRot'].max(), numbins)
 
-    groups = fil.groupby(pd.cut( fil['r'], rbinEdges ))
+    groups = fil.groupby(pd.cut( fil['zRot'], zbinEdges ))
 
     sx, sy, s, midz = [], [], [], []
     for key, group in groups:

@@ -6,12 +6,14 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as st
+import matplotlib.ticker as ticker
 
-def mkHist(ax,x,y,z,cbarLabel):
+def fmt(x,pos):
+    return '{0:.2f}'.format(x)
 
-    stat = 'mean'
+def mkHist(ax,x,y,z,cbarLabel,stat,binrange):
+
     numbins = 50
-    binrange = [[0,3],[0,3]]
 
     h,xedges,yedges,binnumber = st.binned_statistic_2d(x,y,z,
                                 statistic=stat, bins=numbins,
@@ -27,9 +29,11 @@ def mkHist(ax,x,y,z,cbarLabel):
     ax.set_ylim(binrange[1])
     ax.set_xlabel('Rho [Rvir]')
     ax.set_ylabel('Z [Rvir]')
-    cbar = plt.colorbar(mesh,ax=ax,use_gridspec=True)
+    cbar = plt.colorbar(mesh,ax=ax,use_gridspec=True,
+                        format=ticker.FuncFormatter(fmt))
     cbar.ax.get_yaxis().labelpad = 20
-    cbar.ax.set_ylabel('Mean {0:s}'.format(cbarLabel),rotation=270,fontsize=12)
+    cbar.ax.set_ylabel('{0:s} {1:s}'.format(stat,cbarLabel),rotation=270,fontsize=12)
+    
 
 
 
@@ -77,13 +81,21 @@ for a in expns:
     cl['rho'] = np.sqrt( cl['xRotScale']**2 + cl['yRotScale']**2 )
 
     fig, ((ax1,ax2,ax3),(ax4,ax5,ax6)) = plt.subplots(2,3,figsize=(15,10))
-    ax1.scatter(cl['xRotScale'],cl['yRotScale'],marker='o',color='green',alpha=0.01)
-    ax2.scatter(cl['xRotScale'],cl['zRotScale'],marker='o',color='green',alpha=0.01)
-    ax3.scatter(cl['yRotScale'],cl['zRotScale'],marker='o',color='green',alpha=0.01)
+    #ax1.scatter(cl['xRotScale'],cl['yRotScale'],marker='o',color='green',alpha=0.01)
+    #ax2.scatter(cl['xRotScale'],cl['zRotScale'],marker='o',color='green',alpha=0.01)
+    #ax3.scatter(cl['yRotScale'],cl['zRotScale'],marker='o',color='green',alpha=0.01)
+
+    binrange = [[-3,3],[-3,3]]
+    mkHist(ax1,cl['xRotScale'],cl['yRotScale'],cl['x'],'Count','count',binrange)    
+    binrange = [[-3,3],[0,3]]
+    mkHist(ax2,cl['xRotScale'],cl['zRotScale'],cl['x'],'Count','count',binrange)    
+    binrange = [[-3,3],[0,3]]
+    mkHist(ax3,cl['yRotScale'],cl['zRotScale'],cl['x'],'Count','count',binrange)    
 
     ax1.set_xlabel('x [Rvir]')
     ax2.set_xlabel('x [Rvir]')
     ax3.set_xlabel('y [Rvir]')
+
     ax1.set_ylabel('y [Rvir]')
     ax2.set_ylabel('z [Rvir]')
     ax3.set_xlabel('z [Rvir]')
@@ -91,19 +103,20 @@ for a in expns:
     ax1.set_xlim([-3,3])
     ax2.set_xlim([-3,3])
     ax3.set_xlim([-3,3])
+
     ax1.set_ylim([-3,3])
-    ax2.set_ylim([-3,3])
-    ax3.set_ylim([-3,3])
-    
+    ax2.set_ylim([0,3])
+    ax3.set_ylim([0,3])
+
     ax2.set_title('a = {0:.3f}, z = {1:.3f}'.format(a,1./a-1))
     
     # Plot Historgrams
-    mkHist(ax4,cl['rho'],cl['zRotScale'],cl['SNII'],'SNII')
-    mkHist(ax5,cl['rho'],cl['zRotScale'],cl['density'],'nH')
-    mkHist(ax6,cl['rho'],cl['zRotScale'],cl['temperature'],'Temp')
+    binrange = [[0,3],[0,3]]
+    mkHist(ax4,cl['rho'],cl['zRotScale'],cl['SNII'],'SNII','mean',binrange)
+    mkHist(ax5,cl['rho'],cl['zRotScale'],cl['density'],'nH','mean',binrange)
+    mkHist(ax6,cl['rho'],cl['zRotScale'],cl['temperature'],'Temp','mean',binrange)
 
-
-
+    fig.tight_layout()
 
     s = 'rotation_test_a{0:.3f}.png'.format(a)
     fig.savefig(s,bbox_inches='tight',dpi=300)

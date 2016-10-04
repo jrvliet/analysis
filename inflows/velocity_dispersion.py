@@ -60,16 +60,22 @@ for a in expns:
 
     fig,(ax1,ax2,ax3) = plt.subplots(1,3,figsize=(15,5))
     
-    ax1.plot(rbinEdges[:-1], groups.mean().speed)
-    ax2.plot(rbinEdges[:-1], groups.std().speed)
-    ax3.plot(rbinEdges[:-1], groups.size(),label='{0:.3f}'.format(a))
+    ax1.plot(rbinEdges[:-1], groups.mean().speed, marker='x')
+    ax2.plot(rbinEdges[:-1], groups.std().speed, marker='x')
+    ax3.plot(rbinEdges[:-1], groups.size(),label='{0:.3f}'.format(a), marker='x')
 
     for ax in [ax1,ax2,ax3]:
         ax.set_xlabel('R [Rvir]')
+        ax.set_xlim([0,5])
 
     ax1.set_ylabel('Mean Speed')
     ax2.set_ylabel('Std Dev Speed') 
     ax3.set_ylabel('Number of cells in group')
+
+    ax1.set_ylim([0,300])
+    ax2.set_ylim([0,100])
+    ax3.set_ylim([0,120000])
+
 
     fig.tight_layout()
     s = 'inflow_vel_dispersion_a{0:.3f}.png'.format(a)

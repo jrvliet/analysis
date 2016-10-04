@@ -26,8 +26,8 @@ for galNum in galNums:
     for a in expns:
         print a
 
-        dataloc = '/mnt/cluster/abs/cgm/vela2b/vela{0:d}/a{1:.3f}/'.format(galNum,a)
         dataloc = '/home/jacob/research/velas/vela2b/vela{0:d}/a{1:.3f}/'.format(galNum,a)
+        dataloc = '/mnt/cluster/abs/cgm/vela2b/vela{0:d}/a{1:.3f}/'.format(galNum,a)
         boxfile = '{0:s}vela2b-{1:d}_GZa{2:.3f}.h5'.format(dataloc,galNum,a)
         rotmatFile = '{0:s}rotmat_a{1:.3f}.txt'.format(dataloc,a)
         try:
@@ -68,7 +68,7 @@ for galNum in galNums:
             cloud['weight'] = cloud['mass']*cloud['SNII']
             cloud['meanZ'] = np.log10(cloud['weight'].sum() / cloud['mass'].sum())
             print cloud['meanZ'].min(), cloud['meanZ'].max()
-
+            print any(cloud['meanZ']!=cloud['meanZ'].max())
 
             ax = fig.add_subplot(3, 4, i+1, projection='3d')
             axes.append(ax)
@@ -82,7 +82,8 @@ for galNum in galNums:
             ax.set_ylim([-3,3])
             ax.set_zlim([0,3])
             ax.view_init(elev=30, azim=0)
-            ax.set_title('{0:.2f} $<$ log(nH) $<$ {1:.2f}'.format(np.log10(loN),np.log10(hiN)))
+            ax.set_title('{0:.2f} $<$ log(nH) $<$ {1:.2f}; {2:.3f}'.format(np.log10(loN),
+                        np.log10(hiN), cloud['meanZ'].max()))
 
 
 

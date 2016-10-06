@@ -64,6 +64,7 @@ loT, hiT = 10**3.5, 10**4.5
 expns = np.arange(0.200,0.500,0.01)
 expns0 = range(20,50)
 expns = [i/100. for i in expns0]
+redshifts = [1./a - 1 for a in expns]
 
 # Read in cloud narrow density limits
 limits = pd.read_csv('cloudLimits.csv')
@@ -219,25 +220,27 @@ for a in expns:
 fig,((ax1,ax2),(ax3,ax4)) = plt.subplots(2,2,figsize=(10,10))
 axes = [ax1,ax2,ax3,ax4]
 
-ax1.plot(expns,fb,label='Full')
-ax1.plot(expns,nb,label='Narrow')
+ax1.plot(redshifts,fb,label='Full')
+ax1.plot(redshifts,nb,label='Narrow')
 ax1.set_ylabel('Impact Paramter')
 
-ax2.plot(expns,fu0,label='Full')
-ax2.plot(expns,nu0,label='Narrow')
+ax2.plot(redshifts,fu0,label='Full')
+ax2.plot(redshifts,nu0,label='Narrow')
 ax2.set_ylabel('u0')
 
-ax3.plot(expns,fu1,label='Full')
-ax3.plot(expns,nu1,label='Narrow')
+ax3.plot(redshifts,fu1,label='Full')
+ax3.plot(redshifts,nu1,label='Narrow')
 ax3.set_ylabel('u1')
 
-ax4.plot(expns,fu2,label='Full')
-ax4.plot(expns,nu2,label='Narrow')
+ax4.plot(redshifts,fu2,label='Full')
+ax4.plot(redshifts,nu2,label='Narrow')
 ax4.set_ylabel('u2')
 
 for ax in axes:
-    ax.set_xlabel('Expn')
+    ax.set_xlabel('Redshift')
     ax.legend()
+    ax.invert_xaxis()
+    
 
 fig.tight_layout()
 s = './lobfPlots/lobf_properties.png'

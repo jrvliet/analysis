@@ -56,14 +56,16 @@ vspeedLims, valongLims, vperpLims = [],[],[]
 distLims = []
 
 
-header = ['a','z','sigma_valong','sigma_vperp','sigma_r','sigma_theta','sigma_phi']
+header = ['a','z','sigma_valong','sigma_vperp',
+         'sigma_vr','sigma_vtheta','sigma_vphi']
 vel_nbin1_rbinall = np.zeros(len(header))
 vel_nbin2_rbinall = np.zeros(len(header))
 vel_nbin3_rbinall = np.zeros(len(header))
 vel_nbin4_rbinall = np.zeros(len(header))
 vel_nbin5_rbinall = np.zeros(len(header))
 vel_nbin6_rbinall = np.zeros(len(header))
-vel_nbins = [vel_nbin6_rbinall,vel_nbin6_rbinall,vel_nbin6_rbinall,vel_nbin6_rbinall,vel_nbin6_rbinall,vel_nbin6_rbinall]
+vel_nbins = [vel_nbin1_rbinall,vel_nbin2_rbinall,vel_nbin3_rbinall,
+            vel_nbin4_rbinall,vel_nbin5_rbinall,vel_nbin6_rbinall]
 
 for a in expns:
 
@@ -282,6 +284,7 @@ for a in expns:
         else:
             # Fill the arrays
             vel = np.zeros(len(header))
+            vel[:] = np.NAN
             vel_nbins[i] = np.vstack((vel_nbins[i],vel))
     
     #######################################################
@@ -291,7 +294,7 @@ store = pd.HDFStore(outfilename)
 for i in range(len(vel_nbins)):
     vel = np.delete(vel_nbins[i],(0),axis=0)
     df = pd.DataFrame(vel,columns=header)
-    name = 'nbin{0:d}'.format(i+1)
+    name = 'nbin{0:d}-lo{1:.2f}-hi{2:.3f}'.format(i+1,nBins[i],nBins[i+1])
     store[name] = df
 store.close()
     

@@ -55,7 +55,7 @@ expns = np.arange(0.200,0.500,0.01)
 loT, hiT = 10**3.5, 10**4.5
 
 # Density bins
-nBins = np.linspace(-6,-2,9)
+nBins = np.linspace(-6,-2.5,9)
 
 header = ['a','redshift','loN','hiN','numCells','stdDev','rayleighLoc','rayleighScale','rayleighfwhm','rayleighStd']
 fit = np.zeros(len(header))

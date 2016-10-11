@@ -47,6 +47,7 @@ def get_fwhm(param,xmin,xmax):
 
 
 dataloc = '/home/jacob/research/velas/vela2b/vela27/'
+dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
 filename = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.h5'
 
 expns = np.arange(0.200,0.500,0.01)
@@ -57,7 +58,8 @@ loT, hiT = 10**3.5, 10**4.5
 # Density bins
 nBins = np.linspace(-6,-2.5,9)
 
-header = ['a','redshift','loN','hiN','numCells','stdDev','rayleighLoc','rayleighScale','rayleighfwhm','rayleighStd']
+header = ['a','redshift','loN','hiN','numCells','stdDev','rayleighLoc',
+            'rayleighScale','rayleighfwhm','rayleighStd','speedStd']
 fit = np.zeros(len(header))
 
 for a in expns:
@@ -89,6 +91,9 @@ for a in expns:
         
             cloud = df[densInd & spacInd & tempInd]
             thisfit[4] = len(cloud)
+
+            cloud['speed'] = np.sqrt(cloud['vx']**2 + cloud['vy']**2 + cloud['vz']**2)
+            thisfit[10] = cloud['speed'].std()
 
             if len(cloud)>100:
     

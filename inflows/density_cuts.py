@@ -56,10 +56,11 @@ expns = np.arange(0.200,0.500,0.01)
 loT, hiT = 10**3.5, 10**4.5
 
 # Density bins
-nBins = np.linspace(-6,-2.5,9)
+nBins = np.linspace(-5.5,-2.5,7)
 
 header = ['a','redshift','loN','hiN','numCells','stdDev','rayleighLoc',
-            'rayleighScale','rayleighfwhm','rayleighStd','speedStd']
+            'rayleighScale','rayleighfwhm','rayleighStd','speedStd',
+            'valongStd','vperpStd']
 fit = np.zeros(len(header))
 
 for a in expns:
@@ -97,7 +98,6 @@ for a in expns:
 
             if len(cloud)>100:
     
-                print(loN,hiN,len(cloud))
                 # Fit line
                 cloudLoc = cloud[['x','y','z']]
                 locM = cloudLoc - cloudLoc.mean()
@@ -117,6 +117,20 @@ for a in expns:
                 else:
                     fwhm = np.NAN
                     
+                # Get kinematics
+                adotb = cloud['vx']*u0 + cloud['vy']*u1 + cloud['vz']*u2
+                bdotb = u0**2 + u1**2 + u2**2
+                factor = adotb/bdotb
+                cloud['along0'] = factor*u0
+                cloud['along1'] = factor*u1
+                cloud['along2'] = factor*u2
+                cloud['along'] = np.sqrt(cloud['along0']**2 +
+                                cloud['along1']**2 + cloud['along2']**2)
+                cloud['perp0'] = cloud['vx'] - cloud['along0']
+                cloud['perp1'] = cloud['vy'] - cloud['along1']
+                cloud['perp2'] = cloud['vz'] - cloud['along2']
+                cloud['perp'] = np.sqrt(cloud['perp0']**2 +
+                                cloud['perp1']**2 + cloud['perp2']**2)
                 
                 # Fill output array
                 thisfit[5] = locM['dist'].std()
@@ -124,6 +138,8 @@ for a in expns:
                 thisfit[7] = param[1]
                 thisfit[8] = fwhm
                 thisfit[9] = st.rayleigh.std(loc=param[0],scale=param[1])
+                thisfit[11] = cloud['along'].std()
+                thisfit[12] = cloud['perp'].std()
             
             else:
                 thisfit[5] = np.NAN
@@ -131,6 +147,9 @@ for a in expns:
                 thisfit[7] = np.NAN
                 thisfit[8] = np.NAN
                 thisfit[9] = np.NAN
+                thisfit[11] = np.NAN
+                thisfit[12] = np.NAN
+        
             fit = np.vstack((fit,thisfit))
     
 

@@ -48,7 +48,7 @@ def get_fwhm(param,xmin,xmax):
 
 dataloc = '/home/jacob/research/velas/vela2b/vela27/'
 dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
-filename = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.h5'
+filename = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.rot.h5'
 
 expns = np.arange(0.200,0.500,0.01)
 
@@ -60,7 +60,7 @@ nBins = np.linspace(-5.5,-2.5,7)
 
 header = ['a','redshift','loN','hiN','numCells','stdDev','rayleighLoc',
             'rayleighScale','rayleighfwhm','rayleighStd','speedStd',
-            'valongStd','vperpStd']
+            'valongStd','vperpStd','xRotStd','yRotStd','zRotStd']
 fit = np.zeros(len(header))
 
 for a in expns:
@@ -140,6 +140,9 @@ for a in expns:
                 thisfit[9] = st.rayleigh.std(loc=param[0],scale=param[1])
                 thisfit[11] = cloud['along'].std()
                 thisfit[12] = cloud['perp'].std()
+                thisfit[13] = cloud['xRot'].std()
+                thisfit[14] = cloud['xRot'].std()
+                thisfit[15] = cloud['xRot'].std()
             
             else:
                 thisfit[5] = np.NAN
@@ -149,6 +152,9 @@ for a in expns:
                 thisfit[9] = np.NAN
                 thisfit[11] = np.NAN
                 thisfit[12] = np.NAN
+                thisfit[13] = np.NAN
+                thisfit[14] = np.NAN
+                thisfit[15] = np.NAN
         
             fit = np.vstack((fit,thisfit))
     

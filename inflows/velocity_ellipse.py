@@ -41,8 +41,8 @@ def mkHist(ax,x,y,xlab,ylab,radial=False):
 
 
 # File names
-dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
 dataloc = '/home/jacob/research/velas/vela2b/vela27/'
+dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
 filename = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.rot.h5'
 rotmat = 'a{0:.3f}/rotmat_a{0:.3f}.txt'
 
@@ -87,6 +87,7 @@ for a in expns:
     cloud['rMod'] = cloud['r']/rvir
 
     # Calculate spherical velocities
+    # These equations use theta is in the xy plane and phi is measured from z
     cloud['vr'] = (cloud['xRot']*cloud['vxRot'] + cloud['yRot']*cloud['vyRot'] +
                     cloud['zRot']*cloud['vzRot']) / cloud['r']
     cloud['thetadot'] = ( (cloud['xRot']*cloud['vyRot'] - cloud['yRot']*cloud['vxRot']) /
@@ -111,12 +112,13 @@ for a in expns:
         vthetaMax = cloud['vtheta'].max()
 
     fig, ((ax1,ax2,ax3),(ax4,ax5,ax6)) = plt.subplots(2,3,figsize=(15,10))
+    # Reverse labels for phi and theta so the plot has the correct conventions
     mkHist(ax1,cloud['rMod'],cloud['vr'],'r','vr',True)
-    mkHist(ax2,cloud['rMod'],cloud['vtheta'],'r','vtheta',True)
-    mkHist(ax3,cloud['rMod'],cloud['vphi'],'r','vphi',True)
-    mkHist(ax4,cloud['vr'],cloud['vtheta'],'vr','vtheta')
-    mkHist(ax5,cloud['vr'],cloud['vphi'],'vr','vphi')
-    mkHist(ax6,cloud['vtheta'],cloud['vphi'],'vtheta','vphi')
+    mkHist(ax2,cloud['rMod'],cloud['vtheta'],'r','vphi',True)
+    mkHist(ax3,cloud['rMod'],cloud['vphi'],'r','vtheta',True)
+    mkHist(ax4,cloud['vr'],cloud['vtheta'],'vr','vphi')
+    mkHist(ax5,cloud['vr'],cloud['vphi'],'vr','vtheta')
+    mkHist(ax6,cloud['vtheta'],cloud['vphi'],'vphi','vtheta')
 
 
 

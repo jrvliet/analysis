@@ -9,7 +9,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-boxloc = '/mnt/cluster/cgm/vela2b/vela27/'
+boxloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
 boxname = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.rot.h5'
 rotmat = 'a{0:.3f}/rotmat_a{0:.3f}.txt'
 denseloc = '/lustre/projects/p089_swin/jvander/analysis/inflows/'
@@ -18,12 +18,14 @@ densename = 'projected_distance_distribution.h5'
 dense = pd.read_hdf(denseloc+densename, 'data')
 dense['std'] = np.sqrt(dense['speedStd']**2 + dense['stdDev']**2)
 
-d = dense[dense['numcells']>1e4]
+d = dense[dense['numCells']>1e4]
 groups = d.groupby('a')
 
 loT,hiT = 3.5,4.5
 
 for a, group in groups:
+
+    print(a)
 
     # Get the denstiy limits
     minIndex = group['std'].argmin()
@@ -70,7 +72,7 @@ for a, group in groups:
 
     fig.tight_layout()
     s = 'density_cut_spatialLoc_a{0:.3f}.png'.format(a)
-    fig.savefig(a,bbox_inches='tight',dpi=300)
+    fig.savefig(s,bbox_inches='tight',dpi=300)
     plt.close(fig)
 
 

@@ -60,7 +60,8 @@ nBins = np.linspace(-5.5,-2.5,7)
 
 header = ['a','redshift','loN','hiN','numCells','stdDev','rayleighLoc',
             'rayleighScale','rayleighfwhm','rayleighStd','speedStd',
-            'valongStd','vperpStd','xRotStd','yRotStd','zRotStd']
+            'valongStd','vperpStd','xRotStd','yRotStd','zRotStd','zRotRange',
+            'snIIStd','snIaStd','snIImean','snIamean']
 fit = np.zeros(len(header))
 
 for a in expns:
@@ -141,21 +142,18 @@ for a in expns:
                 thisfit[11] = cloud['along'].std()
                 thisfit[12] = cloud['perp'].std()
                 thisfit[13] = cloud['xRot'].std()
-                thisfit[14] = cloud['xRot'].std()
-                thisfit[15] = cloud['xRot'].std()
+                thisfit[14] = cloud['yRot'].std()
+                thisfit[15] = cloud['zRot'].std()
+                thisfit[16] = cloud['zRot'].max() - cloud['zRot'].min()
+                thisfit[17] = cloud['SNII'].std()
+                thisfit[18] = cloud['SNIa'].std()
+                thisfit[19] = cloud['SNII'].mean()
+                thisfit[20] = cloud['SNIa'].mean()
             
             else:
-                thisfit[5] = np.NAN
-                thisfit[6] = np.NAN
-                thisfit[7] = np.NAN
-                thisfit[8] = np.NAN
-                thisfit[9] = np.NAN
-                thisfit[11] = np.NAN
-                thisfit[12] = np.NAN
-                thisfit[13] = np.NAN
-                thisfit[14] = np.NAN
-                thisfit[15] = np.NAN
-        
+                thisfit[5:] = np.NAN
+                thisfit[10] = cloud['speed'].std()
+                
             fit = np.vstack((fit,thisfit))
     
 

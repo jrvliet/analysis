@@ -256,22 +256,3 @@ df.to_hdf(outfile,'data',mode='w')
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -61,7 +61,8 @@ nBins = np.linspace(-5.5,-2.5,7)
 header = ['a','redshift','loN','hiN','numCells','stdDev','rayleighLoc',
             'rayleighScale','rayleighfwhm','rayleighStd','speedStd',
             'valongStd','vperpStd','xRotStd','yRotStd','zRotStd','zRotRange',
-            'snIIStd','snIaStd','snIImean','snIamean']
+            'snIIStd','snIaStd','snIImean','snIamean','rMean','rStd','nHmean',
+            'nHStd','tMean','tStd']
 fit = np.zeros(len(header))
 
 for a in expns:
@@ -99,6 +100,7 @@ for a in expns:
 
             if len(cloud)>100:
     
+                cloud['r'] = np.sqrt(cloud['x']**2 + cloud['y']**2 + cloud['z']**2)
                 # Fit line
                 cloudLoc = cloud[['x','y','z']]
                 locM = cloudLoc - cloudLoc.mean()
@@ -149,6 +151,12 @@ for a in expns:
                 thisfit[18] = cloud['SNIa'].std()
                 thisfit[19] = cloud['SNII'].mean()
                 thisfit[20] = cloud['SNIa'].mean()
+                thisfit[21] = cloud['r'].mean()
+                thisfit[22] = cloud['r'].std()
+                thisfit[23] = cloud['density'].mean()
+                thisfit[24] = cloud['density'].std()
+                thisfit[25] = cloud['temperature'].mean()
+                thisfit[26] = cloud['temperature'].std()
             
             else:
                 thisfit[5:] = np.NAN

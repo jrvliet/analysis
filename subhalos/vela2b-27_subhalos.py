@@ -46,7 +46,7 @@ for a,red in zip(expns, reds):
         if mass[i]>0.1:
             xpoint.append(red)
             ypoint.append(d[i])
-            if mass[i]<0.3:
+            if mass[i]<0.1:
                 cpoint.append('black')
             else:
                 theta = np.degrees(np.arctan(yc[i]/xc[i]))
@@ -89,16 +89,16 @@ ax.set_ylabel('Distance [Rvir]')
 #ax2.set_xticks(aLoc)
 #ax2.set_xticklabels(newTickLoc)
 
-
-
 #cb = plt.colorbar(s,ax=ax)
 #cb.set_label('Halo Mass Ratio')
 
 s = 'vela2b-27_subalos.png'
 fig.savefig(s, bbox_inches='tight', dpi=300)
 
+print(st.shape)
 st = np.delete(st, (0), axis=0)
 df = pd.DataFrame(st,columns=header)
 df.to_hdf(outfile, 'data', mode='w')
+print(outfile)
 
 

@@ -63,7 +63,9 @@ header = ['a','redshift','loN','hiN','numCells','stdDev','rayleighLoc',
             'rayleighScale','rayleighfwhm','rayleighStd','speedStd',
             'valongStd','vperpStd','xRotStd','yRotStd','zRotStd','zRotRange',
             'snIIStd','snIaStd','snIImean','snIamean','rMean','rStd','nHmean',
-            'nHStd','tMean','tStd','rMeanMod','speedMean','valongMean','vperpMean']
+            'nHStd','tMean','tStd','rMeanMod','speedMean','valongMean','vperpMean',
+            'vStatMean','vStatStd','vrMean','vrStd','rRotMean','rRotStd',
+            'vrRotMean','vrRotStd']
 fit = np.zeros(len(header))
 
 for a in expns:
@@ -104,7 +106,17 @@ for a in expns:
 
             if len(cloud)>100:
     
+                # Radial distance and velocity
                 cloud['r'] = np.sqrt(cloud['x']**2 + cloud['y']**2 + cloud['z']**2)
+                cloud['vr'] = (cloud['x']*cloud['vx'] + cloud['y']*cloud['vy'] +
+                                cloud['z'*cloud['vz'] ) / cloud['r']
+            
+                # Same, but for rotated coordinates for sanity check
+                cloud['rRot'] = np.sqrt(cloud['xRot']**2 + cloud['yRot']**2 + cloud['zRot']**2)
+                cloud['vrRot'] = (cloud['xRot']*cloud['vxRot'] + cloud['yRot']*cloud['vyRot'] +
+                                cloud['zRot']*cloud['vzRot'] ) / cloud['rRot']
+                cloud['vStat'] = np.sqrt( (cloud['vxRot']**2 + cloud['vyRot']**2) /
+                                            cloud['vzRot']**2 )
                 # Fit line
                 cloudLoc = cloud[['x','y','z']]
                 locM = cloudLoc - cloudLoc.mean()
@@ -166,6 +178,14 @@ for a in expns:
                 thisfit[28] = cloud['speed'].mean()
                 thisfit[29] = cloud['along'].mean()
                 thisfit[30] = cloud['perp'].mean()
+                thisfit[31] = cloud['vStat'].mean()
+                thisfit[32] = cloud['vStat'].std()
+                thisfit[33] = cloud['vr'].mean()
+                thisfit[34] = cloud['vr'].std()
+                thisfit[35] = cloud['rRot'].mean()
+                thisfit[36] = cloud['rRot'].std()
+                thisfit[37] = cloud['vrRot'].mean()
+                thisfit[38] = cloud['vrRot'].std()
             
             else:
                 thisfit[5:] = np.NAN

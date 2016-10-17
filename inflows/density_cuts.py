@@ -49,6 +49,7 @@ def get_fwhm(param,xmin,xmax):
 dataloc = '/home/jacob/research/velas/vela2b/vela27/'
 dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
 filename = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.rot.h5'
+rotmat = 'a{0:.3f}/rotmat_a{0:.3f}.txt'
 
 expns = np.arange(0.200,0.500,0.01)
 
@@ -62,7 +63,7 @@ header = ['a','redshift','loN','hiN','numCells','stdDev','rayleighLoc',
             'rayleighScale','rayleighfwhm','rayleighStd','speedStd',
             'valongStd','vperpStd','xRotStd','yRotStd','zRotStd','zRotRange',
             'snIIStd','snIaStd','snIImean','snIamean','rMean','rStd','nHmean',
-            'nHStd','tMean','tStd']
+            'nHStd','tMean','tStd','rMeanMod','speedMean','valongMean','vperpMean']
 fit = np.zeros(len(header))
 
 for a in expns:
@@ -77,6 +78,10 @@ for a in expns:
     tempInd = (df['temperature']>loT) & (df['temperature']<hiT)
     spacInd = (df['x']<0) & (df['z']>0)
 
+    # Get Rvir
+    with open(dataloc+rotmat.format(a)) as f:
+        f.readline()
+        rvir = float(f.readline().split()[3])
 
     # Loop over density cuts 
     nCombs = it.combinations(nBins,2)
@@ -96,7 +101,6 @@ for a in expns:
             thisfit[4] = len(cloud)
 
             cloud['speed'] = np.sqrt(cloud['vx']**2 + cloud['vy']**2 + cloud['vz']**2)
-            thisfit[10] = cloud['speed'].std()
 
             if len(cloud)>100:
     
@@ -141,6 +145,7 @@ for a in expns:
                 thisfit[7] = param[1]
                 thisfit[8] = fwhm
                 thisfit[9] = st.rayleigh.std(loc=param[0],scale=param[1])
+                thisfit[10] = cloud['speed'].std()
                 thisfit[11] = cloud['along'].std()
                 thisfit[12] = cloud['perp'].std()
                 thisfit[13] = cloud['xRot'].std()
@@ -157,6 +162,10 @@ for a in expns:
                 thisfit[24] = cloud['density'].std()
                 thisfit[25] = cloud['temperature'].mean()
                 thisfit[26] = cloud['temperature'].std()
+                thisfit[27] = cloud['r'].mean()/rvir
+                thisfit[28] = cloud['speed'].mean()
+                thisfit[29] = cloud['along'].mean()
+                thisfit[30] = cloud['perp'].mean()
             
             else:
                 thisfit[5:] = np.NAN

@@ -109,7 +109,7 @@ for a in expns:
                 # Radial distance and velocity
                 cloud['r'] = np.sqrt(cloud['x']**2 + cloud['y']**2 + cloud['z']**2)
                 cloud['vr'] = (cloud['x']*cloud['vx'] + cloud['y']*cloud['vy'] +
-                                cloud['z'*cloud['vz'] ) / cloud['r']
+                                cloud['z']*cloud['vz'] ) / cloud['r']
             
                 # Same, but for rotated coordinates for sanity check
                 cloud['rRot'] = np.sqrt(cloud['xRot']**2 + cloud['yRot']**2 + cloud['zRot']**2)

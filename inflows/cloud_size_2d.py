@@ -13,7 +13,7 @@ import matplotlib.ticker as ticker
 
 
 def fmt(x,pos):
-    return '{0:.0f}'.format(x)
+    return '{0:.2f}'.format(x)
 
 def mkHist(ax,x,y,xlabel,ylabel):
 
@@ -39,9 +39,8 @@ def mkHist(ax,x,y,xlabel,ylabel):
     ax.set_ylim(binrange[1])
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-    cbar = plt.colorbar(mesh,ax=ax,use_gridspec=True)
-    cbar.ax.get_yaxis().labelpad = 20
-    cbar.ax.set_ylabel('Count')
+    cbar = plt.colorbar(mesh,ax=ax,use_gridspec=True,
+                        format=ticker.FuncFormatter(fmt))
 
 
 
@@ -64,7 +63,7 @@ simples = [(-5.5,-5.0),(-5.0,-4.5),(-4.5,-4.0),
 
 
 for a in expns:
-    print('\ta = {0:.3f}'.format(a))
+    print('\na = {0:.3f}'.format(a))
 
 #    fig,((ax1,ax2,ax3,ax4,ax5,ax6),
 #         (ax7,ax8,ax9,ax10,ax11,ax12),
@@ -76,7 +75,6 @@ for a in expns:
         print('\t{0:s} gas'.format(tempLabels[i]))
         loT = 10**minTemps[i]
         hiT = 10**maxTemps[i]
-        print(minTemps[i],maxTemps[i])
 
         dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/a{0:.3f}/'.format(a)
         dataloc = '/home/jacob/research/velas/vela2b/vela27/a{0:.3f}/'.format(a)
@@ -99,7 +97,6 @@ for a in expns:
             denseInds = (df['density']>10**loN) & (df['density']<10**hiN)
 
             cloud = df[baseInds & denseInds]
-            print(loN,hiN,loT,hiT,len(cloud))
 
             mkHist(axes[0][j],cloud['xRot']/rvir,cloud['yRot']/rvir,'x','y')
             mkHist(axes[1][j],cloud['xRot']/rvir,cloud['zRot']/rvir,'x','z')

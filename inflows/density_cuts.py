@@ -70,11 +70,11 @@ header = ['a','redshift','loN','hiN','numCells','stdDev','rayleighLoc',
             'nHStd','tMean','tStd','rMeanMod','speedMean','valongMean','vperpMean',
             'vStatMean','vStatStd','vrMean','vrStd','rRotMean','rRotStd',
             'vrRotMean','vrRotStd','vzRotMean','vzRotStd','vrhoRotMean','vrhoRotStd']
-fit = np.zeros(len(header))
 
 for i in range(len(temps)):
 
     loT, hiT = temps[i][0], temps[i][1]
+    fit = np.zeros(len(header))
 
     for a in expns:
         

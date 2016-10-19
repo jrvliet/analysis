@@ -54,7 +54,11 @@ rotmat = 'a{0:.3f}/rotmat_a{0:.3f}.txt'
 expns = np.arange(0.200,0.500,0.01)
 
 # Cloud limits
-loT, hiT = 10**3.5, 10**4.5
+coolTemps = [10**3.5, 10**4.5]
+warmTemps = [10**4.5, 10**5.5]
+hotTemps  = [10**5.5, 10**6.5]
+temps = [coolTemps,warmTemps,hotTemps]
+tempLabels = ['cool','warm','hot']
 
 # Density bins
 nBins = np.linspace(-5.5,-2.5,7)
@@ -65,141 +69,153 @@ header = ['a','redshift','loN','hiN','numCells','stdDev','rayleighLoc',
             'snIIStd','snIaStd','snIImean','snIamean','rMean','rStd','nHmean',
             'nHStd','tMean','tStd','rMeanMod','speedMean','valongMean','vperpMean',
             'vStatMean','vStatStd','vrMean','vrStd','rRotMean','rRotStd',
-            'vrRotMean','vrRotStd']
+            'vrRotMean','vrRotStd','vzRotMean','vzRotStd','vrhoRotMean','vrhoRotStd']
 fit = np.zeros(len(header))
 
-for a in expns:
-    
-    print(a)
+for i in range(len(temps)):
 
-    # Read in data
-    fname = dataloc+filename.format(a)
-    df = pd.read_hdf(fname, 'data')
+    loT, hiT = temps[i][0], temps[i][1]
 
-    # Select regions
-    tempInd = (df['temperature']>loT) & (df['temperature']<hiT)
-    spacInd = (df['x']<0) & (df['z']>0)
-
-    # Get Rvir
-    with open(dataloc+rotmat.format(a)) as f:
-        f.readline()
-        rvir = float(f.readline().split()[3])
-
-    # Loop over density cuts 
-    nCombs = it.combinations(nBins,2)
-    for combo in nCombs:
-        if combo[1]>combo[0]:
-
-            loN = combo[0]
-            hiN = combo[1]
-            densInd = (df['density']>10**loN) & (df['density']<10**hiN)
-            thisfit = np.zeros(len(header))
-            thisfit[0] = a
-            thisfit[1] = 1./a-1
-            thisfit[2] = loN
-            thisfit[3] = hiN
+    for a in expns:
         
-            cloud = df[densInd & spacInd & tempInd]
-            thisfit[4] = len(cloud)
+        print(a)
 
-            cloud['speed'] = np.sqrt(cloud['vx']**2 + cloud['vy']**2 + cloud['vz']**2)
+        # Read in data
+        fname = dataloc+filename.format(a)
+        df = pd.read_hdf(fname, 'data')
 
-            if len(cloud)>100:
-    
-                # Radial distance and velocity
-                cloud['r'] = np.sqrt(cloud['x']**2 + cloud['y']**2 + cloud['z']**2)
-                cloud['vr'] = (cloud['x']*cloud['vx'] + cloud['y']*cloud['vy'] +
-                                cloud['z']*cloud['vz'] ) / cloud['r']
+        # Select regions
+        tempInd = (df['temperature']>loT) & (df['temperature']<hiT)
+        spacInd = (df['x']<0) & (df['z']>0)
+
+        # Get Rvir
+        with open(dataloc+rotmat.format(a)) as f:
+            f.readline()
+            rvir = float(f.readline().split()[3])
+
+        # Loop over density cuts 
+        nCombs = it.combinations(nBins,2)
+        for combo in nCombs:
+            if combo[1]>combo[0]:
+
+                loN = combo[0]
+                hiN = combo[1]
+                densInd = (df['density']>10**loN) & (df['density']<10**hiN)
+                thisfit = np.zeros(len(header))
+                thisfit[0] = a
+                thisfit[1] = 1./a-1
+                thisfit[2] = loN
+                thisfit[3] = hiN
             
-                # Same, but for rotated coordinates for sanity check
-                cloud['rRot'] = np.sqrt(cloud['xRot']**2 + cloud['yRot']**2 + cloud['zRot']**2)
-                cloud['vrRot'] = (cloud['xRot']*cloud['vxRot'] + cloud['yRot']*cloud['vyRot'] +
-                                cloud['zRot']*cloud['vzRot'] ) / cloud['rRot']
-                cloud['vStat'] = np.sqrt( (cloud['vxRot']**2 + cloud['vyRot']**2) /
-                                            cloud['vzRot']**2 )
-                # Fit line
-                cloudLoc = cloud[['x','y','z']]
-                locM = cloudLoc - cloudLoc.mean()
-                u0,u1,u2 = fit_line(locM)
-            
-                # Get distance from each cell to this line
-                locM['a0'] = u2*locM['y'] - u1*locM['z']
-                locM['a1'] = u0*locM['z'] - u2*locM['x']
-                locM['a2'] = u1*locM['x'] - u0*locM['y']
-                locM['dist'] = np.sqrt(locM['a0']**2 + locM['a1']**2 + locM['a2']**2)
+                cloud = df[densInd & spacInd & tempInd]
+                thisfit[4] = len(cloud)
+
+                cloud['speed'] = np.sqrt(cloud['vx']**2 + cloud['vy']**2 + cloud['vz']**2)
+
+                if len(cloud)>100:
+        
+                    # Radial distance and velocity
+                    cloud['r'] = np.sqrt(cloud['x']**2 + cloud['y']**2 + cloud['z']**2)
+                    cloud['vr'] = (cloud['x']*cloud['vx'] + cloud['y']*cloud['vy'] +
+                                    cloud['z']*cloud['vz'] ) / cloud['r']
                 
-                # Fit Rayleigh to distribution
-                param = st.rayleigh.fit(locM['dist'])
-                roots = get_fwhm(param,locM['dist'].min(),locM['dist'].max())
-                if len(roots)==2:
-                    fwhm = roots[1]-roots[0] 
-                else:
-                    fwhm = np.NAN
+                    # Rho, the distance from rotated z-axis
+                    cloud['vrho'] = np.sqrt(cloud['vxRot']**2 + cloud['vyRot']**2)
+
+                    # Same, but for rotated coordinates for sanity check
+                    cloud['rRot'] = np.sqrt(cloud['xRot']**2 + cloud['yRot']**2 + cloud['zRot']**2)
+                    cloud['vrRot'] = (cloud['xRot']*cloud['vxRot'] + cloud['yRot']*cloud['vyRot'] +
+                                    cloud['zRot']*cloud['vzRot'] ) / cloud['rRot']
+                    cloud['vStat'] = cloud['vrho'] / cloud['vzRot'] 
+
+                    # Fit line
+                    cloudLoc = cloud[['x','y','z']]
+                    locM = cloudLoc - cloudLoc.mean()
+                    u0,u1,u2 = fit_line(locM)
+                
+                    # Get distance from each cell to this line
+                    locM['a0'] = u2*locM['y'] - u1*locM['z']
+                    locM['a1'] = u0*locM['z'] - u2*locM['x']
+                    locM['a2'] = u1*locM['x'] - u0*locM['y']
+                    locM['dist'] = np.sqrt(locM['a0']**2 + locM['a1']**2 + locM['a2']**2)
                     
-                # Get kinematics
-                adotb = cloud['vx']*u0 + cloud['vy']*u1 + cloud['vz']*u2
-                bdotb = u0**2 + u1**2 + u2**2
-                factor = adotb/bdotb
-                cloud['along0'] = factor*u0
-                cloud['along1'] = factor*u1
-                cloud['along2'] = factor*u2
-                cloud['along'] = np.sqrt(cloud['along0']**2 +
-                                cloud['along1']**2 + cloud['along2']**2)
-                cloud['perp0'] = cloud['vx'] - cloud['along0']
-                cloud['perp1'] = cloud['vy'] - cloud['along1']
-                cloud['perp2'] = cloud['vz'] - cloud['along2']
-                cloud['perp'] = np.sqrt(cloud['perp0']**2 +
-                                cloud['perp1']**2 + cloud['perp2']**2)
+                    # Fit Rayleigh to distribution
+                    param = st.rayleigh.fit(locM['dist'])
+                    roots = get_fwhm(param,locM['dist'].min(),locM['dist'].max())
+                    if len(roots)==2:
+                        fwhm = roots[1]-roots[0] 
+                    else:
+                        fwhm = np.NAN
+                        
+                    # Get kinematics
+                    adotb = cloud['vx']*u0 + cloud['vy']*u1 + cloud['vz']*u2
+                    bdotb = u0**2 + u1**2 + u2**2
+                    factor = adotb/bdotb
+                    cloud['along0'] = factor*u0
+                    cloud['along1'] = factor*u1
+                    cloud['along2'] = factor*u2
+                    cloud['along'] = np.sqrt(cloud['along0']**2 +
+                                    cloud['along1']**2 + cloud['along2']**2)
+                    cloud['perp0'] = cloud['vx'] - cloud['along0']
+                    cloud['perp1'] = cloud['vy'] - cloud['along1']
+                    cloud['perp2'] = cloud['vz'] - cloud['along2']
+                    cloud['perp'] = np.sqrt(cloud['perp0']**2 +
+                                    cloud['perp1']**2 + cloud['perp2']**2)
+                    
+                    # Fill output array
+                    thisfit[5] = locM['dist'].std()
+                    thisfit[6] = param[0]
+                    thisfit[7] = param[1]
+                    thisfit[8] = fwhm
+                    thisfit[9] = st.rayleigh.std(loc=param[0],scale=param[1])
+                    thisfit[10] = cloud['speed'].std()
+                    thisfit[11] = cloud['along'].std()
+                    thisfit[12] = cloud['perp'].std()
+                    thisfit[13] = cloud['xRot'].std()
+                    thisfit[14] = cloud['yRot'].std()
+                    thisfit[15] = cloud['zRot'].std()
+                    thisfit[16] = cloud['zRot'].max() - cloud['zRot'].min()
+                    thisfit[17] = cloud['SNII'].std()
+                    thisfit[18] = cloud['SNIa'].std()
+                    thisfit[19] = cloud['SNII'].mean()
+                    thisfit[20] = cloud['SNIa'].mean()
+                    thisfit[21] = cloud['r'].mean()
+                    thisfit[22] = cloud['r'].std()
+                    thisfit[23] = cloud['density'].mean()
+                    thisfit[24] = cloud['density'].std()
+                    thisfit[25] = cloud['temperature'].mean()
+                    thisfit[26] = cloud['temperature'].std()
+                    thisfit[27] = cloud['r'].mean()/rvir
+                    thisfit[28] = cloud['speed'].mean()
+                    thisfit[29] = cloud['along'].mean()
+                    thisfit[30] = cloud['perp'].mean()
+                    thisfit[31] = cloud['vStat'].mean()
+                    thisfit[32] = cloud['vStat'].std()
+                    thisfit[33] = cloud['vr'].mean()
+                    thisfit[34] = cloud['vr'].std()
+                    thisfit[35] = cloud['rRot'].mean()
+                    thisfit[36] = cloud['rRot'].std()
+                    thisfit[37] = cloud['vrRot'].mean()
+                    thisfit[38] = cloud['vrRot'].std()
+                    thisfit[39] = cloud['vzRot'].mean()
+                    thisfit[40] = cloud['vzRot'].std()
+                    thisfit[41] = cloud['vrho'].mean()
+                    thisfit[42] = cloud['vrho'].std()
+                    
                 
-                # Fill output array
-                thisfit[5] = locM['dist'].std()
-                thisfit[6] = param[0]
-                thisfit[7] = param[1]
-                thisfit[8] = fwhm
-                thisfit[9] = st.rayleigh.std(loc=param[0],scale=param[1])
-                thisfit[10] = cloud['speed'].std()
-                thisfit[11] = cloud['along'].std()
-                thisfit[12] = cloud['perp'].std()
-                thisfit[13] = cloud['xRot'].std()
-                thisfit[14] = cloud['yRot'].std()
-                thisfit[15] = cloud['zRot'].std()
-                thisfit[16] = cloud['zRot'].max() - cloud['zRot'].min()
-                thisfit[17] = cloud['SNII'].std()
-                thisfit[18] = cloud['SNIa'].std()
-                thisfit[19] = cloud['SNII'].mean()
-                thisfit[20] = cloud['SNIa'].mean()
-                thisfit[21] = cloud['r'].mean()
-                thisfit[22] = cloud['r'].std()
-                thisfit[23] = cloud['density'].mean()
-                thisfit[24] = cloud['density'].std()
-                thisfit[25] = cloud['temperature'].mean()
-                thisfit[26] = cloud['temperature'].std()
-                thisfit[27] = cloud['r'].mean()/rvir
-                thisfit[28] = cloud['speed'].mean()
-                thisfit[29] = cloud['along'].mean()
-                thisfit[30] = cloud['perp'].mean()
-                thisfit[31] = cloud['vStat'].mean()
-                thisfit[32] = cloud['vStat'].std()
-                thisfit[33] = cloud['vr'].mean()
-                thisfit[34] = cloud['vr'].std()
-                thisfit[35] = cloud['rRot'].mean()
-                thisfit[36] = cloud['rRot'].std()
-                thisfit[37] = cloud['vrRot'].mean()
-                thisfit[38] = cloud['vrRot'].std()
-            
-            else:
-                thisfit[5:] = np.NAN
-                thisfit[10] = cloud['speed'].std()
+                else:
+                    thisfit[5:] = np.NAN
+                    thisfit[10] = cloud['speed'].std()
+                    
+                fit = np.vstack((fit,thisfit))
+        
+
+    fit = np.delete(fit,(0),axis=0)
+    df = pd.DataFrame(fit,columns=header)
+    outfile = 'density_cuts_paramters_{0:s}.h5'.format(tempLabels[i])
+    df.to_hdf(outfile,'data',mode='w')
+
                 
-            fit = np.vstack((fit,thisfit))
-    
-
-fit = np.delete(fit,(0),axis=0)
-df = pd.DataFrame(fit,columns=header)
-outfile = 'projected_distance_distribution.h5'
-df.to_hdf(outfile,'data',mode='w')
-
-            
 
 
 

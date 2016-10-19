@@ -29,6 +29,14 @@ df = pd.read_hdf(loc+filename,'data')
 numCellLim = 1e4
 df = df[df['numCells']>numCellLim]
 
+# Add a column to the dataframe that is the age of the
+# universe at that expnansion parameter
+age = np.zeros(len(df['a']))
+for i,a in enumerate(df['a']):
+    index = float('{0:.2f}'.format(a))
+    age[i] = times['age [Gyr]'].ix[index]
+df['age'] = age
+
 # Calculate combined standard deviations
 df['locStd'] = np.sqrt((df['xRotStd']**2 + df['yRotStd']**2)/df['zRotStd']**2)
 #df['totStd'] = np.sqrt(df['locStd']**2 + df['speedStd']**2)
@@ -38,7 +46,6 @@ print(np.log10(df['vStatStd'].min()))
 
 groups = df.groupby(['loN','hiN'])
 
-simples = [(-5.5,-4.5),(-4.5,-3.5),(-3.5,-2.5)]
 simples = [(-5.5,-5.0),(-5.0,-4.5),(-4.5,-4.0),
            (-4.0,-3.5),(-3.5,-3.0),(-3.0,-2.5)]
 
@@ -51,8 +58,7 @@ fields = ['speedStd','stdDev','valongStd','vperpStd','locStd',
           'snIIStd','snIaStd','snIImean','snIamean',
           'rMean','rStd','nHmean','nHStd','tMean','tStd',
           'rMeanMod','speedMean','valongMean','vperpMean', 'numCells',
-          'vStatMean','vStatStd','vrMean','vrStd',
-          'rRotMean','rRotStd','vrRotMean','vrRotStd']
+          'vStatMean','vStatStd','vrMean','vrStd']
 
 # Plotting options
 logfields = ['snIIStd','snIaStd','snIImean','snIamean',
@@ -62,14 +68,12 @@ upperlims = [80, 60, 90, 70, 4.00,
              1e-1, 1e-2, 1e-1, 1e-2, 
              500, 250 , 1e-1, 1e-1, 1e5, 10**4.5,
              6, 300, 250, 175, 700000,
-             1e4, 1e6, 200, 200,
-             500, 250, 200, 200]
+             1e4, 1e6, 200, 200]
 lowerlims = [0, 0, 0, 0, 0.10, 
              1e-5, 1e-8, 1e-5, 1e-8, 
              1, 1, 1e-6, 1e-6, 1e4, 1e3,
              0, 30, 0, 10, 0,
-             0.1, 0.1, -300, 0,
-             0, 0, -300, 0]
+             0.1, 0.1, -300, 0]
 lines = ['-','--','-.']
 markers = ['o','s','^','*','x']
 #dfFull = df.copy()
@@ -78,6 +82,7 @@ for numCellLim in cellLims:
 
     # Select out cells with at least numCellLim cells
     df = df[df['numCells']>10**numCellLim]
+
 
     # Group the data set by combinations of low and high
     # density cuts
@@ -95,18 +100,10 @@ for numCellLim in cellLims:
         linecycler = cycle(lines)
         markercycler = cycle(markers)
         for key, group in groups:
-
-            t = []
-            for j in range(len(group[field])):
-                t.append(times['age [Gyr]'].ix[group['a'].ix[j]])
-            
-            print(len(t),len(group[field]))
-            
             axAll.plot(group['a'],group[field],label=key,
                     linestyle=next(linecycler),
                     marker=next(markercycler))
-            print(len(times['age [Gyr]']),len(group[field]))
-            axAll2.plot(times['age [Gyr]'],group[field],label=key,
+            axAll2.plot(group['age'],group[field],label=key,
                     linestyle=next(linecycler),
                     marker=next(markercycler))
             if key in simples:
@@ -114,7 +111,7 @@ for numCellLim in cellLims:
                         label=key,
                         linestyle='solid',
                         marker=next(markercycler))
-                axSimp2.plot(times['age [Gyr]'],group[field],
+                axSimp2.plot(group['age'],group[field],
                         label=key,
                         linestyle='solid',
                         marker=next(markercycler))
@@ -155,9 +152,9 @@ for numCellLim in cellLims:
             #   for currently unknown reasons
             ax.vlines(2.68,lowerlims[i],upperlims[i],colors='r',
                       linestyles='dashed',linewidth=2)
-            ax.vlines(5.07,lowerlims[i],upperlims[i],colors='r',
+            ax.vlines(3.10,lowerlims[i],upperlims[i],colors='r',
                       linestyles='dashed',linewidth=2)
-            ax.vlines(2.68,lowerlims[i],upperlims[i],colors='g',
+            ax.vlines(3.54,lowerlims[i],upperlims[i],colors='g',
                       linestyles='dashed',linewidth=2)
             ax.vlines(5.07,lowerlims[i],upperlims[i],colors='g',
                       linestyles='dashed',linewidth=2)

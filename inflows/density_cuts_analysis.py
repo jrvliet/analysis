@@ -26,12 +26,38 @@ filebase = 'density_cuts_parameters_{0:s}.h5'
 tempLabels = ['cool','warm','hot']
 
 
+# Properties to be plotted
+fields = ['speedStd','stdDev','valongStd','vperpStd','locStd',
+          'snIIStd','snIaStd','snIImean','snIamean',
+          'rMean','rStd','nHmean','nHStd','tMean','tStd',
+          'rMeanMod','speedMean','valongMean','vperpMean', 'numCells',
+          'vStatMean','vStatStd','vrMean','vrStd',
+          'vzRotMean','vzRotStd','vrhoRotMean','vrhoRotStd']
+
+# Plotting options
+logfields = ['snIIStd','snIaStd','snIImean','snIamean',
+             'nHmean','nHStd','nHmean','tMean','tStd',
+             'vStatMean','vStatStd']
+upperlims = [150, 60, 150, 200, 4.00, 
+             1e-1, 1e-2, 1e-1, 1e-2, 
+             500, 250 , 1e-1, 1e-1, 1e5, 10**4.5,
+             6, 600, 250, 500, 700000,
+             1e4, 1e6, 600, 300,
+             600, 600, 600, 600]
+lowerlims = [0, 0, 0, 0, 0.10, 
+             1e-5, 1e-8, 1e-5, 1e-8, 
+             1, 1, 1e-6, 1e-6, 1e4, 1e3,
+             0, 30, 0, 10, 0,
+             0.1, 0.1, -300, 0, 
+             -600, -600, -600, -600]
+lines = ['-','--','-.']
+markers = ['o','s','^','*','x']
+
 
 for tempLabel in tempLabels:
 
     filename = filebase.format(tempLabel)
     df = pd.read_hdf(loc+filename,'data')
-
 
     # Cut out rows with low number of cells
     numCellLim = 1e4
@@ -60,60 +86,6 @@ for tempLabel in tempLabels:
     # Loop over various cuts of the number of cells 
     cellLims = np.arange(4.0,6,0.5)
     cellLims = [4.0]
-
-    # Properties to be plotted
-    fields = ['speedStd','stdDev','valongStd','vperpStd','locStd',
-              'snIIStd','snIaStd','snIImean','snIamean',
-              'rMean','rStd','nHmean','nHStd','tMean','tStd',
-              'rMeanMod','speedMean','valongMean','vperpMean', 'numCells',
-              'vStatMean','vStatStd','vrMean','vrStd']
-
-    # Plotting options
-    logfields = ['snIIStd','snIaStd','snIImean','snIamean',
-                 'nHmean','nHStd','nHmean','tMean','tStd',
-                 'vStatMean','vStatStd']
-    upperlimsCool = [80, 60, 90, 70, 4.00, 
-                 1e-1, 1e-2, 1e-1, 1e-2, 
-                 500, 250 , 1e-1, 1e-1, 1e5, 10**4.5,
-                 6, 300, 250, 175, 700000,
-                 1e4, 1e6, 200, 200]
-    lowerlimsCool = [0, 0, 0, 0, 0.10, 
-                 1e-5, 1e-8, 1e-5, 1e-8, 
-                 1, 1, 1e-6, 1e-6, 1e4, 1e3,
-                 0, 30, 0, 10, 0,
-                 0.1, 0.1, -300, 0]
-    upperlimsWarm = [80, 60, 90, 70, 4.00, 
-                 1e-1, 1e-2, 1e-1, 1e-2, 
-                 500, 250 , 1e-1, 1e-1, 1e5, 10**4.5,
-                 6, 300, 250, 175, 700000,
-                 1e4, 1e6, 200, 200]
-    lowerlimsWarm = [0, 0, 0, 0, 0.10, 
-                 1e-5, 1e-8, 1e-5, 1e-8, 
-                 1, 1, 1e-6, 1e-6, 1e4, 1e3,
-                 0, 30, 0, 10, 0,
-                 0.1, 0.1, -300, 0]
-    upperlimsHot = [80, 60, 90, 70, 4.00, 
-                 1e-1, 1e-2, 1e-1, 1e-2, 
-                 500, 250 , 1e-1, 1e-1, 1e5, 10**4.5,
-                 6, 600, 250, 175, 700000,
-                 1e4, 1e6, 200, 200]
-    lowerlimsHot = [0, 0, 0, 0, 0.10, 
-                 1e-5, 1e-8, 1e-5, 1e-8, 
-                 1, 1, 1e-6, 1e-6, 1e4, 1e3,
-                 0, 30, 0, 10, 0,
-                 0.1, 0.1, -300, 0]
-    upperlims = [150, 60, 150, 200, 4.00, 
-                 1e-1, 1e-2, 1e-1, 1e-2, 
-                 500, 250 , 1e-1, 1e-1, 1e5, 10**4.5,
-                 6, 600, 250, 250, 700000,
-                 1e4, 1e6, 300, 300]
-    lowerlims = [0, 0, 0, 0, 0.10, 
-                 1e-5, 1e-8, 1e-5, 1e-8, 
-                 1, 1, 1e-6, 1e-6, 1e4, 1e3,
-                 0, 30, 0, 10, 0,
-                 0.1, 0.1, -300, 0]
-    lines = ['-','--','-.']
-    markers = ['o','s','^','*','x']
     #dfFull = df.copy()
     for numCellLim in cellLims:
         print(numCellLim)

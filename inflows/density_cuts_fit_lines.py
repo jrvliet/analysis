@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
-import statsmodels.sandbox.regression.predstd import wls_prediction_std
+from statsmodels.sandbox.regression.predstd import wls_prediction_std
 
 
 
@@ -43,16 +43,18 @@ for tempLabel in tempLabels:
     # Group by the density cuts
     groupsList.append( df.groupby(['loN','hiN']) )
 
-header ='field temp loN hiN slope intercept rsquared p'.split()
-params = pd.DataFrame(columns=header)
-    
-fields = ['speedStd stdDev valongStd vperpStd locStd snIIStd snIaStd snIImean snIamean' 
-         'rMean rStd nHmean nHStd tMean tStd rMeanMod speedMean valongMean vperpMean'
-         'numCells vStatMean vStatStd rMean vrStd vzRotMean vzRotStd vrhoRotMean vrhoRotStd'].split()
+header ='field temperature loN hiN slope intercept slopePvalue interceptPvalue rsquared'.split()
+fields = ('speedStd stdDev valongStd vperpStd locStd snIIStd snIaStd snIImean snIamean' 
+         ' rMean rStd nHmean nHStd tMean tStd rMeanMod speedMean valongMean vperpMean'
+         ' numCells vStatMean vStatStd rMean vrStd vzRotMean vzRotStd vrhoRotMean vrhoRotStd').split()
+
+data = np.zeros(len(header),dtype='a16')
 
 for field in fields:
 
+    print(field)
     for groups,tempLabel in zip(groupsList,tempLabels):
+        print('\t',tempLabel)
         
         for key, group in groups:
 
@@ -63,8 +65,24 @@ for field in fields:
                 model = sm.OLS(y,x)
                 results = model.fit()
                 
-                p = np.zeros(len(header))
-                p[0] = 
+                p = np.zeros(len(header),dtype='a16')
+                p[0] = field
+                p[1] = tempLabel
+                p[2] = key[0]
+                p[3] = key[1]
+                p[4] = results.params[1]
+                p[5] = results.params[0]
+                p[6] = results.pvalues[1]
+                p[7] = results.pvalues[1]
+                p[8] = results.rsquared
+
+                data = np.vstack((data,p))
+
+                
+data = np.delete(data,(0),axis=0)
+df = pd.DataFrame(data,columns=header)
+outfile = 'density_cuts_lineFits.h5'
+df.to_hdf(outfile,'data',mode='w')
 
                 
                 

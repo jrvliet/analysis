@@ -18,6 +18,7 @@ import itertools as it
 import scipy.stats as st
 import scipy.linalg as sl
 import scipy.interpolate as sint
+import sys
 
 pd.options.mode.chained_assignment = None
 
@@ -45,6 +46,12 @@ def get_fwhm(param,xmin,xmax):
     return r
 
 
+# Conversion factors
+u2g = 1.661e-24
+g2M = 1.989e33
+pc2cm = 3.086e18
+boltz = 1.3807e-16
+cm2km = 1e5
 
 dataloc = '/home/jacob/research/velas/vela2b/vela27/'
 dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
@@ -63,14 +70,33 @@ tempLabels = ['cool','warm','hot']
 # Density bins
 nBins = np.linspace(-5.5,-2.5,7)
 
-header = ['a','redshift','loN','hiN','numCells','stdDev','rayleighLoc',
-            'rayleighScale','rayleighfwhm','rayleighStd','speedStd',
-            'valongStd','vperpStd','xRotStd','yRotStd','zRotStd','zRotRange',
-            'snIIStd','snIaStd','snIImean','snIamean','rMean','rStd','nHmean',
-            'nHStd','tMean','tStd','rMeanMod','speedMean','valongMean','vperpMean',
-            'vStatMean','vStatStd','vrMean','vrStd','rRotMean','rRotStd',
-            'vrRotMean','vrRotStd','vzRotMean','vzRotStd','vrhoRotMean','vrhoRotStd']
+#header = ['a','redshift','loN','hiN','numCells','stdDev','rayleighLoc',
+#            'rayleighScale','rayleighfwhm','rayleighStd','speedStd',
+#            'valongStd','vperpStd','xRotStd','yRotStd','zRotStd','zRotRange',
+#            'snIIStd','snIaStd','snIImean','snIamean','rMean','rStd','nHmean',
+#            'nHStd','tMean','tStd','rMeanMod','speedMean','valongMean','vperpMean',
+#            'vStatMean','vStatStd','vrMean','vrStd','rRotMean','rRotStd',
+#            'vrRotMean','vrRotStd','vzRotMean','vzRotStd','vrhoRotMean','vrhoRotStd']
 
+header = 'a redshift loN hiN numCells'.split()
+fields = ('speed valong vperp '
+          'xRot yRot zRot r rMod rRot thetaRot phiRot '
+          'snII snIa  density temperature mass pressure '
+          'vr vzRot vrhoRot vthetaRot vphiRot thermalV'.split())
+fitFields = 'stdDev rayleighLoc rayleighScale rayleighfwhm rayleighStd'.split()
+
+header = header + fitFields
+for field in fields:
+    header.append(field+'Mean')
+    header.append(field+'Std')
+    header.append(field+'Ratio')
+    header.append(field+'MeanMW')
+
+with open('denseCutHeaders.txt','w') as f:
+    for i,h in enumerate(header):
+        f.write('{0:d}\t{1:s}\n'.format(i,h))
+
+sys.exit()
 for i in range(len(temps)):
 
     loT, hiT = temps[i][0], temps[i][1]
@@ -112,7 +138,7 @@ for i in range(len(temps)):
 
                 cloud['speed'] = np.sqrt(cloud['vx']**2 + cloud['vy']**2 + cloud['vz']**2)
 
-                if len(cloud)>100:
+                if len(cloud)>1e4:
         
                     # Radial distance and velocity
                     cloud['r'] = np.sqrt(cloud['x']**2 + cloud['y']**2 + cloud['z']**2)
@@ -162,47 +188,73 @@ for i in range(len(temps)):
                     cloud['perp'] = np.sqrt(cloud['perp0']**2 +
                                     cloud['perp1']**2 + cloud['perp2']**2)
                     
+                    # Get spherical coordinates
+                    cloud['phiRot'] = np.degrees(np.arctan(cloud['yRot']/cloud['xRot']))
+                    cloud['thetaRot'] = np.degrees(np.arccos(cloud['zRot']/cloud['rRot']))
+
+                    cloud['thetadot'] = ( (-1/np.sqrt( 1 - (cloud['zRot']/cloud['rRot'])**2)) * 
+                                          (cloud['vzRot']/cloud['rRot'] - cloud['zRot']*cloud['vrRot']/cloud['rRot']**2))
+                    cloud['vthetaRot'] = cloud['rRot']*cloud['thetadot']
+                    cloud['phidot'] = ( (cloud['xRot']*cloud['vyRot'] - cloud['yRot']*cloud['vxRot']) / 
+                                        (cloud['xRot']**2 + cloud['yRot']**2) )
+                    cloud['vphiRot'] = cloud['rRot']*np.sin(np.radians(cloud['thetaRot']))*cloud['phidot']
+
+
+                    # Mass and thermal properties
+                    cloud['mass'] = (cloud['density']*u2g*pc2cm**3/g2M)*cloud['cell_size']**3   # Mass of the cell in solar Masses
+                    cloud['pressure'] = boltz*cloud['density']*cloud['temperature']
+                    cloud['thermalV'] = np.sqrt(8*boltz*cloud['temperature']/(u2g*np.pi)) * cm2km
+
                     # Fill output array
                     thisfit[5] = locM['dist'].std()
                     thisfit[6] = param[0]
                     thisfit[7] = param[1]
                     thisfit[8] = fwhm
                     thisfit[9] = st.rayleigh.std(loc=param[0],scale=param[1])
-                    thisfit[10] = cloud['speed'].std()
-                    thisfit[11] = cloud['along'].std()
-                    thisfit[12] = cloud['perp'].std()
-                    thisfit[13] = cloud['xRot'].std()
-                    thisfit[14] = cloud['yRot'].std()
-                    thisfit[15] = cloud['zRot'].std()
-                    thisfit[16] = cloud['zRot'].max() - cloud['zRot'].min()
-                    thisfit[17] = cloud['SNII'].std()
-                    thisfit[18] = cloud['SNIa'].std()
-                    thisfit[19] = cloud['SNII'].mean()
-                    thisfit[20] = cloud['SNIa'].mean()
-                    thisfit[21] = cloud['r'].mean()
-                    thisfit[22] = cloud['r'].std()
-                    thisfit[23] = cloud['density'].mean()
-                    thisfit[24] = cloud['density'].std()
-                    thisfit[25] = cloud['temperature'].mean()
-                    thisfit[26] = cloud['temperature'].std()
-                    thisfit[27] = cloud['r'].mean()/rvir
-                    thisfit[28] = cloud['speed'].mean()
-                    thisfit[29] = cloud['along'].mean()
-                    thisfit[30] = cloud['perp'].mean()
-                    thisfit[31] = cloud['vStat'].mean()
-                    thisfit[32] = cloud['vStat'].std()
-                    thisfit[33] = cloud['vr'].mean()
-                    thisfit[34] = cloud['vr'].std()
-                    thisfit[35] = cloud['rRot'].mean()
-                    thisfit[36] = cloud['rRot'].std()
-                    thisfit[37] = cloud['vrRot'].mean()
-                    thisfit[38] = cloud['vrRot'].std()
-                    thisfit[39] = cloud['vzRot'].mean()
-                    thisfit[40] = cloud['vzRot'].std()
-                    thisfit[41] = cloud['vrho'].mean()
-                    thisfit[42] = cloud['vrho'].std()
+
+                    i = 10
+                    for field in fields:
+                        thisfit[i] = cloud[field].mean()
+                        thisfit[i+1] = cloud[field].std()
+                        thisfit[i+2] = thisfit[i+1]/thisfit[i]
+                        thisfit[i+3] = numpy.average(cloud[field],weights=cloud['mass'])
+                        i += 4
+
+#                    thisfit[10] = cloud['speed'].std( )
+#                    thisfit[11] = cloud['along'].std()
+#                    thisfit[12] = cloud['perp'].std()
+#                    thisfit[13] = cloud['xRot'].std()
+#                    thisfit[14] = cloud['yRot'].std()
+#                    thisfit[15] = cloud['zRot'].std()
+#                    thisfit[16] = cloud['zRot'].max() - cloud['zRot'].min()
+#                    thisfit[17] = cloud['SNII'].std()
+#                    thisfit[18] = cloud['SNIa'].std()
+#                    thisfit[19] = cloud['SNII'].mean()
+#                    thisfit[20] = cloud['SNIa'].mean()
+#                    thisfit[21] = cloud['r'].mean()
+#                    thisfit[22] = cloud['r'].std()
+#                    thisfit[23] = cloud['density'].mean()
+#                    thisfit[24] = cloud['density'].std()
+#                    thisfit[25] = cloud['temperature'].mean()
+#                    thisfit[26] = cloud['temperature'].std()
+#                    thisfit[27] = cloud['r'].mean()/rvir
+#                    thisfit[28] = cloud['speed'].mean()
+#                    thisfit[29] = cloud['along'].mean()
+#                    thisfit[30] = cloud['perp'].mean()
+#                    thisfit[31] = cloud['vStat'].mean()
+#                    thisfit[32] = cloud['vStat'].std()
+#                    thisfit[33] = cloud['vr'].mean()
+#                    thisfit[34] = cloud['vr'].std()
+#                    thisfit[35] = cloud['rRot'].mean()
+#                    thisfit[36] = cloud['rRot'].std()
+#                    thisfit[37] = cloud['vrRot'].mean()
+#                    thisfit[38] = cloud['vrRot'].std()
+#                    thisfit[39] = cloud['vzRot'].mean()
+#                    thisfit[40] = cloud['vzRot'].std()
+#                    thisfit[41] = cloud['vrho'].mean()
+#                    thisfit[42] = cloud['vrho'].std()
                     
-                
+               
                 else:
                     thisfit[5:] = np.NAN
                     thisfit[10] = cloud['speed'].std()

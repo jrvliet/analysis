@@ -81,7 +81,7 @@ nBins = np.linspace(-5.5,-2.5,7)
 header = 'a redshift loN hiN numCells'.split()
 fields = ('speed valong vperp '
           'xRot yRot zRot r rMod rRot thetaRot phiRot '
-          'snII snIa  density temperature mass pressure '
+          'SNII SNIa  density temperature mass pressure '
           'vr vzRot vrhoRot vthetaRot vphiRot thermalV'.split())
 fitFields = 'stdDev rayleighLoc rayleighScale rayleighfwhm rayleighStd'.split()
 
@@ -96,7 +96,6 @@ with open('denseCutHeaders.txt','w') as f:
     for i,h in enumerate(header):
         f.write('{0:d}\t{1:s}\n'.format(i,h))
 
-sys.exit()
 for i in range(len(temps)):
 
     loT, hiT = temps[i][0], temps[i][1]
@@ -144,15 +143,16 @@ for i in range(len(temps)):
                     cloud['r'] = np.sqrt(cloud['x']**2 + cloud['y']**2 + cloud['z']**2)
                     cloud['vr'] = (cloud['x']*cloud['vx'] + cloud['y']*cloud['vy'] +
                                     cloud['z']*cloud['vz'] ) / cloud['r']
+                    cloud['rMod'] = cloud['r']/rvir
                 
                     # Rho, the distance from rotated z-axis
-                    cloud['vrho'] = np.sqrt(cloud['vxRot']**2 + cloud['vyRot']**2)
+                    cloud['vrhoRot'] = np.sqrt(cloud['vxRot']**2 + cloud['vyRot']**2)
 
                     # Same, but for rotated coordinates for sanity check
                     cloud['rRot'] = np.sqrt(cloud['xRot']**2 + cloud['yRot']**2 + cloud['zRot']**2)
                     cloud['vrRot'] = (cloud['xRot']*cloud['vxRot'] + cloud['yRot']*cloud['vyRot'] +
                                     cloud['zRot']*cloud['vzRot'] ) / cloud['rRot']
-                    cloud['vStat'] = cloud['vrho'] / cloud['vzRot'] 
+                    #cloud['vStat'] = cloud['vrhoRot'] / cloud['vzRot'] 
 
                     # Fit line
                     cloudLoc = cloud[['x','y','z']]
@@ -180,12 +180,12 @@ for i in range(len(temps)):
                     cloud['along0'] = factor*u0
                     cloud['along1'] = factor*u1
                     cloud['along2'] = factor*u2
-                    cloud['along'] = np.sqrt(cloud['along0']**2 +
+                    cloud['valong'] = np.sqrt(cloud['along0']**2 +
                                     cloud['along1']**2 + cloud['along2']**2)
                     cloud['perp0'] = cloud['vx'] - cloud['along0']
                     cloud['perp1'] = cloud['vy'] - cloud['along1']
                     cloud['perp2'] = cloud['vz'] - cloud['along2']
-                    cloud['perp'] = np.sqrt(cloud['perp0']**2 +
+                    cloud['vperp'] = np.sqrt(cloud['perp0']**2 +
                                     cloud['perp1']**2 + cloud['perp2']**2)
                     
                     # Get spherical coordinates
@@ -212,13 +212,13 @@ for i in range(len(temps)):
                     thisfit[8] = fwhm
                     thisfit[9] = st.rayleigh.std(loc=param[0],scale=param[1])
 
-                    i = 10
+                    index = 10
                     for field in fields:
-                        thisfit[i] = cloud[field].mean()
-                        thisfit[i+1] = cloud[field].std()
-                        thisfit[i+2] = thisfit[i+1]/thisfit[i]
-                        thisfit[i+3] = numpy.average(cloud[field],weights=cloud['mass'])
-                        i += 4
+                        thisfit[index] = cloud[field].mean()
+                        thisfit[index+1] = cloud[field].std()
+                        thisfit[index+2] = thisfit[i+1]/thisfit[i]
+                        thisfit[index+3] = np.average(cloud[field],weights=cloud['mass'])
+                        index += 4
 
 #                    thisfit[10] = cloud['speed'].std( )
 #                    thisfit[11] = cloud['along'].std()

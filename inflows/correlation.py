@@ -4,6 +4,7 @@ Determiens correlations between various properties and
 galactocentric distance
 '''
 
+from __future__ import print_function
 import pandas as pd
 import numpy as np
 
@@ -26,11 +27,12 @@ cor = np.zeros((len(logfields),len(methods)))
 
 
 for i,field in enumerate(logfields):
+    print('{0:s}'.format(field))
     for j,method in enumerate(methods):
+        print('\t{0:s}'.format(method))
+        cor[i,j] = df['r'].corr(df[field], method=method)
 
-        cor[i,j] = df['r'].corr(field, method=method)
-
-df = pd.DataFrame(cor,index=logfields,columns=method)
+df = pd.DataFrame(cor,index=logfields,columns=methods)
 outfile = 'spatialCorrelation_a0.490.h5'
 df.to_hdf(outfile,'data')
         

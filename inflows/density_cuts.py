@@ -82,7 +82,7 @@ header = 'a redshift loN hiN numCells'.split()
 fields = ('speed valong vperp '
           'xRot yRot zRot r rMod rRot thetaRot phiRot '
           'SNII SNIa  density temperature mass pressure '
-          'vr vzRot vrhoRot vthetaRot vphiRot thermalV'.split())
+          'vr vzRot vrhoRot vthetaRot vphiRot thermalV vrFrac'.split())
 fitFields = 'stdDev rayleighLoc rayleighScale rayleighfwhm rayleighStd'.split()
 
 header = header + fitFields
@@ -98,12 +98,13 @@ with open('denseCutHeaders.txt','w') as f:
 
 for i in range(len(temps)):
 
+    print(tempLabels[i])
     loT, hiT = temps[i][0], temps[i][1]
     fit = np.zeros(len(header))
 
     for a in expns:
         
-        print(a)
+        print('\t{0:.3f}'.format(a))
 
         # Read in data
         fname = dataloc+filename.format(a)
@@ -144,6 +145,7 @@ for i in range(len(temps)):
                     cloud['vr'] = (cloud['x']*cloud['vx'] + cloud['y']*cloud['vy'] +
                                     cloud['z']*cloud['vz'] ) / cloud['r']
                     cloud['rMod'] = cloud['r']/rvir
+                    cloud['vrFrac'] = cloud['vr']/cloud['speed']
                 
                     # Rho, the distance from rotated z-axis
                     cloud['vrhoRot'] = np.sqrt(cloud['vxRot']**2 + cloud['vyRot']**2)
@@ -200,8 +202,9 @@ for i in range(len(temps)):
                     cloud['vphiRot'] = cloud['rRot']*np.sin(np.radians(cloud['thetaRot']))*cloud['phidot']
 
 
-                    # Mass and thermal properties
-                    cloud['mass'] = (cloud['density']*u2g*pc2cm**3/g2M)*cloud['cell_size']**3   # Mass of the cell in solar Masses
+                    # Mass and thermal properties 
+                    # Mass of the cell in solar Masses
+                    cloud['mass'] = (cloud['density']*u2g*pc2cm**3/g2M)*cloud['cell_size']**3  
                     cloud['pressure'] = boltz*cloud['density']*cloud['temperature']
                     cloud['thermalV'] = np.sqrt(8*boltz*cloud['temperature']/(u2g*np.pi)) * cm2km
 
@@ -216,7 +219,7 @@ for i in range(len(temps)):
                     for field in fields:
                         thisfit[index] = cloud[field].mean()
                         thisfit[index+1] = cloud[field].std()
-                        thisfit[index+2] = thisfit[i+1]/thisfit[i]
+                        thisfit[index+2] = thisfit[index+1]/thisfit[index]
                         thisfit[index+3] = np.average(cloud[field],weights=cloud['mass'])
                         index += 4
 
@@ -264,7 +267,7 @@ for i in range(len(temps)):
 
     fit = np.delete(fit,(0),axis=0)
     df = pd.DataFrame(fit,columns=header)
-    outfile = 'density_cuts_paramters_{0:s}.h5'.format(tempLabels[i])
+    outfile = 'density_cuts_parameters_{0:s}.h5'.format(tempLabels[i])
     df.to_hdf(outfile,'data',mode='w')
 
                 

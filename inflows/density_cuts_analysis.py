@@ -27,17 +27,22 @@ tempLabels = ['cool','warm','hot']
 
 
 # Properties to be plotted
-fields = ['speedStd','stdDev','valongStd','vperpStd','locStd',
-          'snIIStd','snIaStd','snIImean','snIamean',
-          'rMean','rStd','nHmean','nHStd','tMean','tStd',
-          'rMeanMod','speedMean','valongMean','vperpMean', 'numCells',
-          'vStatMean','vStatStd','vrMean','vrStd',
-          'vzRotMean','vzRotStd','vrhoRotMean','vrhoRotStd']
+fields = ('speedStd stdDev valongStd vperpStd locStd '
+          'snIIStd snIaStd snIImean snIamean '
+          'rMean rStd nHmean nHStd tMean tStd '
+          'rMeanMod speedMean valongMean vperpMean numCells '
+          'vrMean vrStd vzRotMean vzRotStd vrhoRotMean vrhoRotStd '
+
+fields = ('speed valong vperp r rMod thetaRot phiRot '
+          'SNII SNIa density temperature mass pressure '
+          'vr vzRot vrhoRot vthetaRot vphiRot thermalV').split()   
+
 
 # Plotting options
 logfields = ['snIIStd','snIaStd','snIImean','snIamean',
              'nHmean','nHStd','nHmean','tMean','tStd',
              'vStatMean','vStatStd']
+logfields = 'SNII SNIa density temperature'.split()
 upperlims = [150, 60, 150, 200, 4.00, 
              1e-1, 1e-2, 1e-1, 1e-2, 
              500, 250 , 1e-1, 1e-1, 1e5, 10**4.5,

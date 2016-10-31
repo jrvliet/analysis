@@ -12,11 +12,12 @@ import matplotlib as mp
 
 
 
-def mkPlot(ax,groups,field,tempLabel):
+def mkPlot(ax,groups,fieldBase,stat,tempLabel):
 
     logfields = ['snIIStd','snIaStd','snIImean','snIamean',
              'nHmean','nHStd','nHmean','tMean','tStd',
              'vStatMean','vStatStd','numCells']
+    logfields = 'SNII SNIa density temperature pressure'.split()
     simples = [(-5.5,-5.0),(-5.0,-4.5),(-4.5,-4.0),
            (-4.0,-3.5),(-3.5,-3.0),(-3.0,-2.5)]
     markers = ['o','s','^','*','x','D']
@@ -24,14 +25,14 @@ def mkPlot(ax,groups,field,tempLabel):
     for i, (densityKey,group) in enumerate(groups):
         if densityKey in simples:
             marker = markers[simples.index(densityKey)]
-            ax.plot(group['a'],group[field],label=densityKey,
+            ax.plot(group['a'],group[fieldBase+stat],label=densityKey,
                     linestyle='solid',marker=marker)
  
 
-    if field in logfields:
+    if fieldBase in logfields and stat!='Ratio':
         ax.set_yscale('log')
     ax.set_xlabel('a')
-    ax.set_ylabel(field)
+    ax.set_ylabel('{0:s} {1:s}'.format(fieldBase,stat))
     ax.set_xlim([0.2,0.5])
     ax.set_title(tempLabel)
 
@@ -66,7 +67,7 @@ loc = '/home/jacob/research/code/analysis/inflows/'
 boxloc = '/home/jacob/research/velas/vela2b/vela27/'
 boxname = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.rot.h5'
 
-filebase = 'density_cuts_parameters_{0:s}.h5'
+filebase = 'density_cuts_paramters_{0:s}.h5'
 tempLabels = ['cool','warm','hot']
 
 groupsList = []
@@ -79,7 +80,8 @@ for tempLabel in tempLabels:
     # Cut out rows with low number of cells
     numCellLim = 1e4
     df = df[df['numCells']>numCellLim]
-    print(len(df.columns))
+    print('\n{0:s}'.format(tempLabel))
+    print(df.columns)
 
     # Add a column to the dataframe that is the age of the
     # universe at that expnansion parameter
@@ -105,33 +107,40 @@ fields = ['speedStd','stdDev','valongStd','vperpStd','locStd',
           'rMeanMod','speedMean','valongMean','vperpMean', 'numCells',
           'vStatMean','vStatStd','vrMean','vrStd',
           'vzRotMean','vzRotStd','vrhoRotMean','vrhoRotStd']
+fields = ('speed valong vperp r rMod thetaRot phiRot '
+          'SNII SNIa density temperature mass pressure '
+          'vr vzRot vrhoRot vthetaRot vphiRot thermalV').split()
+stats = 'Mean Std Ratio MeanMW'.split()
 
 print(len(fields))
 # Loop over the fields and plot them
 for i in range(len(fields)):
-    field = fields[i]
+    fieldBase = fields[i]
+    print(fieldBase)
 
-    fig,axes = plt.subplots(1,3,figsize=(15,5))
-    for groups,tempLabel,ax in zip(groupsList,tempLabels,axes):
-        mkPlot(ax,groups,field,tempLabel)
+    for stat in stats:
+        print('\t{0:s}'.format(stat))
+        fig,axes = plt.subplots(1,3,figsize=(15,5))
+        for groups,tempLabel,ax in zip(groupsList,tempLabels,axes):
+            mkPlot(ax,groups,fieldBase,stat,tempLabel)
 
-    lowest, uppest = axes[0].get_ylim()
-    for ax in axes[1:]:
-        lower, upper = ax.get_ylim()
-        if lower<lowest:
-            lowest = lower
-        if upper>uppest:
-            uppest = upper
-    for ax in axes:
-        ax.set_ylim([lowest,uppest])
-    
-    mkLines(axes,lowest,uppest)
-    axes[0].legend(loc='upper left',ncol=1,labelspacing=0,
-            frameon=True,fontsize='small')
-    
-    s = './denseCuts/simple/density_cuts_evolution_{0:s}.png'.format(field)
-    fig.savefig(s,bbox_inches='tight',dpi=300)
-    plt.close(fig)
+        lowest, uppest = axes[0].get_ylim()
+        for ax in axes[1:]:
+            lower, upper = ax.get_ylim()
+            if lower<lowest:
+                lowest = lower
+            if upper>uppest:
+                uppest = upper
+        for ax in axes:
+            ax.set_ylim([lowest,uppest])
+        
+        mkLines(axes,lowest,uppest)
+        axes[0].legend(loc='upper left',ncol=1,labelspacing=0,
+                frameon=True,fontsize='small')
+        
+        s = './denseCuts/simple/density_cuts_evolution_{0:s}.png'.format(fieldBase+stat)
+        fig.savefig(s,bbox_inches='tight',dpi=300)
+        plt.close(fig)
 
 
 

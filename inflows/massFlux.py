@@ -19,6 +19,9 @@ expns = np.arange(0.200,0.500,0.01)
 dr = 0.01
 rPoints = np.arange(0,5,0.1)
 
+eras = 'Formation Merger Starburst Relax'.split()
+eraSplits = [0.29, 0.32, 0.35]
+
 for a in expns:
     fname = dataloc + filename.format(a)
     rname = dataloc + rotname.format(a)

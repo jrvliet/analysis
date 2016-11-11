@@ -91,6 +91,7 @@ for field in fields:
     header.append(field+'Std')
     header.append(field+'Ratio')
     header.append(field+'MeanMW')
+    header.append(field+'Median')
 
 with open('denseCutHeaders.txt','w') as f:
     for i,h in enumerate(header):
@@ -221,7 +222,8 @@ for i in range(len(temps)):
                         thisfit[index+1] = cloud[field].std()
                         thisfit[index+2] = thisfit[index+1]/thisfit[index]
                         thisfit[index+3] = np.average(cloud[field],weights=cloud['mass'])
-                        index += 4
+                        thisfit[index+4] = cloud[field].median()
+                        index += 5
 
 #                    thisfit[10] = cloud['speed'].std( )
 #                    thisfit[11] = cloud['along'].std()

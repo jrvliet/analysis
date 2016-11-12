@@ -20,9 +20,10 @@ dr = 0.01
 rPoints = np.arange(0,5,0.1)
 
 eras = 'Formation Merger Starburst Relax'.split()
-eraSplits = [0.29, 0.32, 0.35]
+eraSplits = [0.29, 0.33, 0.36]
+eraBinning = np.digitize(expns,eraSplits)
 
-for a in expns:
+for i,a in enumerate(expns):
     fname = dataloc + filename.format(a)
     rname = dataloc + rotname.format(a)
 
@@ -43,7 +44,7 @@ for a in expns:
     shellIn = np.zeros(len(rPoints))
     shellOut = np.zeros(len(rPoints))
     
-    for i,dist in enumerate(rPoints):
+    for j,dist in enumerate(rPoints):
         shellIndex = (df['rMod']<dist+dr) & (df['rMod']>dist-dr)
         inIndex = (df['vr']<0)
         outIndex = (df['vr']>0)
@@ -53,8 +54,8 @@ for a in expns:
         shellInfall = df[shellIndex & inIndex]
         shellOutflow = df[shellIndex & outIndex]
         
-        shellIn[i] = (shellInfall['mass']*shellInfall['vr'] / dr).sum()
-        shellOut[i] = (shellOutflow['mass']*shellOutflow['vr'] / dr).sum()
+        shellIn[j] = (shellInfall['mass']*shellInfall['vr'] / dr).sum()
+        shellOut[j] = (shellOutflow['mass']*shellOutflow['vr'] / dr).sum()
     
     print('In:  {0:.3f} - {1:.3f}'.format(shellIn.min(),shellIn.max()), end='\t')
     print('Out: {0:.3f} - {1:.3f}'.format(shellOut.min(),shellOut.max()))
@@ -82,6 +83,7 @@ for a in expns:
     ax.set_title('a={0:.3f}, z={1:.3f}'.format(a,1./a-1))
     ax.legend(loc='upper right')
 
+    ax.text(0.75,0.5,eras[eraBinning[i]],transform=ax.transAxes)
     s = 'vela2b-27_massFlux_a{0:.3f}.png'.format(a)
     fig.savefig(s,bbox_inches='tight',dpi=300)
     plt.close(fig)

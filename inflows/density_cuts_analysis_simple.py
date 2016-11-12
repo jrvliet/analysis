@@ -67,7 +67,7 @@ loc = '/home/jacob/research/code/analysis/inflows/'
 boxloc = '/home/jacob/research/velas/vela2b/vela27/'
 boxname = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.rot.h5'
 
-filebase = 'density_cuts_paramters_{0:s}.h5'
+filebase = 'density_cuts_parameters_{0:s}.h5'
 tempLabels = ['cool','warm','hot']
 
 groupsList = []
@@ -110,7 +110,7 @@ fields = ['speedStd','stdDev','valongStd','vperpStd','locStd',
 fields = ('speed valong vperp r rMod thetaRot phiRot '
           'SNII SNIa density temperature mass pressure '
           'vr vzRot vrhoRot vthetaRot vphiRot thermalV').split()
-stats = 'Mean Std Ratio MeanMW'.split()
+stats = 'Mean Std Ratio MeanMW Median'.split()
 
 print(len(fields))
 # Loop over the fields and plot them

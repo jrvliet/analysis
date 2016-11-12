@@ -23,6 +23,10 @@ eras = 'Formation Merger Starburst Relax'.split()
 eraSplits = [0.29, 0.33, 0.36]
 eraBinning = np.digitize(expns,eraSplits)
 
+tempLabels = 'cool warm hot'.split()
+tempEdges = np.linspace(3.5,4.5,4)
+
+
 for i,a in enumerate(expns):
     fname = dataloc + filename.format(a)
     rname = dataloc + rotname.format(a)
@@ -41,32 +45,49 @@ for i,a in enumerate(expns):
     df['mass'] = df['density']*mH*(df['cell_size']*pc2cm)**3 / mSun
     df['mass'].describe()
 
+    
+    # Select out the filament space regeme
+    spaceIndex = (df['theta']<80)
+    
+    filamentIn = np.zeros(len(rPoints),len(tempLabels))
+    filamentOut = np.zeros(len(rPoints),len(tempLabels))
     shellIn = np.zeros(len(rPoints))
     shellOut = np.zeros(len(rPoints))
+
+    for j,tempLabel in enumerate(tempLabels):
+        loT = tempEdges[j]
+        hiT = tempEdges[j+1]
+        tempIndex = (df['temperature']>10**loT) & (df['temperature']<10**hiT)
+ 
+        for k,dist in enumerate(rPoints):
+            shellIndex = (df['rMod']<dist+dr) & (df['rMod']>dist-dr)
+            inIndex = (df['vr']<0)
+            outIndex = (df['vr']>0)
+
+            shellInfall = df[shellIndex & inIndex]
+            shellOutflow = df[shellIndex & outIndex]
+
+            filamentInfall = df[shellIndex & inIndex & tempIndex & spaceIndex]
+            filamentOutflow = df[shellIndex & outIndex & tempIndex & spaceIndex]
+            
+            shellIn[k] = (shellInfall['mass']*shellInfall['vr'] / dr).sum()
+            shellOut[k] = (shellOutflow['mass']*shellOutflow['vr'] / dr).sum()
     
-    for j,dist in enumerate(rPoints):
-        shellIndex = (df['rMod']<dist+dr) & (df['rMod']>dist-dr)
-        inIndex = (df['vr']<0)
-        outIndex = (df['vr']>0)
-
-#        print(len(inIndex))
-#        print(len(outIndex))
-        shellInfall = df[shellIndex & inIndex]
-        shellOutflow = df[shellIndex & outIndex]
-        
-        shellIn[j] = (shellInfall['mass']*shellInfall['vr'] / dr).sum()
-        shellOut[j] = (shellOutflow['mass']*shellOutflow['vr'] / dr).sum()
+            filamentIn[k] = (filamentInfall['mass']*filamentInfall['vr'] / dr).sum()
+            filamentOut[k] = (filamentOutflow['mass']*filamentOutflow['vr'] / dr).sum()
     
-    print('In:  {0:.3f} - {1:.3f}'.format(shellIn.min(),shellIn.max()), end='\t')
-    print('Out: {0:.3f} - {1:.3f}'.format(shellOut.min(),shellOut.max()))
+    #print('In:  {0:.3f} - {1:.3f}'.format(shellIn.min(),shellIn.max()), end='\t')
+    #print('Out: {0:.3f} - {1:.3f}'.format(shellOut.min(),shellOut.max()))
 
-    #fig,(ax1,ax2) = plt.subplots(1,2,figsize=(10,5))
-    #ax1.plot(rPoints,np.abs(shellIn))
-    #ax2.plot(rPoints,shellOut)
+    fig,(ax1,ax2,ax3,ax4) = plt.subplots(1,4,figsize=(20,5))
+    ax1.plot(rPoints,np.abs(shellIn),color='blue',label='Inflow')
+    ax1.plot(rPoints,shellOut,color='red',label='Outflow')
+    ax1.set_title('All')
 
-    fig,ax = plt.subplots(1,1,figsize=(5,5))
-    ax.plot(rPoints,np.abs(shellIn),color='blue',label='Inflow')
-    ax.plot(rPoints,shellOut,color='red',label='Outflow')
+    for j, (ax,tempLabel) in enumerate(zip([ax2,ax3,ax4],tempLabel)):
+        ax1.plot(rPoints,np.abs(filamentIn[:,j]),color='blue',label='Inflow')
+        ax1.plot(rPoints,filamentOut[:,j],color='red',label='Outflow')
+        ax.set_title('{0:s} Filament'.format(tempLabel.title()))
     
     #for ax in [ax1,ax2]:
     for ax in [ax]:
@@ -74,14 +95,14 @@ for i,a in enumerate(expns):
         ax.set_ylabel('Mass Flux [Msun/yr]')
         ax.set_xlim([0,5])
         ax.set_ylim([0,200])
+    ax4.legend(loc='upper right')
 
     #ax1.set_title('Inflow')
     #ax2.set_title('Outflow')
-    #fig.suptitle('a={0:.3f}, z={1:.3f}'.format(a,1./a-1))
-    #fig.tight_layout()
+    fig.suptitle('a={0:.3f}, z={1:.3f}'.format(a,1./a-1))
+    fig.tight_layout()
     
-    ax.set_title('a={0:.3f}, z={1:.3f}'.format(a,1./a-1))
-    ax.legend(loc='upper right')
+    #ax.set_title('a={0:.3f}, z={1:.3f}'.format(a,1./a-1))
 
     ax.text(0.75,0.5,eras[eraBinning[i]],transform=ax.transAxes)
     s = 'vela2b-27_massFlux_a{0:.3f}.png'.format(a)

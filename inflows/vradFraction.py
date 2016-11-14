@@ -30,8 +30,10 @@ for i in range(numDenseBins):
     labels.append('{0:.1f}<n<{1:.1f}'.format(denseEdges[i],denseEdges[i+1]))
 
 
-fraction = np.zeros((len(expns),numDenseBins))
-spread = np.zeros((len(expns),numDenseBins))
+vrFraction = np.zeros((len(expns),numDenseBins))
+vrStd = np.zeros((len(expns),numDenseBins))
+rMean = np.zeros((len(expns),numDenseBins))
+rStd = np.zeros((len(expns),numDenseBins))
 
 for i,a in enumerate(expns):
 
@@ -59,15 +61,21 @@ for i,a in enumerate(expns):
 
         cloud['vrFrac'] = cloud['vr'] / cloud['speed']
         
-        fraction[i,j] = cloud['vrFrac'].mean()
-        spread[i,j] = cloud['vrFrac'].std()
+        vrFraction[i,j] = cloud['vrFrac'].mean()
+        vrStd[i,j] = cloud['vrFrac'].std()
+        rMean[i,j] = cloud['r'].mean()
+        rStd[i,j] = cloud['r'].std()
 
    
-dfFrac = pd.DataFrame(fraction,columns=labels,index=expns)
-dfSpread = pd.DataFrame(spread,columns=labels,index=expns)
+dfvrFrac = pd.DataFrame(vrFraction,columns=labels,index=expns)
+dfvrStd = pd.DataFrame(vrStd,columns=labels,index=expns)
+dfrFrac = pd.DataFrame(rMean,columns=labels,index=expns)
+dfrStd = pd.DataFrame(rStd,columns=labels,index=expns)
 
-dfFrac.to_hdf('vradFraction_mean.h5','data',mode='w')
-dfSpread.to_hdf('vradFraction_std.h5','data',mode='w')
+dfvrFrac.to_hdf('vradFraction_mean.h5','data',mode='w')
+dfvrStd.to_hdf('vradFraction_std.h5','data',mode='w')
+dfrFrac.to_hdf('r_mean.h5','data',mode='w')
+dfrStd.to_hdf('r_std.h5','data',mode='w')
 
 
 

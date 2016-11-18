@@ -51,7 +51,7 @@ for dfLabel in store:
     ax.legend()
     fig.tight_layout()
     s ='massContained_{0:s}.png'.format(dfLabel[1:].replace('(',
-'').replace(')',''))
+                                    '').replace(')',''))
     fig.savefig(s,bbox_inches='tight',dpi=300)
     plt.close(fig)
 

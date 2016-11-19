@@ -32,16 +32,22 @@ fname = dataloc+filename
 store = pd.HDFStore(fname)
 
 fig2,axes2 = plt.subplots(2,2,figsize=(10,10))
+
+# Loop over density cuts
 for dfLabel in store:
 
     df = store[dfLabel]
     
     fig,axes = plt.subplots(2,2,figsize=(10,10))
+    # Loop over each plot, which represents a different quantity such as mass,
+    # rho in Rvir, pkpc, or ckpc
     for i,(field,ax) in enumerate(zip(fields,axes.flatten())):
+        # Loop over each fraction cut
         for f,fraction in zip(field,fractions):
             ax.plot(df['a'],df[f],label=fraction)
 
-    ylabs = ['Mass', '$\rho$ [Rvir]', '$\rho$ [pkpc]', '$\rho$ [ckpc]']
+    # Apply labels to plots and add vertical lines for each major event
+    ylabs = ['Mass', r'$\rho$ [Rvir]', r'$\rho$ [pkpc]', r'$\rho$ [ckpc]']
     for i,ax in enumerate(axes.flatten()):
         ax.set_xlabel('a')
         ax.set_ylabel(ylabs[i])
@@ -56,7 +62,8 @@ for dfLabel in store:
     plt.close(fig)
 
 
-
+    # Make a plot similar to above, but with only the 90% cut in it to directly
+    # compare the affect of density cuts
     for i,(field,ax) in enumerate(zip(fields,axes2.flatten())):
         ax.plot(df['a'],df[field[-1]],label=dfLabel[1:])
 

@@ -94,7 +94,7 @@ for i,a in enumerate(expns):
 
         rhoMin = 0
         rhoMax = 3
-        rhoBins = np.linspace(rhoMin,rhoMax,50)
+        rhoBins = np.linspace(rhoMin,rhoMax,500)
 
         mIn = []
         for k in range(len(rhoBins)):
@@ -111,13 +111,13 @@ for i,a in enumerate(expns):
             percentile = np.digitize(np.array(m90),mIn)
             containingRadius = rhoBins[percentile]
 
-            results[j,i,ind+1] = np.log10(m90)
+            results[j,i,ind+1] = m90/mIn[-1]
             results[j,i,ind+2] = containingRadius
             results[j,i,ind+3] = containingRadius*rvir
             results[j,i,ind+4] = (containingRadius*rvir)/a
             ind += 4
 
-store = pd.HDFStore('massContained.h5')
+store = pd.HDFStore('massContained.h5',mode='w')
 for i in range(numNbins):
     res = results[i]
     df = pd.DataFrame(res,columns=columns)

@@ -65,6 +65,8 @@ for i in range(numNbins):
 
 results = np.zeros((numNbins,len(expns),len(columns)))
 
+fullCols = 'expn fullMass meanDense medianDense'.split()
+fullResults = np.zeros((len(expns),len(fullCols)))
 for i,a in enumerate(expns):
 
     print(a)
@@ -81,6 +83,14 @@ for i,a in enumerate(expns):
     loT,hiT = 3.5,4.5
     tempInds = (df['temperature']>10**loT) & (df['temperature']<10**hiT)
     spaceInds = (df['theta']<80) & (df['r']>0.5*rvir)
+    fullDenseInds = (df['density']>10**lowestN) & (df['density']<10**highestN)
+    fullFilament = df[tempInds & spaceInds & fullDenseInds]
+    totalMass = fullFilament['mass'].sum()
+
+    fullResults[i][0] = a
+    fullResults[i][1] = np.log10(totalMass)
+    fullResults[i][2] = np.log10(fullFilament['density'].mean())
+    fullResults[i][3] = np.log10(fullFilament['density'].median())
 
     for j in range(numNbins):
         
@@ -94,7 +104,7 @@ for i,a in enumerate(expns):
 
         rhoMin = 0
         rhoMax = 3
-        rhoBins = np.linspace(rhoMin,rhoMax,500)
+        rhoBins = np.linspace(rhoMin,rhoMax,5000)
 
         mIn = []
         for k in range(len(rhoBins)):
@@ -111,10 +121,13 @@ for i,a in enumerate(expns):
             percentile = np.digitize(np.array(m90),mIn)
             containingRadius = rhoBins[percentile]
 
-            results[j,i,ind+1] = m90/mIn[-1]
+            volume = fil['r'].max()*np.pi*(containingRadius*rvir)**2
+
+            results[j,i,ind+1] = m90/totalMass
             results[j,i,ind+2] = containingRadius
             results[j,i,ind+3] = containingRadius*rvir
-            results[j,i,ind+4] = (containingRadius*rvir)/a
+            results[j,i,ind+4] = mIn[-1]/volume
+            #results[j,i,ind+4] = (containingRadius*rvir)/a
             ind += 4
 
 store = pd.HDFStore('massContained.h5',mode='w')
@@ -124,4 +137,6 @@ for i in range(numNbins):
     store[denseLabels[i]] = df
 store.close()
 
+df = pd.DataFrame(fullResults,columns=fullCols)
+df.to_hdf('totalFilamentProps.h5','data',mode='w')
 

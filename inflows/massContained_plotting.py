@@ -32,6 +32,8 @@ fname = dataloc+filename
 store = pd.HDFStore(fname)
 
 fig2,axes2 = plt.subplots(2,2,figsize=(10,10))
+properLims = [0,250]
+comoveLims = [0,700]
 
 # Loop over density cuts
 for dfLabel in store:
@@ -51,9 +53,12 @@ for dfLabel in store:
     for i,ax in enumerate(axes.flatten()):
         ax.set_xlabel('a')
         ax.set_ylabel(ylabs[i])
+    axes[1,0].set_ylim(properLims)
+    axes[1,1].set_ylim(comoveLims)
+    for ax in axes.flatten():
         ymin,ymax = ax.get_ylim()
         mkLines(ax,ymin,ymax)
-
+    
     ax.legend()
     fig.tight_layout()
     s ='massContained_{0:s}.png'.format(dfLabel[1:].replace('(',

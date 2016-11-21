@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage{fullpage}
+\newcommand{\rvir}{R$_{vir}$}
 
 
 \title{Conclusions from Inflow Analysis}
@@ -41,8 +42,82 @@ coherent structure. The clouds quickly come together as time passes. As time
 passes, the filament becomes more coherent and structured. It eventualy extends
 completely from the galaxy to the edge of the box. 
 
+\subsection{Size}
+When looking at the cool gas, the type of gas selected by differing density cuts
+fills the space differently and changes over time. 
+\begin{itemize}
+\item {\bf Highest Density}: $-3.0\,<\,\log(n_H)\,<\,-2.5$. Contains most of the
+mass before the merger starts. Once the merger ends, this phase contains at most
+10\% of the mass in the filament. This structure's size stays at a fairly
+constant 50 pkpc. 
+\item {\bf High Density}: $-3.5\,<\,\log(n_H)\,<\,-3.0$. This phase contains a
+roughly constant 20-25\% of the filament's mass, but it does drop with time. By
+z=1, it only contains 5\% of the mass. The amount of mass in this phase increases
+during outflows of the starburst. It's size is roughly constant in shape of
+$\sim$ 75 pkpc. 
+\item {\bf High-mid Density}: $-4.0\,<\,\log(n_H)\,<\,-3.5$. The amount of mass
+in this phase starts low and increases with time, increasing from $\sim$ 7\% to a
+peak of 40\% at a=0.43. It then drops after the peak to less than 20\%. It's size
+is roughly constant at roughly 100 pkpc. It peaks at the beginning of the merger
+at a value of 125 pkpc, then settles at 100 pkpc after the merger before dropping
+at a=0.43 to 50 pkpc. 
+\item {\bf Low-mid Density}: $-4.5\,<\,\log(n_H)\,<\,-4.0$. This phase doesn't
+really exit before the merger, containly less than 5\% of the mass. Once the
+merger starts, the amount of mass in this phase rises rapidly until it reaches a
+peak of $\sim$ 25\% during the starburst. After this, it drops to $\sim$ 15\% at
+a=0.40. It then rises rapidly to roughly 40\% of the mass. It's physical size is
+not constant with time. It starts small (75 pkpc), rises to 150 pkpc during the
+merger, before shrinking ot 75 pkpc. The timing of the peak changes based on the
+mass fraction used. For 25\% of the mass of this phase, the structure is only 100
+pkpc in size and peaks at a=0.25. 
+\item {\bf Low Density}: $-5.0\,<\,\log(n_H)\,<\,-4.5$. Before the merger, this
+phase has less than 2\% of them mass. It doesn't become relavent until the merger
+starts. The amount of mass in this phase increases during the merger and
+starburst until it peaks at $\sim$ 17\%. It then drops until a = 0.43 (5\%), then
+increases again until it reaches an all-time high of 25\%. Physically, this phase
+is much bigger. It starts with a size of 75 pkpc and increases intil a peak of
+225 pkpc at a=0.40. Oddly, the peak of the size depends on what mass fraction the
+radius includes. For 25\% of the mass in this phase, the structure reaches its
+maximum of 110 kpc at a=0.29. 
+\item {\bf Lowest Density}: $-5.5\,<\,\log(n_H)\,<\,-5.0$. This phase is by far
+the lease important to the mass budget as it peaks at 3\% of the mass at a=0.40.
+It follows the same trend with time as the low density gas. This phase is also
+the most extended, starting at 75 pkc and peaking at $>$200 pkpc. There is less
+trends with time with this phase, possibly due to its low mass. This implies few
+cells exist in this phase (as expected being so close to the edge of the phase
+diagram) and small shifts create stochasitc behaviours. 
+\end{itemize}
+
+Additional, the importance of the galaxy can be determined by examining the size
+of the filament in units of R$_{vir}$. Depending on the density criteria and the
+time, $R_{90}$, the radius of the filament that contains 90\% of the filament's
+mass in that density range, can range from 0.5 to 3 \rvir.  For all density
+selections, $R_{90}$ decreases with time. This is expected as \rvir grows with
+time and the three densest bins are roughly constant in size. However even the
+lower density bins cannot make the filament grow fast enough to outpace \rvir. As
+time goes on, the galaxy itself become more relavant as it outgrows the filament.
+If this simulation were continued to lower redshifts, it would seem that
+eventually the filament would be insignificant to the evolution of the galaxy.
+Thus filament behaviours can only really influence the galaxy's evolution at high
+redshift. 
 
 
+\subsection{Location}
+The mean density of the gas is highly correlated with the distance it lies from
+the galaxy, with lower density gas residing farther from the center. This trend
+exists for all time and phases. Hotter gas tends to reside closer to the galaxy
+as well. For the ``cool'' gas, changing the density selection can probe
+galactocentric distances from within the CGM to 4.5 R$_{vir}$ away. However the
+``hot'' gas only extends out to 1.5 R$_{vir}$ at z=1. Once the filament is formed
+(starting at a=0.25), the mean distance of each density cut do not cross, meaning
+this trend holds during the merger and starburst. 
+
+The box coordinates of the filament do not change with time. Once the filament
+forms, it is constant in space. The galaxy itself roles around, changin
+orientation often. This is excaserbated by the merger. However, the filament
+itself does not move, implying that the filament is not a huge source of angular
+momentum to the galaxy. This could be due to the filament being much bigger than
+the galaxy and roughly the size of its halo. 
 
 
 \section{Kinematics}

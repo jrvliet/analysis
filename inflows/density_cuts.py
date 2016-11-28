@@ -97,6 +97,8 @@ with open('denseCutHeaders.txt','w') as f:
     for i,h in enumerate(header):
         f.write('{0:d}\t{1:s}\n'.format(i,h))
 
+excludeCGM = True
+
 for i in range(len(temps)):
 
     print(tempLabels[i])
@@ -107,18 +109,25 @@ for i in range(len(temps)):
         
         print('\t{0:.3f}'.format(a))
 
-        # Read in data
-        fname = dataloc+filename.format(a)
-        df = pd.read_hdf(fname, 'data')
-
-        # Select regions
-        tempInd = (df['temperature']>loT) & (df['temperature']<hiT)
-        spacInd = (df['x']<0) & (df['z']>0)
-
         # Get Rvir
         with open(dataloc+rotmat.format(a)) as f:
             f.readline()
             rvir = float(f.readline().split()[3])
+
+        # Read in data
+        fname = dataloc+filename.format(a)
+        df = pd.read_hdf(fname, 'data')
+
+        df['r'] = np.sqrt(df['x']**2 + df['y']**2 + df['z']**2)
+
+        # Select regions
+        tempInd = (df['temperature']>loT) & (df['temperature']<hiT)
+        spacInd = (df['x']<0) & (df['z']>0)
+        if excludeCGM:
+            spacInd = (df['x']<0) & (df['z']>0) & (df['r']>0.5*rvir)
+        else:
+            spacInd = (df['x']<0) & (df['z']>0)
+
 
         # Loop over density cuts 
         nCombs = it.combinations(nBins,2)
@@ -142,7 +151,6 @@ for i in range(len(temps)):
                 if len(cloud)>1e4:
         
                     # Radial distance and velocity
-                    cloud['r'] = np.sqrt(cloud['x']**2 + cloud['y']**2 + cloud['z']**2)
                     cloud['vr'] = (cloud['x']*cloud['vx'] + cloud['y']*cloud['vy'] +
                                     cloud['z']*cloud['vz'] ) / cloud['r']
                     cloud['rMod'] = cloud['r']/rvir
@@ -269,7 +277,10 @@ for i in range(len(temps)):
 
     fit = np.delete(fit,(0),axis=0)
     df = pd.DataFrame(fit,columns=header)
-    outfile = 'density_cuts_parameters_{0:s}.h5'.format(tempLabels[i])
+    if excludeCGM:
+        outfile = 'density_cuts_parameters_{0:s}_noCGM.h5'.format(tempLabels[i])
+    else:
+        outfile = 'density_cuts_parameters_{0:s}.h5'.format(tempLabels[i])
     df.to_hdf(outfile,'data',mode='w')
 
                 

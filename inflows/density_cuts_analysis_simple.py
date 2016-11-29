@@ -57,6 +57,7 @@ def mkLines(axes,lower,upper):
 
 
 
+excludeCGM = True
 
 # Read in times
 times = pd.read_csv('lookback_time.csv')
@@ -67,7 +68,10 @@ loc = '/home/jacob/research/code/analysis/inflows/'
 boxloc = '/home/jacob/research/velas/vela2b/vela27/'
 boxname = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.rot.h5'
 
-filebase = 'density_cuts_parameters_{0:s}.h5'
+if excludeCGM:
+    filebase = 'density_cuts_parameters_{0:s}_noCGM.h5'
+else:
+    filebase = 'density_cuts_parameters_{0:s}.h5'
 tempLabels = ['cool','warm','hot']
 
 groupsList = []
@@ -138,7 +142,10 @@ for i in range(len(fields)):
         axes[0].legend(loc='upper left',ncol=1,labelspacing=0,
                 frameon=True,fontsize='small')
         
-        s = './denseCuts/simple/density_cuts_evolution_{0:s}.png'.format(fieldBase+stat)
+        if excludeCGM:
+            s = './denseCuts/simple/density_cuts_evolution_noCGM_{0:s}.png'.format(fieldBase+stat)
+        else:
+            s = './denseCuts/simple/density_cuts_evolution_{0:s}.png'.format(fieldBase+stat)
         fig.savefig(s,bbox_inches='tight',dpi=300)
         plt.close(fig)
 

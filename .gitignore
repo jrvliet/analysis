@@ -6,3 +6,6 @@
 *.dat
 *.h5
 *.tar.gz
+*.aux
+*.log
+*.json

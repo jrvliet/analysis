@@ -68,7 +68,9 @@ temps = [coolTemps,warmTemps,hotTemps]
 tempLabels = ['cool','warm','hot']
 
 # Density bins
-nBins = np.linspace(-5.5,-2.5,7)
+lowestN, highestN = -5.5,-2.5
+numNBins = 7
+nBins = np.linspace(lowestN,highestN,numNbins)
 
 #header = ['a','redshift','loN','hiN','numCells','stdDev','rayleighLoc',
 #            'rayleighScale','rayleighfwhm','rayleighStd','speedStd',
@@ -78,7 +80,7 @@ nBins = np.linspace(-5.5,-2.5,7)
 #            'vStatMean','vStatStd','vrMean','vrStd','rRotMean','rRotStd',
 #            'vrRotMean','vrRotStd','vzRotMean','vzRotStd','vrhoRotMean','vrhoRotStd']
 
-header = 'a redshift loN hiN numCells'.split()
+header = 'a redshift loN hiN numCellsFrac'.split()
 fields = ('speed valong vperp '
           'xRot yRot zRot r rMod rRot thetaRot phiRot '
           'SNII SNIa  density temperature mass pressure '
@@ -97,7 +99,7 @@ with open('denseCutHeaders.txt','w') as f:
     for i,h in enumerate(header):
         f.write('{0:d}\t{1:s}\n'.format(i,h))
 
-excludeCGM = True
+excludeCGM = False
 
 for i in range(len(temps)):
 
@@ -122,12 +124,14 @@ for i in range(len(temps)):
 
         # Select regions
         tempInd = (df['temperature']>loT) & (df['temperature']<hiT)
-        spacInd = (df['x']<0) & (df['z']>0)
+        #spacInd = (df['x']<0) & (df['z']>0)
+        fullDenseInd = (df['density']>10**lowestN) & (df['density']<10**highestN)
         if excludeCGM:
             spacInd = (df['x']<0) & (df['z']>0) & (df['r']>0.5*rvir)
         else:
             spacInd = (df['x']<0) & (df['z']>0)
 
+        fullCloudSize = float((tempInd & spacInd & fullDenseInd).sum())
 
         # Loop over density cuts 
         nCombs = it.combinations(nBins,2)
@@ -144,7 +148,7 @@ for i in range(len(temps)):
                 thisfit[3] = hiN
             
                 cloud = df[densInd & spacInd & tempInd]
-                thisfit[4] = len(cloud)
+                thisfit[4] = len(cloud) / fullCloudSize
 
                 cloud['speed'] = np.sqrt(cloud['vx']**2 + cloud['vy']**2 + cloud['vz']**2)
 

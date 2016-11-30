@@ -70,7 +70,7 @@ tempLabels = ['cool','warm','hot']
 # Density bins
 lowestN, highestN = -5.5,-2.5
 numNBins = 7
-nBins = np.linspace(lowestN,highestN,numNbins)
+nBins = np.linspace(lowestN,highestN,numNBins)
 
 #header = ['a','redshift','loN','hiN','numCells','stdDev','rayleighLoc',
 #            'rayleighScale','rayleighfwhm','rayleighStd','speedStd',

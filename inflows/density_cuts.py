@@ -58,7 +58,7 @@ dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
 filename = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.rot.h5'
 rotmat = 'a{0:.3f}/rotmat_a{0:.3f}.txt'
 
-expns = np.arange(0.200,0.500,0.01)
+expns = np.arange(0.200,0.550,0.01)
 
 # Cloud limits
 coolTemps = [10**3.5, 10**4.5]

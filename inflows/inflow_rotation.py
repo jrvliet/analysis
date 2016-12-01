@@ -159,16 +159,18 @@ loN, hiN = 10**-4, 10**-3.75
 rot = np.loadtxt('inflow_rot_mat.dat')
 
 expns = np.arange(0.200,0.500,0.01)
+expns = np.arange(0.500,0.550,0.01)
 
 for a in expns:
 
+    print(a)
     with open(rotfile.format(a),'r') as f:
         f.readline()
         rvir = float(f.readline().split()[3])
 
 
     # Read in data
-    fname = dateloc.format(a) + filename.format(a)
+    fname = dataloc.format(a) + filename.format(a)
     df = pd.read_hdf(fname, 'data')
 
     # Select inflow
@@ -194,7 +196,7 @@ for a in expns:
 
     # Create the rotation matrix
     rot = np.array([[np.cos(theta),0,np.sin(theta)],[0,1,0],[-1*np.sin(theta),0,np.cos(theta)]])
-    np.savetxt('inflow_rot_mat.dat',rot)
+    np.savetxt('inflow_rot_mat_a{0:.3f}.dat'.format(a),rot)
 
     # Rotate the coordinates
     clRot = cl[['x','y','z']].dot(rot)
@@ -221,7 +223,8 @@ for a in expns:
     fullBox = df.join(boxLocRot)
 
     # Write to file
-    foutname = filename.replace('.h5','rot.h5')
+    foutname = filename.replace('.h5','.rot.h5')
+    foutname = fname.replace('.h5','.rot.h5')
     fullBox.to_hdf(foutname, 'data', mode='w')
 
     # Plot gradients

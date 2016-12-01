@@ -57,7 +57,7 @@ def mkLines(axes,lower,upper):
 
 
 
-excludeCGM = True
+excludeCGM = False
 
 # Read in times
 times = pd.read_csv('lookback_time.csv')
@@ -83,7 +83,7 @@ for tempLabel in tempLabels:
 
     # Cut out rows with low number of cells
     numCellLim = 1e4
-    df = df[df['numCells']>numCellLim]
+#    df = df[df['numCells']>numCellLim]
     print('\n{0:s}'.format(tempLabel))
     print(df.columns)
 
@@ -111,7 +111,7 @@ fields = ['speedStd','stdDev','valongStd','vperpStd','locStd',
           'rMeanMod','speedMean','valongMean','vperpMean', 'numCells',
           'vStatMean','vStatStd','vrMean','vrStd',
           'vzRotMean','vzRotStd','vrhoRotMean','vrhoRotStd']
-fields = ('speed valong vperp r rMod thetaRot phiRot '
+fields = ('speed valong vperp r rMod thetaRot phiRot numCellsFrac '
           'SNII SNIa density temperature mass pressure '
           'vr vzRot vrhoRot vthetaRot vphiRot thermalV').split()
 stats = 'Mean Std Ratio MeanMW Median'.split()
@@ -123,6 +123,8 @@ for i in range(len(fields)):
     print(fieldBase)
 
     for stat in stats:
+        if fieldBase=='numCellsFrac':
+            stat = ''
         print('\t{0:s}'.format(stat))
         fig,axes = plt.subplots(1,3,figsize=(15,5))
         for groups,tempLabel,ax in zip(groupsList,tempLabels,axes):
@@ -139,7 +141,7 @@ for i in range(len(fields)):
             ax.set_ylim([lowest,uppest])
         
         mkLines(axes,lowest,uppest)
-        axes[0].legend(loc='upper left',ncol=1,labelspacing=0,
+        axes[0].legend(loc='best',ncol=1,labelspacing=0,
                 frameon=True,fontsize='small')
         
         if excludeCGM:

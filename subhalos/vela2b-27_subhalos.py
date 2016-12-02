@@ -9,7 +9,7 @@ import pandas as pd
 
 loc = '/home/jacob/research/velas/vela2b/vela27/subhalos/'
 basename = '{0:s}halos_{1:.3f}.txt'
-expns = np.arange(0.200,0.500,0.01)
+expns = np.arange(0.200,0.550,0.01)
 reds = [1./a - 1 for a in expns]
 
 fig, ax = plt.subplots(1,1,figsize=(5,5))

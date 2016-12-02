@@ -24,7 +24,7 @@ subhalos = pd.read_hdf(sname,'data')
 loT, hiT = 10**3, 10**4.5
 loN, hiN = 10**-6, 10**-2.25
 
-expns = np.arange(0.200,0.500,0.01)
+expns = np.arange(0.200,0.550,0.01)
 
 minv, maxv = [],[]
 

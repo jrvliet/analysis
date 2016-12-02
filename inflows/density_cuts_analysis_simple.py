@@ -33,7 +33,7 @@ def mkPlot(ax,groups,fieldBase,stat,tempLabel):
         ax.set_yscale('log')
     ax.set_xlabel('a')
     ax.set_ylabel('{0:s} {1:s}'.format(fieldBase,stat))
-    ax.set_xlim([0.2,0.5])
+    #ax.set_xlim([0.2,0.5])
     ax.set_title(tempLabel)
 
 def mkLines(axes,lower,upper):

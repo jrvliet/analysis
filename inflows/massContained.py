@@ -48,7 +48,7 @@ filename = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.rot.h5'
 rotname = 'a{0:.3f}/rotmat_a{0:.3f}.txt'
 a = 0.490
 
-expns = np.arange(0.200,0.500,0.01)
+expns = np.arange(0.200,0.550,0.01)
 
 columns = ['a m25 rho25Rvir rho25kpc rho25cokpc '
            'm50 rho50Rvir rho50kpc rho50cokpc '

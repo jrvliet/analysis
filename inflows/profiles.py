@@ -20,7 +20,7 @@ rotname = 'a{0:.3f}/rotmat_a{0:.3f}.txt'
 fields = 'density temperature SNII speed'.split()
 markers = 's ^ d h o x'.split()
 
-expns = np.arange(0.200,0.500,0.01)
+expns = np.arange(0.200,0.550,0.01)
 
 numTempBins = 3
 lowestT,highestT = 3.5,6.5

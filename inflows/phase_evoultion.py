@@ -31,10 +31,11 @@ def quartile(a):
 
 def mkHist(ax,n,t,z,stat,cbarLabel):
     
+    numbins = 200
     binrange = [[-10,2],[2,8]]
     h,xedges,yedges,binnumber = st.binned_statistic_2d(n,t,z,
                                 statistic=stat,range=binrange,
-                                bins=50)
+                                bins=numbins)
 
     h = np.rot90(h)
     h = np.flipud(h)

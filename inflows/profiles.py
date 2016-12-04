@@ -57,7 +57,13 @@ for a in expns:
 
     spaceInd = df['theta']<80
     
-    fig,axes = plt.subplots(2,2,figsize=(10,10))
+    figMean,axesMean = plt.subplots(2,2,figsize=(10,10))
+    figMin,axesMin = plt.subplots(2,2,figsize=(10,10))
+
+    figs = [figMean, figMin]
+    axeses = [axesMean, axesMin]
+    stats = ['mean', np.min]
+    statNames = ['mean','min']
     
     for i in range(numDenseBins):
 
@@ -68,25 +74,30 @@ for a in expns:
 
         cloud = df[denseInd & spaceInd & tempInd]
         
-        for ax,field in zip(axes.flatten(),fields):
+        for stat,fig,axes in zip(stats,figs,axeses):
 
-            h,binEdges,binnumber = st.binned_statistic(cloud['rho'],cloud[field],
-                                    statistic='mean',bins=50,range=[0,4])
-            binMid = []
-            for j in range(len(h)):
-                binMid.append((binEdges[j]+binEdges[j+1])/2.)
-            ax.plot(binMid,h,marker=markers[i],label=denseLabels[i])
-            ax.set_title(field)
-    
+            for ax,field in zip(axes.flatten(),fields):
 
-    for ax in axes.flatten()[:-1]:
-        ax.set_yscale('log')
-    ax.legend(loc='best')
-    fig.tight_layout()
+                h,binEdges,binnumber = st.binned_statistic(cloud['rho'],cloud[field],
+                                        statistic=stat,bins=50,range=[0,4])
+                binMid = []
+                for j in range(len(h)):
+                    binMid.append((binEdges[j]+binEdges[j+1])/2.)
+                ax.plot(binMid,h,marker=markers[i],label=denseLabels[i])
+                ax.set_title(field)
 
-    s = 'profile_a{0:.3f}.png'.format(a)
-    fig.savefig(s,bbox_inches='tight',dpi=300)
-    plt.close(fig)
+    for axes,fig,statName in zip(axeses,figs,statNames):
+        for ax in axes.flatten()[:-1]:
+            ax.set_yscale('log')
+        ax.legend(loc='best')
+
+        for ax in axes.flatten():
+            ax.set_xlabel('Distance from Filament [Rvir]')
+
+        fig.tight_layout()
+        s = 'profile_a{0:.3f}_{1:s}.png'.format(a,statName)
+        fig.savefig(s,bbox_inches='tight',dpi=300)
+        plt.close(fig)
     
 
 

@@ -74,7 +74,7 @@ ax.plot(redshift,mass)
 ax.set_xlabel('Redshift')
 ax.invert_xaxis()
 ax.set_ylabel('Total Mass [log Msun]')
-fig.savefig('filamentProps_mass.png',bbox_inches='tight',dpi=300)
+fig.savefig('filamentProps_mass.pdf',bbox_inches='tight',dpi=300)
 
 
 # In[ ]:
@@ -85,7 +85,7 @@ ax.set_ylim([-5.5,-2.5])
 ax.set_xlabel('Redshift')
 ax.invert_xaxis()
 ax.set_ylabel('Median Density [log cm$^{-3}$]')
-fig.savefig('filamentProps_density.png',bbox_inches='tight',dpi=300)
+fig.savefig('filamentProps_density.pdf',bbox_inches='tight',dpi=300)
 
 
 # In[ ]:
@@ -96,5 +96,5 @@ ax.set_ylim([3.5,4.5])
 ax.set_xlabel('Redshift')
 ax.invert_xaxis()
 ax.set_ylabel('Median Temperature [log K]')
-fig.savefig('filamentProps_temperature.png',bbox_inches='tight',dpi=300)
+fig.savefig('filamentProps_temperature.pdf',bbox_inches='tight',dpi=300)
 

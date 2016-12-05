@@ -145,9 +145,9 @@ for i in range(len(fields)):
                 frameon=True,fontsize='small')
         
         if excludeCGM:
-            s = './denseCuts/simple/density_cuts_evolution_noCGM_{0:s}.png'.format(fieldBase+stat)
+            s = './denseCuts/simple/density_cuts_evolution_noCGM_{0:s}.pdf'.format(fieldBase+stat)
         else:
-            s = './denseCuts/simple/density_cuts_evolution_{0:s}.png'.format(fieldBase+stat)
+            s = './denseCuts/simple/density_cuts_evolution_{0:s}.pdf'.format(fieldBase+stat)
         fig.savefig(s,bbox_inches='tight',dpi=300)
         plt.close(fig)
 

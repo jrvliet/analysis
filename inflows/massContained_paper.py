@@ -26,7 +26,7 @@ rvirs = ['rho{0:s}Rvir'.format(i) for i in fractions]
 proper = ['rho{0:s}kpc'.format(i) for i in fractions]
 comoving = ['rho{0:s}cokpc'.format(i) for i in fractions]
 
-fields = [rvirs,proper]
+fields = [rvirs,proper,masses]
 
 
 fname = dataloc+filename
@@ -34,8 +34,9 @@ store = pd.HDFStore(fname)
 
 fig1,ax1 = plt.subplots(1,1,figsize=(5,5))
 fig2,ax2 = plt.subplots(1,1,figsize=(5,5))
-axes = [ax1,ax2]
-figs = [fig1,fig2]
+fig3,ax3 = plt.subplots(1,1,figsize=(5,5))
+axes = [ax1,ax2,ax3]
+figs = [fig1,fig2,fig3]
 markers = 'o ^ s * x d'.split()
 
 labels = ['$-3.0<log(n_H)<-2.5$', '$-3.5<log(n_H)<-3.0$', 
@@ -54,22 +55,24 @@ for dfLabel,marker,label in zip(store,markers,labels):
         print('\t',field)
         ax.plot(df['redshift'],df[field[-1]],marker=marker,label=label)
 
-ax1.invert_xaxis()
-ax2.invert_xaxis()
-ax1.set_xlabel('Redshift')
-ax2.set_xlabel('Redshift')
+for ax in axes:
+    ax.invert_xaxis()
+    ax.set_xlabel('Redshift')
+    ax.legend(loc='best',fontsize='small')
+
 ax1.set_ylabel('$r_{90}$ [Rvir]')
 ax2.set_ylabel('$r_{90}$ [pkpc]')
-
-ax1.legend(loc='best',fontsize='small')
-ax2.legend(loc='best',fontsize='small')
+ax3.set_ylabel('Fraction of Mass Contained')
 
 s1 = 'filamentRadius_rvir.pdf'
 s2 = 'filamentRadius_pkpc.pdf'
+s3 = 'filamentRadius_masses.pdf'
 fig1.savefig(s1,bbox_inches='tight',dpi=300)
 fig2.savefig(s2,bbox_inches='tight',dpi=300)
+fig3.savefig(s3,bbox_inches='tight',dpi=300)
 plt.close(fig1)
 plt.close(fig2)
+plt.close(fig3)
 
 store.close()
 

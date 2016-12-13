@@ -11,27 +11,21 @@ def plotStat(df,stat,tempLabel):
     fig,ax = plt.subplots(1,1,figsize=(5,5))
     for name in df.columns:
         if stat in name:
-            ax.plot(df['a'],np.log10(df[name]),label=name.strip(stat)+'Z')
-            print('{0:s}\t{1:s}\t{2:.3f}-{3:.3f}'.format(name,tempLabel,
-                    np.log10(df[name].min()),np.log10(df[name].max())))
+            ax.plot(df['a'],df[name],label=name.strip(stat)+'Z')
+
+    if 'mean' in stat.lower():
+        ax.set_ylim([0,4.5])
+    elif 'std' in stat.lower():
+        ax.set_ylim([0,2])
 
     ax.set_xlabel('Expansion Parameter')
-    
-    ylab = r'log($P_{{{0:s}}})$'.format(stat.lower())
-    if 'mean' in stat.lower():
-        ylab = r'log($\bar{P})$'
-        ax.set_ylim([-16,-13])
-    elif 'std' in stat.lower():
-        ylab = r'log($\sigma_{P}$)'
-        ax.set_ylim([-17,-12])
-    ax.set_ylabel(ylab)
-    #ax.set_yscale('log')
+    ax.set_ylabel('{0:s} Distance [Rvir]'.format(stat))
     ax.legend(loc='best')
     ymin,ymax = ax.get_ylim()
     ax.vlines(0.29,ymin,ymax,linestyle='dashed')
     ax.vlines(0.32,ymin,ymax,linestyle='dashed')
     ax.vlines(0.35,ymin,ymax,linestyle='dashed')
-    s = 'pressureStats_{0:s}_{1:s}.png'.format(stat.lower(),tempLabel)
+    s = 'distanceStats_{0:s}_{1:s}.png'.format(stat.lower(),tempLabel)
     fig.savefig(s,bbox_inches='tight',dpi=300)
     plt.close(fig)
 
@@ -39,9 +33,10 @@ def plotStat(df,stat,tempLabel):
 
 
 dataloc = '/home/jacob/research/code/analysis/inflows/'
-filename = 'pressureStats_noCGM_{0:s}.h5'
+filename = 'distanceStats_noCGM_{0:s}.h5'
 
 tempLabels = 'cool warm hot'.split()
+
 for tempLabel in tempLabels:
     fname = dataloc+filename.format(tempLabel)
 

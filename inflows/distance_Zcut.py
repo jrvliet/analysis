@@ -1,6 +1,6 @@
 
 '''
-Plots the distribution of pressure in gas when binned by temperature
+Plots the distribution of distance in gas when binned by temperature
 (cool, warm, hot) and metallicity
 '''
 
@@ -34,7 +34,7 @@ loT,hiT = 3.5,4.5
 lowestT,highestT = 3.5,6.5
 nTempBins = 3
 tempBins = np.linspace(lowestT,highestT,nTempBins+1)
-tempLabels = ['cool','warm','hot']
+tempLabels = 'cool warm hot'.split()
 
 header = 'a min 25 50 75 max mean'.split()
 header = ['a rvir loMean loStd '
@@ -54,6 +54,7 @@ for tempInd in range(nTempBins):
 
     statsArr = np.zeros((len(expns),len(header)))
     stats = pd.DataFrame(statsArr,columns=header)
+
     for i,a in enumerate(expns):
         
         print('\t',a)
@@ -79,7 +80,7 @@ for tempInd in range(nTempBins):
         df = df[tempInd & densInd & spacInd & distInd]
 
         df['metal'] = np.log10(mfToZ(df['SNII']+df['SNIa']))
-        df['pressure'] = df['density']*boltz*df['temperature']
+        #df['pressure'] = df['density']*boltz*df['temperature']
         #df['metal'] = np.log10(mfToZ(df['SNII']))
 
         fig,ax = plt.subplots(1,1,figsize=(5,5))
@@ -92,19 +93,20 @@ for tempInd in range(nTempBins):
             zInd = (df['metal']>loZ) & (df['metal']<hiZ)
             cl = df[zInd]
 
-            stats[zBinLabel+'Mean'].ix[i] = cl['pressure'].mean()
-            stats[zBinLabel+'Std'].ix[i] = cl['pressure'].std()
 
-            ax.hist(np.log10(cl['pressure']),bins=25,log=True,
+            stats[zBinLabel+'Mean'].ix[i] = cl['r'].mean()
+            stats[zBinLabel+'Std'].ix[i] = cl['r'].std()
+
+            ax.hist(cl['r'],bins=25,log=True,
                     histtype='step',label=zBinLabel)
             
         ax.legend(loc='best')
         
         ax.set_title(a)
-        fig.savefig('pressure_Zcut_a{0:.3f}_{1:s}.png'.format(a,tempLabel))
+        fig.savefig('dist_Zcut_a{0:.3f}_{1:s}.png'.format(a,tempLabel))
         plt.close(fig)
 
-    s = 'pressureStats_noCGM_{0:s}.h5'.format(tempLabel)
+    s = 'distanceStats_noCGM_{0:s}.h5'.format(tempLabel)
     stats.to_hdf(s,'data',mode='w')
 
 

@@ -15,15 +15,17 @@ filename = 'vela2b-27_GZa0.490.rot.h5'
 fname = dataloc+filename
 df = pd.read_hdf(fname,'data')
 
-df['r'] = np.loadtxt(df['x']**2 + df['y']**2 + df['z']**2)
+df['r'] = np.sqrt(df['x']**2 + df['y']**2 + df['z']**2)
+df['speed'] = np.sqrt(df['vx']**2 + df['vy']**2 + df['vz']**2)
 
+fields = 'speed density temperature SNII SNIa'.split()
 logfields = 'density temperature SNII SNIa'.split()
 for field in logfields:
-    df[field] = np.log10(df[field])
+    df['log'+field] = np.log10(df[field])
 
 methods = 'pearson kendall spearman'.split()
 
-cor = np.zeros((len(logfields),len(methods)))
+cor = np.zeros((len(logfields)*2,len(methods)))
 
 
 for i,field in enumerate(logfields):

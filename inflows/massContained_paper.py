@@ -12,13 +12,16 @@ import matplotlib as mp
 mp.use('Agg')
 import matplotlib.pyplot as plt
 
-def mkLines(ax,ymin,ymax):
+def mkLines(ax):
+    ymin,ymax = ax.get_ylim()
     points = [0.29, 0.32, 0.35]
+    points = [2.448,2.125,1.857,1.]
     for point in points:
         ax.vlines(point,ymin,ymax,linestyle='dashed',color='red')
+    ax.set_ylim([ymin,ymax])
 
 dataloc = '/home/jacob/research/code/analysis/inflows/'
-filename = 'massContained.h5'
+filename = 'massContainedSimple.h5'
 
 fractions = '25 50 75 90'.split()
 masses = ['m{0:s}'.format(i) for i in fractions]
@@ -38,10 +41,14 @@ fig3,ax3 = plt.subplots(1,1,figsize=(5,5))
 axes = [ax1,ax2,ax3]
 figs = [fig1,fig2,fig3]
 markers = 'o ^ s * x d'.split()
+markers = 'o ^ s'.split()
 
 labels = ['$-3.0<log(n_H)<-2.5$', '$-3.5<log(n_H)<-3.0$', 
           '$-4.0<log(n_H)<-3.5$', '$-4.0<log(n_H)<-4.5$', 
           '$-5.0<log(n_H)<-4.5$', '$-5.0<log(n_H)<-5.5$']
+labels = ['$-3.5<log(n_H)<-2.5$',
+          '$-4.5<log(n_H)<-3.5$',
+          '$-5.5<log(n_H)<-4.5$']
 
 # Loop over density cuts
 for dfLabel,marker,label in zip(store,markers,labels):
@@ -58,15 +65,19 @@ for dfLabel,marker,label in zip(store,markers,labels):
 for ax in axes:
     ax.invert_xaxis()
     ax.set_xlabel('Redshift')
-    ax.legend(loc='best',fontsize='small')
+    mkLines(ax)
+
+ax1.legend(loc='lower left',fontsize='x-small')
+ax2.legend(loc='upper left',fontsize='x-small')
+ax3.legend(loc='center left',fontsize='x-small')
 
 ax1.set_ylabel('$r_{90}$ [Rvir]')
 ax2.set_ylabel('$r_{90}$ [pkpc]')
 ax3.set_ylabel('Fraction of Mass Contained')
 
-s1 = 'filamentRadius_rvir.pdf'
-s2 = 'filamentRadius_pkpc.pdf'
-s3 = 'filamentRadius_masses.pdf'
+s1 = 'filamentRadius_rvir_simple.pdf'
+s2 = 'filamentRadius_pkpc_simple.pdf'
+s3 = 'filamentRadius_masses_simple.pdf'
 fig1.savefig(s1,bbox_inches='tight',dpi=300)
 fig2.savefig(s2,bbox_inches='tight',dpi=300)
 fig3.savefig(s3,bbox_inches='tight',dpi=300)

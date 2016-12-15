@@ -56,7 +56,7 @@ columns = ['a m25 rho25Rvir rho25kpc rho25cokpc '
            'm90 rho90Rvir rho90kpc rho90cokpc'][0].split()
 
 lowestN,highestN = -5.5,-2.5
-numNbins = 6
+numNbins = 3
 denseBins = np.linspace(lowestN,highestN,numNbins+1)
 denseLabels = []
 for i in range(numNbins):
@@ -130,7 +130,7 @@ for i,a in enumerate(expns):
             #results[j,i,ind+4] = (containingRadius*rvir)/a
             ind += 4
 
-store = pd.HDFStore('massContained.h5',mode='w')
+store = pd.HDFStore('massContainedSimple.h5',mode='w')
 for i in range(numNbins):
     res = results[i]
     df = pd.DataFrame(res,columns=columns)
@@ -138,5 +138,5 @@ for i in range(numNbins):
 store.close()
 
 df = pd.DataFrame(fullResults,columns=fullCols)
-df.to_hdf('totalFilamentProps.h5','data',mode='w')
+df.to_hdf('totalFilamentPropsSimple.h5','data',mode='w')
 

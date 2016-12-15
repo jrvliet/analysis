@@ -27,6 +27,13 @@ def getMass(a):
 
     return mstar,mvir,rvir,mgas
 
+def mkLines(ax):
+    ymin,ymax = ax.get_ylim()
+    points = [2.448,2.125,1.857]
+    for point in points:
+        ax.vlines(point,ymin,ymax,linestyle='dashed',linewidth=1,color='black')
+    ax.set_ylim([ymin,ymax]) 
+    
 
 times = pd.read_csv('lookback_time.csv',index_col='a')
 
@@ -35,7 +42,7 @@ a = 0.200
 mstar1,mvir1,rvir1,mgas1 = getMass(a)
 timestep = times.ix[a]['Time until next [Myr]']*1e6
 
-expns = [i/100. for i in range(21,50)]
+expns = [i/100. for i in range(21,55)]
 
 header = ['a','mstar','mvir','sfr','ssfr']
 data = np.zeros(len(header))
@@ -66,31 +73,28 @@ data = np.delete(data,(0),axis=0)
 df = pd.DataFrame(data,columns=header)
 df.to_csv('vela2b-27_sfr.csv',index=False)
 
+df['redshift'] = 1./df['a'] - 1.
 
+# Plot SFR
+fig,ax = plt.subplots(1,1,figsize=(5,5))
+ax.plot(df['redshift'],df['sfr'],color='black')
+ax.set_ylabel('SFR [M$_{\odot}$ yr$^{-1}$]')
+ax.set_xlabel('Redshift')
+ax.invert_xaxis()
+mkLines(ax)
+s = 'vela2b-27_sfr.pdf'
+fig.savefig(s,bbox_inches='tight',dpi=300)
+plt.close(fig)
 
-fig,(ax1,ax2) = plt.subplots(1,2,figsize=(10,5))
-ax1.plot(df['a'],df['sfr'])
-ax2.plot(df['a'],df['ssfr'])
-ax1.set_ylabel('SFR')
-ax2.set_ylabel('sSFR')
-ax1.set_xlabel('a')
-ax2.set_xlabel('a')
-# Merger event
-ax1.vlines(0.29,df['sfr'].min(),df['sfr'].max(),colors='red',linestyle='dashed',linewidth=2)
-ax1.vlines(0.32,df['sfr'].min(),df['sfr'].max(),colors='red',linestyle='dashed',linewidth=2)
-ax2.vlines(0.29,df['ssfr'].min(),df['ssfr'].max(),colors='red',linestyle='dashed',linewidth=2)
-ax2.vlines(0.32,df['ssfr'].min(),df['ssfr'].max(),colors='red',linestyle='dashed',linewidth=2)
-# Dispersion event
-ax1.vlines(0.35,df['sfr'].min(),df['sfr'].max(),colors='green',linestyle='dashed',linewidth=2)
-ax1.vlines(0.45,df['sfr'].min(),df['sfr'].max(),colors='green',linestyle='dashed',linewidth=2)
-ax2.vlines(0.35,df['ssfr'].min(),df['ssfr'].max(),colors='green',linestyle='dashed',linewidth=2)
-ax2.vlines(0.45,df['ssfr'].min(),df['ssfr'].max(),colors='green',linestyle='dashed',linewidth=2)
-fig.tight_layout()
-fig.savefig('vela2b-27_sf.png',bbox_inches='tight',dpi=300)
-
-
-
-
-
+# Plot sSFR
+fig,ax = plt.subplots(1,1,figsize=(5,5))
+ax.plot(df['redshift'],df['ssfr'],color='black')
+ax.set_ylabel('sSFR [yr$^{-1}$]')
+ax.set_xlabel('Redshift')
+ax.invert_xaxis()
+mkLines(ax)
+s = 'vela2b-27_ssfr.pdf'
+fig.savefig(s,bbox_inches='tight',dpi=300)
+plt.close(fig)
 
 

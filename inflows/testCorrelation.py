@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 loc = '/home/jacob/research/velas/vela2b/vela27/'
-loc = '/mnt/cluster/abs/cgm/vela2b/'
+loc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
 filename = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.rot.h5'
 expns = [0.540]
 expns = np.arange(0.200,0.550,0.01)

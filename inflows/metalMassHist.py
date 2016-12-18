@@ -54,7 +54,9 @@ def cellMass(n,l):
 # In[19]:
 
 loc = '/home/jacob/research/velas/vela2b/vela27/'
+loc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
 filename = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.rot.h5'
+rotname = 'a{0:.3f}/rotmat_a{0:.3f}.txt'
 expns = np.arange(0.200,0.550,0.01)
 
 
@@ -71,8 +73,15 @@ maxMetal = pd.DataFrame(maxMetal,columns=header)
 
 for i,a in enumerate(expns):
     print(a)
+
+    rname = loc+rotname.format(a)
+    with open(rname) as f:
+        f.readline()
+        rvir = float(f.readline().split()[3])
+
     fname = loc+filename.format(a)
     df = pd.read_hdf(fname,'data')
+    df['r'] = np.sqrt(df['xRot']**2 + df['yRot']**2 + df['zRot']**2)
     tempInds = (df['temperature']>10**loT) & (df['temperature']<10**hiT)
     densInds = (df['density']>10**loN) & (df['density']<10**hiN)
     spacInds = (df['theta']<80)
@@ -86,7 +95,7 @@ for i,a in enumerate(expns):
                                 np.log10(fil['temperature']),fil['metalMass'],
                                 'sum','Density','Temperature',loN,hiN,loT,hiT)
     ax.set_title('{0:.3f}'.format(a))
-    s = 'metalMassHist_a{0:.3f}.png'.format(a)
+    s = 'metalMassHist_a{0:.3f}_noCGM.png'.format(a)
     fig.savefig(s,bbox_inches='tight',dpi=300)
     plt.close(fig)
 
@@ -101,7 +110,7 @@ for i,a in enumerate(expns):
     maxMetal['tMax'].ix[i] = tMax
 
     
-hdfFile = 'maxMetalPhase.h5'
+hdfFile = 'maxMetalPhase_noCGM.h5'
 maxMetal.to_hdf(hdfFile,'data',mode='w')
 
 

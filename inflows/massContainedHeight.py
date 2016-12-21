@@ -41,8 +41,6 @@ def mkHist(ax,x,y,z,stat,xlabel,ylabel):
                     format=ticker.FuncFormatter(fmt))
     return h,xedges,yedges,binnumber
 
-
-
 kpc2km = 3.086e16 
 pc2cm = 3.086e18 
 mH = 1.6737e-24 
@@ -57,14 +55,14 @@ store = pd.HDFStore('massContainedHeight.h5',mode='w')
 
 expns = np.arange(0.200,0.550,0.01)
 
-header = 'loz hiz meanz rho90rvir rho90pkpc massFrac'.split()
+header = 'loz hiz meanz rho90rvir rho90pkpc massFrac mass numcells'.split()
 
 # Phase selection
 loT,hiT = 3.5,4.5
 lowestN,highestN = -5.5,-2.5
 numNbins = 3
 denseBins = np.linspace(lowestN,highestN,numNbins+1)
-denseLabels = 'low midLow midHigh high'.split()
+denseLabels = 'low mid high'.split()
 
 minHeight, maxHeight = 0,6
 numHeightBins = 12
@@ -93,10 +91,11 @@ for i,a in enumerate(expns):
         
         loN = denseBins[j]
         hiN = denseBins[j+1]
+        print('\tloN,hiN = {0:.1f},{1:.1f}'.format(loN,hiN))
     
         denseInds = (df['density']>10**loN) & (df['density']<10**hiN)
 
-        results = np.zeros((len(heightBins),len(header)))
+        results = np.zeros((numHeightBins,len(header)))
     
         for k in range(numHeightBins):
 
@@ -104,50 +103,66 @@ for i,a in enumerate(expns):
             loz = heightBins[k]*rvir
             hiz = heightBins[k+1]*rvir
             heightInds = (df['zRot']>loz) & (df['zRot']>hiz)
+        
 
             # Select out filament material
             fil = df[tempInds & denseInds & spaceInds & heightInds]
             fil['rho'] = np.sqrt(fil['xRot']**2 + fil['yRot']**2)/rvir
 
-            rhoMin = 0
-            rhoMax = 3
-            rhoBins = np.linspace(rhoMin,rhoMax,5000)
+            print('\t\tloz,hiz = {0:.1f},{1:.1f}\tnumcells = {2:d}'.format(
+                    loz,hiz,len(fil)))
 
-            # Move through bins of rho
-            # Determine mass within each distance
-            mIn = []
-            for l in range(len(rhoBins)):
-                insideInds = fil['rho']<=rhoBins[l]
-                massInside = fil['mass'][insideInds].sum()
-                mIn.append(massInside)
+            if len(fil)>0:
 
-            # Determine the distance that contains 90% of the mass
-            fraction = 0.90
-            m90 = mIn[-1]*fraction
-            percentile = np.digitize(np.array(m90),mIn)
-            containingRadius = rhoBins[percentile]
+                meanz = fil['zRot'].mean()/rvir
+                rhoMin = 0
+                rhoMax = 3
+                rhoBins = np.linspace(rhoMin,rhoMax,5000)
 
-            volume = fil['r'].max()*np.pi*(containingRadius*rvir)**2
+                # Move through bins of rho
+                # Determine mass within each distance
+                mIn = []
+                for l in range(len(rhoBins)):
+                    insideInds = fil['rho']<=rhoBins[l]
+                    massInside = fil['mass'][insideInds].sum()
+                    mIn.append(massInside)
+                
+                fig,ax = plt.subplots(1,1,figsize=(5,5))
+                ax.plot(rhoBins,mIn)
+                ax.set_xlabel('Rho')
+                ax.set_ylabel('mIn')
+                fig.savefig('mIn.png')
+                plt.close(fig)
 
-            results[k,0] = loz
-            results[k,1] = hiz
-            results[k,2] = fil['zRot'].mean()/rvir
+                totalMass = mIn[-1]
+                # Determine the distance that contains 90% of the mass
+                fraction = 0.90
+                m90 = mIn[-1]*fraction
+                percentile = np.digitize(np.array(m90),mIn)
+                containingRadius = rhoBins[percentile]
+
+                volume = fil['r'].max()*np.pi*(containingRadius*rvir)**2
+
+            else:
+                meanz = np.nan
+                containingRadius = np.nan
+                m90 = np.nan
+                totalMass = np.nan
+    
+            results[k,0] = loz/rvir
+            results[k,1] = hiz/rvir
+            results[k,2] = meanz
             results[k,3] = containingRadius
             results[k,4] = containingRadius*rvir
             results[k,5] = m90/totalMass
-            
-            #results[j,i,ind+1] = m90/totalMass
-            #results[j,i,ind+2] = containingRadius
-            #results[j,i,ind+3] = containingRadius*rvir
-            #results[j,i,ind+4] = mIn[-1]/volume
-            #results[j,i,ind+4] = (containingRadius*rvir)/a
-            #ind += 4
-
+            results[k,6] = np.log10(totalMass)
+            results[k,7] = len(fil)
+                
         denseLabel = denseLabels[j]
         expnLabel = 'a{0:d}'.format(int(a*1000))
         path = '{0:s}/{1:s}'.format(expnLabel,denseLabel)
-        df = pd.DataFrame(results,columns=header)
+        resultsdf = pd.DataFrame(results,columns=header)
 
-        store[path] = df
+        store[path] = resultsdf
 
 store.close()

@@ -48,6 +48,7 @@ mSun = 1.989e33
 s2yr = 3.154e7 
 
 dataloc = '/home/jacob/research/velas/vela2b/vela27/'
+dataloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
 filename = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.rot.h5'
 rotname = 'a{0:.3f}/rotmat_a{0:.3f}.txt'
 

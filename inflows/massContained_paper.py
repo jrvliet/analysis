@@ -55,6 +55,8 @@ for dfLabel,marker,label in zip(store,markers,labels):
 
     print(dfLabel)
     df = store[dfLabel]
+    index = df['a']<0.5
+    df = df[index]
     
     df['redshift'] = 1./df['a'] - 1
 

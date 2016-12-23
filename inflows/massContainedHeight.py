@@ -56,7 +56,7 @@ store = pd.HDFStore('massContainedHeight.h5',mode='w')
 
 expns = np.arange(0.200,0.550,0.01)
 
-header = 'loz hiz meanz rho90rvir rho90pkpc massFrac mass numcells'.split()
+header = 'loz hiz meanz rho90rvir rho90pkpc metalmass mass numcells'.split()
 
 # Phase selection
 loT,hiT = 3.5,4.5
@@ -65,8 +65,8 @@ numNbins = 3
 denseBins = np.linspace(lowestN,highestN,numNbins+1)
 denseLabels = 'low mid high'.split()
 
-minHeight, maxHeight = 0,6
-numHeightBins = 12
+minHeight, maxHeight = 0,4
+numHeightBins = 8
 heightBins = np.linspace(minHeight,maxHeight,numHeightBins+1)
 
 for i,a in enumerate(expns):
@@ -81,6 +81,7 @@ for i,a in enumerate(expns):
     fname = dataloc + filename.format(a)
     df = pd.read_hdf(fname,'data')
     df['mass'] = df['density']*mH*(df['cell_size']*pc2cm)**3 / mSun
+    df['metalmass'] = df['mass']*(df['SNII']+df['SNIa'])
 
     tempInds = (df['temperature']>10**loT) & (df['temperature']<10**hiT)
     spaceInds = (df['theta']<80) & (df['r']>0.5*rvir)
@@ -136,6 +137,7 @@ for i,a in enumerate(expns):
                 plt.close(fig)
 
                 totalMass = mIn[-1]
+                totalMetalMass = fil['metalmass'].sum()
                 # Determine the distance that contains 90% of the mass
                 fraction = 0.90
                 m90 = mIn[-1]*fraction
@@ -149,13 +151,14 @@ for i,a in enumerate(expns):
                 containingRadius = np.nan
                 m90 = np.nan
                 totalMass = np.nan
+                totalMetalMass = np.nan
     
             results[k,0] = loz/rvir
             results[k,1] = hiz/rvir
             results[k,2] = meanz
             results[k,3] = containingRadius
             results[k,4] = containingRadius*rvir
-            results[k,5] = m90/totalMass
+            results[k,5] = np.log10(totalMetalMass)
             results[k,6] = np.log10(totalMass)
             results[k,7] = len(fil)
                 

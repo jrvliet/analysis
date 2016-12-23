@@ -36,7 +36,7 @@ def mkHist(ax,x,y,z,stat,xlabel,ylabel,lox,hix,loy,hiy,field):
     #if vmax<h.max():
     #    print('Exceeds\t',h.max())
     h = np.ma.masked_where(h==0,h)
-    h = np.log10(h)
+#    h = np.log10(h)
     print(h.max(),np.percentile(h,10))
 
     mesh = ax.pcolormesh(xedges,yedges,h)

@@ -56,7 +56,7 @@ for i,a in enumerate(expns):
     
     print(a)
     # Get rvir
-    rvir = virial[np.isclose(virial['a'],expns[0])]['rvir'].values[0]
+    rvir = virial[np.isclose(virial['a'],a)]['rvir'].values[0]
     
     # Read in data
     fname = dataloc+filename.format(a)

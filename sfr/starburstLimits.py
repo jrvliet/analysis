@@ -7,7 +7,7 @@ from __future__ import print_function
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-get_ipython().magic(u'matplotlib inline')
+#get_ipython().magic(u'matplotlib inline')
 
 
 # In[2]:
@@ -29,19 +29,13 @@ ave = df['sfr'].mean()
 med = df['sfr'].median()
 
 
-# In[14]:
-
-med
-
-
-# In[7]:
-
-sigma
+print('Max:    ',df['sfr'].max())
+print('Mean:   ',ave)
+print('Median: ',med)
+print('Std:    ',sigma)
 
 
 # In[10]:
-
-ave
 
 
 # In[24]:
@@ -67,7 +61,7 @@ df['sfr'][df['sfr'] >ave+sigma]
 
 # In[25]:
 
-baseSFRStd
+print(baseSFRStd)
 
 
 # In[33]:
@@ -93,7 +87,8 @@ iqr = q3-q1
 
 # In[43]:
 
-lq,uq,iqr
+print('\nQuartiles:')
+print(q1,q3,iqr)
 
 
 # In[44]:
@@ -134,11 +129,12 @@ burst = df[['a','sfr']][df['sfr']>baseSFRMean+multiple*baseSFRStd]
 fig,ax = plt.subplots(1,1,figsize=(5,5))
 ax.plot(df['a'],df['sfr'])
 ax.plot(burst['a'],burst['sfr'],linestyle='none',marker='s',color='r')
+fig.savefig('burst.png')
 
 
 # In[57]:
 
-burst['a']
+print(burst['a'])
 
 
 # In[ ]:

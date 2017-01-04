@@ -63,6 +63,11 @@ for i in range(numNbins):
     s = 'nLim=({0:.1f},{1:.1f})'.format(denseBins[i],denseBins[i+1])
     denseLabels.append(s)
 
+lowestT,highestT = 3.5,6.5
+numTbins = 3
+tempBins = np.linspace(lowestT,highestT,numTbins+1)
+tempLabels = 'cool warm hot'.split()
+
 results = np.zeros((numNbins,len(expns),len(columns)))
 
 fullCols = 'expn fullMass meanDense medianDense'.split()

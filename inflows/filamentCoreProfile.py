@@ -56,16 +56,32 @@ for a in expns:
     slope.append(results.params[1])
     print(a,edge)
 
+    fig,ax = plt.subplots(1,1,figsize=(5,5))
+    ax.plot(r,n)
+    y = results.params[0] + results.params[1]*r
+    print(len(y),len(r))
+    ax.plot(r,y)
+    ax.set_xlabel('Rho')
+    ax.set_ylabel('Density')
+    ax.set_title(a)
+    s = 'filamentCoreProfile_a{0:.3f}.png'.format(a)
+    fig.savefig(s,bbox_inches='tight',dpi=300)
+    plt.close(fig)
+
+
+    
+
 
 fig,(ax1,ax2) = plt.subplots(1,2,figsize=(10,5))
-ax1.plot(a,inter)
+ax1.plot(expns,inter)
 ax1.set_xlabel('Expn')
 ax1.set_ylabel('Intercept')
 
-ax2.plot(a,slope)
+ax2.plot(expns,slope)
 ax2.set_xlabel('Expn')
 ax2.set_ylabel('Slope')
 
+fig.tight_layout()
 s = 'filamentCore_fitParams.png'
 fig.savefig(s,bbox_inches='tight',dpi=300)
 
@@ -98,11 +114,4 @@ results.params
 
 
 # In[56]:
-
-fig,ax = plt.subplots(1,1,figsize=(5,5))
-ax.plot(r,n)
-y = results.params[0] + results.params[1]*r
-print(len(y),len(r))
-ax.plot(r,y)
-
 

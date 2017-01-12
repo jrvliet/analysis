@@ -56,6 +56,23 @@ def mkLines(ax):
 
 
 excludeCGM = False
+# Properties to be plotted
+fields = ['speedStd','stdDev','valongStd','vperpStd','locStd',
+          'snIIStd','snIaStd','snIImean','snIamean',
+          'rMean','rStd','nHmean','nHStd','tMean','tStd',
+          'rMeanMod','speedMean','valongMean','vperpMean', 'numCells',
+          'vStatMean','vStatStd','vrMean','vrStd',
+          'vzRotMean','vzRotStd','vrhoRotMean','vrhoRotStd']
+fields = ('speed valong vperp r rMod thetaRot phiRot numCellsFrac '
+          'SNII SNIa density temperature mass pressure '
+          'vr vzRot vrhoRot vthetaRot vphiRot thermalV').split()
+stats = 'Mean Std Ratio MeanMW Median'.split()
+
+fields = 'vr SNII  r speed'.split()
+stats = 'Mean Std Median'.split()
+ylabs = ['Radial Velocity [km/s]','SNII Mass Fraction',
+        'Distance [kpc]','Speed [km/s]']
+
 
 # Read in times
 times = pd.read_csv('lookback_time.csv')
@@ -75,65 +92,59 @@ tempLabels = ['cool','warm','hot']
 
 # Read in data
 tempLabel = 'cool'
-filename = filebase.format(tempLabel)
-df = pd.read_hdf(loc+filename,'data')
+tempLablels = 'cool warm hot'.split()
 
-# Cut out rows with low number of cells
-numCellLim = 1e4
-print('\n{0:s}'.format(tempLabel))
+for tempLabel in tempLabels:
+    filename = filebase.format(tempLabel)
+    df = pd.read_hdf(loc+filename,'data')
 
-# Add a column to the dataframe that is the age of the
-# universe at that expnansion parameter
-age = np.zeros(len(df['a']))
-for i,a in enumerate(df['a']):
-    index = float('{0:.2f}'.format(a))
-    age[i] = times['age [Gyr]'].ix[index]
-df['age'] = age
+    # Cut out rows with low number of cells
+    numCellLim = 1e4
+    print('\n{0:s}'.format(tempLabel))
 
-# Calculate combined standard deviations
-df['locStd'] = np.sqrt((df['xRotStd']**2 + df['yRotStd']**2)/df['zRotStd']**2)
+    # Add a column to the dataframe that is the age of the
+    # universe at that expnansion parameter
+    age = np.zeros(len(df['a']))
+    for i,a in enumerate(df['a']):
+        index = float('{0:.2f}'.format(a))
+        age[i] = times['age [Gyr]'].ix[index]
+    df['age'] = age
 
-groups = df.groupby(['loN','hiN'])
+    groups = df.groupby(['loN','hiN'])
 
-print('Data read in')
+    print('Data read in')
 
-# Properties to be plotted
-fields = ['speedStd','stdDev','valongStd','vperpStd','locStd',
-          'snIIStd','snIaStd','snIImean','snIamean',
-          'rMean','rStd','nHmean','nHStd','tMean','tStd',
-          'rMeanMod','speedMean','valongMean','vperpMean', 'numCells',
-          'vStatMean','vStatStd','vrMean','vrStd',
-          'vzRotMean','vzRotStd','vrhoRotMean','vrhoRotStd']
-fields = ('speed valong vperp r rMod thetaRot phiRot numCellsFrac '
-          'SNII SNIa density temperature mass pressure '
-          'vr vzRot vrhoRot vthetaRot vphiRot thermalV').split()
-stats = 'Mean Std Ratio MeanMW Median'.split()
+    print(len(fields))
+    # Loop over the fields and plot them
+    for i in range(len(fields)):
+        fieldBase = fields[i]
+        print(fieldBase)
 
-fields = 'vr SNII'.split()
-stats = 'Mean Std Median'.split()
-ylabs = ['Radial Velocity [km/s]','SNII Mass Fraction']
+        for stat in stats:
+            fig,ax = plt.subplots(1,1,figsize=(5,5))
+            mkPlot(ax,groups,fieldBase,stat,tempLabel,ylabs[i])
 
-print(len(fields))
-# Loop over the fields and plot them
-for i in range(len(fields)):
-    fieldBase = fields[i]
-    print(fieldBase)
+            #ax.set_ylim([lowest,uppest])
+            
+            if fieldBase=='SNII':
+                ax.set_ylim([1e-5,1e-2])
+            if fieldBase=='Z':
+                print(ax.get_ylim())
+                ax.set_yscale('log')
+            if fieldBase=='speed':
+                ax.set_ylim([0,350])
+            if fieldBase=='vr':
+                ax.set_ylim([-250,300])
 
-    for stat in stats:
-        fig,ax = plt.subplots(1,1,figsize=(5,5))
-        mkPlot(ax,groups,fieldBase,stat,tempLabel,ylabs[i])
-
-        #ax.set_ylim([lowest,uppest])
-        
-        mkLines(ax)
-        ax.legend(loc='best',ncol=1,labelspacing=0,
-                frameon=True)#,fontsize='small')
-        if fieldBase=='SNII':
-            ax.set_ylim([1e-5,1e-2])
-        
-        s = '{0:s}/simple_denseCut_{1:s}.pdf'.format(plotLoc,fieldBase+stat)
-        fig.savefig(s,bbox_inches='tight',dpi=300)
-        plt.close(fig)
+            
+            mkLines(ax)
+            ax.legend(loc='best',ncol=1,labelspacing=0,
+                    frameon=True)#,fontsize='small')
+            s = '{0:s}/simple_denseCut_{1:s}_{2:s}.pdf'.format(plotLoc,
+                                                        fieldBase+stat,
+                                                        tempLabel)
+            fig.savefig(s,bbox_inches='tight',dpi=300)
+            plt.close(fig)
 
 
 

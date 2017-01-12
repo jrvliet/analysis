@@ -24,6 +24,35 @@ import sys
 
 pd.options.mode.chained_assignment = None
 
+def mfToZ(Z_cell):
+
+    # mfToZ.py
+    #   
+    # Converts mass fractions to Z/Z_sun
+    #   
+    # Z/Z_sun = (Z_m / X_h)_cell
+    #           ----------------
+    #           (Z_m / X_h)_sun
+    #   
+    # where X_h + Y_he + Z_m = 1
+    # Since the simulation does not track Helium, need to assume 
+    # a value for r = Y/X
+    
+
+    # Solar values
+    # Taken from Chris' Notes 
+    X_sun = 0.70683
+    Y_sun = 0.27431
+    Z_sun = 0.0188
+    
+    r = 0.3347
+
+    # Loop through cells
+    X_cell = (1 - Z_cell) / (1 + r)
+    Z = (Z_cell / X_cell) / (Z_sun / X_sun)
+
+    return Z
+
 def fit_line(locM):
     
     covar = locM.cov()
@@ -78,7 +107,7 @@ header = 'a redshift loN hiN numCellsFrac'.split()
 fields = ('speed valong vperp '
           'xRot yRot zRot r rMod rRot thetaRot phiRot '
           'SNII SNIa  density temperature mass pressure '
-          'vr vzRot vrhoRot vthetaRot vphiRot thermalV vrFrac'.split())
+          'vr vzRot vrhoRot vthetaRot vphiRot thermalV vrFrac metallicity'.split())
 fitFields = 'stdDev rayleighLoc rayleighScale rayleighfwhm rayleighStd'.split()
 
 header = header + fitFields
@@ -115,6 +144,7 @@ for i in range(len(temps)):
         df = pd.read_hdf(fname, 'data')
 
         df['r'] = np.sqrt(df['x']**2 + df['y']**2 + df['z']**2)
+        df['metallicity'] = mfToZ(df['SNII']+df['SNIa'])
 
         # Select regions
         tempInd = (df['temperature']>loT) & (df['temperature']<hiT)

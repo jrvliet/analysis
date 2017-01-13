@@ -68,10 +68,10 @@ fields = ('speed valong vperp r rMod thetaRot phiRot numCellsFrac '
           'vr vzRot vrhoRot vthetaRot vphiRot thermalV').split()
 stats = 'Mean Std Ratio MeanMW Median'.split()
 
-fields = 'vr SNII  r speed'.split()
+fields = 'vr SNII  r speed metallicity'.split()
 stats = 'Mean Std Median'.split()
 ylabs = ['Radial Velocity [km/s]','SNII Mass Fraction',
-        'Distance [kpc]','Speed [km/s]']
+        'Distance [kpc]','Speed [km/s]','Metallicity']
 
 
 # Read in times
@@ -128,7 +128,7 @@ for tempLabel in tempLabels:
             
             if fieldBase=='SNII':
                 ax.set_ylim([1e-5,1e-2])
-            if fieldBase=='Z':
+            if fieldBase=='metallicity':
                 print(ax.get_ylim())
                 ax.set_yscale('log')
             if fieldBase=='speed':

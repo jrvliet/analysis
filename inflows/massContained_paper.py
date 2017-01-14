@@ -17,7 +17,7 @@ def mkLines(ax):
     points = [0.29, 0.32, 0.35]
     points = [2.448,2.125,1.857,1.]
     for point in points:
-        ax.vlines(point,ymin,ymax,linestyle='dashed',color='red')
+        ax.vlines(point,ymin,ymax,linestyle='dashed',color='black')
     ax.set_ylim([ymin,ymax])
 
 dataloc = '/home/jacob/research/code/analysis/inflows/'
@@ -49,6 +49,7 @@ labels = ['$-3.0<log(n_H)<-2.5$', '$-3.5<log(n_H)<-3.0$',
 labels = ['$-3.5<log(n_H)<-2.5$',
           '$-4.5<log(n_H)<-3.5$',
           '$-5.5<log(n_H)<-4.5$']
+labels = 'dense mid diffuse'.split()
 
 # Loop over density cuts
 for dfLabel,marker,label in zip(store,markers,labels):
@@ -69,9 +70,9 @@ for ax in axes:
     ax.set_xlabel('Redshift')
     mkLines(ax)
 
-ax1.legend(loc='lower left',fontsize='x-small')
-ax2.legend(loc='upper left',fontsize='x-small')
-ax3.legend(loc='center left',fontsize='x-small')
+ax1.legend(loc='lower left')#,fontsize='small')
+ax2.legend(loc='upper left')#,fontsize='small')
+ax3.legend(loc='center left')#,fontsize='small')
 
 ax1.set_ylabel('$r_{90}$ [Rvir]')
 ax2.set_ylabel('$r_{90}$ [pkpc]')

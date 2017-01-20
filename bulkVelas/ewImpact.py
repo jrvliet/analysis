@@ -52,7 +52,20 @@ for a,aLabel in expns,expnLabels:
         
         impact,ew = np.loadtxt(sysabs,skiprow=1,usecols=(1,5),unpack=True)
 
+        for i in range(numDbins):
+
+            loD = Dbins[i]
+            hiD = Dbins[i+1]
         
+            ews = ew[(impact>=loD) & (impact<hiD)]
+            results[aLabel,ion].iloc[i] = np.mean(ews)
+
+s = 'ewImpact.h5'
+results.to_hdf(s,'data',mode='w')
+
+
+
+
         
 
 

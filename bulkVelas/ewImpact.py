@@ -18,14 +18,14 @@ def galaxyProps(location):
         expn = f.readline().split()[1]
         redshift = f.readline().split()[1]
         mvir = f.readline().split()[1]
-        rvir = f.readline().split()[1]
-        inc = f.readline().split()[1]
+        rvir = float(f.readline().split()[1])
+        inc = int(float(f.readline().strip().split()[1]))
 
     return galID,expn,redshift,mvir,rvir,inc
 
-rootloc = '/mnt/cluster/abs/cgem/velas2b/vela27/'
+rootloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
 subloc = 'a{0:.3f}/i{1:d}/{2:s}/'
-filename = '{0:s}.{1:s}.a{0:.3f}.ALL.sysabs'
+filename = '{0:s}.{1:s}.a{2:.3f}.ALL.sysabs'
 expns = np.arange(0.200,0.540,0.01)
 expnLabels = ['a{0:d}'.format(int(a*1000)) for a in expns]
 
@@ -41,18 +41,27 @@ header = pd.MultiIndex.from_product(header)
 results = np.zeros((numDbins,len(header)))
 results = pd.DataFrame(results,columns=header,index=DbinLabels)
 
-for a,aLabel in expns,expnLabels:
+for a,aLabel in zip(expns,expnLabels):
 
-    loc = rootloc+'a{0:.3f}'.format(a)
+    print(a)
+    loc = rootloc+'a{0:.3f}/'.format(a)
     galID,expn,redshift,mvir,rvir,inc = galaxyProps(loc)
     
     for ion in ions:
 
+        print('\t',ion)
         sysabs = rootloc+subloc.format(a,inc,ion)+filename.format(galID,ion,a)
-        
-        impact,ew = np.loadtxt(sysabs,skiprow=1,usecols=(1,5),unpack=True)
+        impact,ew = np.loadtxt(sysabs,skiprows=1,usecols=(1,5),unpack=True)
 
         
+        for i in range(numDbins):
+            loD = Dbins[i]*rvir
+            hiD = Dbins[i+1]*rvir
+            ews = ew[(impact>=loD) & (impact<hiD)]
+            results[aLabel,ion].iloc[i] = np.mean(ews)
+
+s = 'ewImpact.h5'
+results.to_hdf(s,'data',mode='w')
         
 
 

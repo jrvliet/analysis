@@ -53,7 +53,6 @@ for a,aLabel in zip(expns,expnLabels):
         sysabs = rootloc+subloc.format(a,inc,ion)+filename.format(galID,ion,a)
         impact,ew = np.loadtxt(sysabs,skiprows=1,usecols=(1,5),unpack=True)
 
-        
         for i in range(numDbins):
             loD = Dbins[i]*rvir
             hiD = Dbins[i+1]*rvir
@@ -62,6 +61,13 @@ for a,aLabel in zip(expns,expnLabels):
 
 s = 'ewImpact.h5'
 results.to_hdf(s,'data',mode='w')
+<<<<<<< HEAD
+=======
+
+
+
+
+>>>>>>> bc24aff32fa477a89866ebf366bd103762a60964
         
 
 

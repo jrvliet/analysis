@@ -68,10 +68,11 @@ fields = ('speed valong vperp r rMod thetaRot phiRot numCellsFrac '
           'vr vzRot vrhoRot vthetaRot vphiRot thermalV').split()
 stats = 'Mean Std Ratio MeanMW Median'.split()
 
-fields = 'vr SNII  r speed metallicity'.split()
+fields = 'vr SNII  r speed metallicity vrFracAbs'.split()
 stats = 'Mean Std Median'.split()
 ylabs = ['Radial Velocity [km/s]','SNII Mass Fraction',
-        'Distance [kpc]','Speed [km/s]','Metallicity']
+        'Distance [kpc]','Speed [km/s]','Metallicity',
+        'Radial Velocity Fraction']
 
 
 # Read in times
@@ -114,11 +115,9 @@ for tempLabel in tempLabels:
 
     print('Data read in')
 
-    print(len(fields))
     # Loop over the fields and plot them
     for i in range(len(fields)):
         fieldBase = fields[i]
-        print(fieldBase)
 
         for stat in stats:
             fig,ax = plt.subplots(1,1,figsize=(5,5))
@@ -135,6 +134,8 @@ for tempLabel in tempLabels:
                 ax.set_ylim([0,350])
             if fieldBase=='vr':
                 ax.set_ylim([-250,300])
+            if fieldBase=='vrFracAbs':
+                ax.set_ylim([0,1])
 
             
             mkLines(ax)

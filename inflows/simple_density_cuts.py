@@ -107,7 +107,8 @@ header = 'a redshift loN hiN numCellsFrac'.split()
 fields = ('speed valong vperp '
           'xRot yRot zRot r rMod rRot thetaRot phiRot '
           'SNII SNIa  density temperature mass pressure '
-          'vr vzRot vrhoRot vthetaRot vphiRot thermalV vrFrac metallicity'.split())
+          'vr vzRot vrhoRot vthetaRot vphiRot thermalV vrFrac '
+          'vrFracAbs metallicity'.split())
 fitFields = 'stdDev rayleighLoc rayleighScale rayleighfwhm rayleighStd'.split()
 
 header = header + fitFields
@@ -181,6 +182,7 @@ for i in range(len(temps)):
                                 cloud['z']*cloud['vz'] ) / cloud['r']
                 cloud['rMod'] = cloud['r']/rvir
                 cloud['vrFrac'] = cloud['vr']/cloud['speed']
+                cloud['vrFracAbs'] = np.abs(cloud['vr'])/cloud['speed']
             
                 # Rho, the distance from rotated z-axis
                 cloud['vrhoRot'] = np.sqrt(cloud['vxRot']**2 + cloud['vyRot']**2)

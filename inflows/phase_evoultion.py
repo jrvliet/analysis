@@ -51,6 +51,25 @@ def mkHist(ax,n,t,z,stat,cbarLabel):
     cbar.ax.get_yaxis().labelpad = 20
     cbar.ax.set_ylabel(cbarLabel,rotation=270,fontsize=12)
 
+def drawBox(ax):
+
+    '''
+    Draws a box around the phase selection
+    '''
+
+    minN,maxN = -5.5,-2.5
+    minT,maxT = 3.5,4.5
+    
+    # Horizontal lines
+    ax.hlines(minT,minN,maxN,color='black')
+    ax.hlines(maxT,minN,maxN,color='black')
+
+    # Verticle lines
+    ax.vlines(minN,minT,maxT,color='black')
+    ax.vlines(maxN,minT,maxT,color='black')
+
+
+
 dataloc = '/home/jacob/research/velas/vela2b/vela27/'
 filename = 'a{0:.3f}/vela2b-27_GZa{0:.3f}.rot.h5'
 
@@ -88,11 +107,16 @@ for a in expns:
 
     df['metal'] = mfToZ(df['SNII']+df['SNIa'])
     
+    print('Plotting')
     fig,ax = plt.subplots(1,1,figsize=(5,5))
     cbarLabel = 'log(Z)'
     mkHist(ax,np.log10(df['density']),np.log10(df['temperature']),
            df['metal'],np.min,cbarLabel) 
 
+    print('Making Box')
+    drawBox(ax)
+
+    print('Saving')
     s = 'initphase_min_a{0:.3f}.pdf'.format(a)
     fig.savefig(s,bbox_inches='tight',dpi=300)
     plt.close(fig)

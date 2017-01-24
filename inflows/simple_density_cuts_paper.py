@@ -27,7 +27,7 @@ def mkPlot(ax,groups,fieldBase,stat,tempLabel,ylab):
         color = colors[i]
         redshift = 1./group['a']-1
         label = labels[i]
-        print(densityKey,label)
+#        print(densityKey,label)
         ax.plot(redshift,group[fieldBase+stat],label=label,
                 linestyle='solid',marker=marker,color=color)
 
@@ -113,8 +113,6 @@ for tempLabel in tempLabels:
 
     groups = df.groupby(['loN','hiN'])
 
-    print('Data read in')
-
     # Loop over the fields and plot them
     for i in range(len(fields)):
         fieldBase = fields[i]
@@ -128,7 +126,6 @@ for tempLabel in tempLabels:
             if fieldBase=='SNII':
                 ax.set_ylim([1e-5,1e-2])
             if fieldBase=='metallicity':
-                print(ax.get_ylim())
                 ax.set_yscale('log')
             if fieldBase=='speed':
                 ax.set_ylim([0,350])
@@ -136,6 +133,9 @@ for tempLabel in tempLabels:
                 ax.set_ylim([-250,300])
             if fieldBase=='vrFracAbs':
                 ax.set_ylim([0,1])
+                #xmin,xmax = ax.get_xlim()
+                #ax.hlines(0.5,xmin,xmax,linestyle='dashed',color='black')
+                #ax.set_xlim([xmin,xmax])
 
             
             mkLines(ax)

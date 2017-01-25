@@ -69,7 +69,7 @@ fields = ('speed valong vperp r rMod thetaRot phiRot numCellsFrac '
 stats = 'Mean Std Ratio MeanMW Median'.split()
 
 fields = 'vr SNII  r speed metallicity vrFracAbs'.split()
-stats = 'Mean Std Median'.split()
+stats = 'Mean Std Median MeanMW'.split()
 ylabs = ['Radial Velocity [km/s]','SNII Mass Fraction',
         'Distance [kpc]','Speed [km/s]','Metallicity',
         'Radial Velocity Fraction']

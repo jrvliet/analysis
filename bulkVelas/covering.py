@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 '''
-Plots binned EW vs. D over time as a heatmap
+Plots covering fraction over time as a heatmap
 '''
 
 
@@ -41,6 +41,13 @@ header = pd.MultiIndex.from_product(header)
 results = np.zeros((numDbins,len(header)))
 results = pd.DataFrame(results,columns=header,index=DbinLabels)
 
+# Cf parameters
+CL = 0.8413
+tol = 13-4
+pmin = 0.0
+pmax = 1.0
+iterations = 1000
+
 for a,aLabel in zip(expns,expnLabels):
 
     print(a)
@@ -50,16 +57,27 @@ for a,aLabel in zip(expns,expnLabels):
     for ion in ions:
 
         print('\t',ion)
-        sysabs = rootloc+subloc.format(a,inc,ion)+filename.format(galID,ion,a)
+        loc = rootloc+subloc.format(a,inc,ion)
+        sysabs = loc+filename.format(galID,ion,a)
         impact,ew = np.loadtxt(sysabs,skiprows=1,usecols=(1,5),unpack=True)
+    
+        linesfile = loc+'lines.info'
+        lines = np.loadtxt(linesfile,skiprows=2)
+        linesImp = lines[:,1]
 
         for i in range(numDbins):
             loD = Dbins[i]*rvir
             hiD = Dbins[i+1]*rvir
             ews = ew[(impact>=loD) & (impact<hiD)]
-            results[aLabel,ion].iloc[i] = np.mean(ews)
 
-s = 'ewImpact.h5'
+            numHits = (ews>0).sum()
+            numLOS = ((linesImp>=loD) & (linesImp<hiD)).sum()
+            fraction = float(numHits)/float(numLOS)
+            results[aLabel,ion].iloc[i] = fraction
+
+s = 'covering.h5'
 results.to_hdf(s,'data',mode='w')
+   
+
 
 

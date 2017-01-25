@@ -30,6 +30,7 @@ expns = np.arange(0.200,0.540,0.01)
 expnLabels = ['a{0:d}'.format(int(a*1000)) for a in expns]
 
 ions = 'HI MgII CIV OVI'.split()
+ewcut = 0.1
 
 loD,hiD = 0,1.5
 numDbins = 15
@@ -50,27 +51,28 @@ iterations = 1000
 
 for a,aLabel in zip(expns,expnLabels):
 
-    print(a)
     loc = rootloc+'a{0:.3f}/'.format(a)
     galID,expn,redshift,mvir,rvir,inc = galaxyProps(loc)
     
     for ion in ions:
 
-        print('\t',ion)
         loc = rootloc+subloc.format(a,inc,ion)
         sysabs = loc+filename.format(galID,ion,a)
         impact,ew = np.loadtxt(sysabs,skiprows=1,usecols=(1,5),unpack=True)
     
         linesfile = loc+'lines.info'
         lines = np.loadtxt(linesfile,skiprows=2)
-        linesImp = lines[:,1]
+
+        # The impact parameters need to be rounded becuase the impact parameters
+        # in the ALL.sysabs file are rounded to 1 decimal point
+        linesImp = np.round(lines[:,1],1)
 
         for i in range(numDbins):
-            loD = Dbins[i]*rvir
-            hiD = Dbins[i+1]*rvir
+            loD = np.round(Dbins[i]*rvir,1)
+            hiD = np.round(Dbins[i+1]*rvir,1)
             ews = ew[(impact>=loD) & (impact<hiD)]
 
-            numHits = (ews>0).sum()
+            numHits = (ews>ewcut).sum()
             numLOS = ((linesImp>=loD) & (linesImp<hiD)).sum()
             fraction = float(numHits)/float(numLOS)
             results[aLabel,ion].iloc[i] = fraction

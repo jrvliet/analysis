@@ -40,19 +40,13 @@ fig2,ax2 = plt.subplots(1,1,figsize=(5,5))
 fig3,ax3 = plt.subplots(1,1,figsize=(5,5))
 axes = [ax1,ax2,ax3]
 figs = [fig1,fig2,fig3]
-markers = 'o ^ s * x d'.split()
 markers = 'o ^ s'.split()
 
-labels = ['$-3.0<log(n_H)<-2.5$', '$-3.5<log(n_H)<-3.0$', 
-          '$-4.0<log(n_H)<-3.5$', '$-4.0<log(n_H)<-4.5$', 
-          '$-5.0<log(n_H)<-4.5$', '$-5.0<log(n_H)<-5.5$']
-labels = ['$-3.5<log(n_H)<-2.5$',
-          '$-4.5<log(n_H)<-3.5$',
-          '$-5.5<log(n_H)<-4.5$']
 labels = 'dense mid diffuse'.split()
+colors = 'red green blue'.split()
 
 # Loop over density cuts
-for dfLabel,marker,label in zip(store,markers,labels):
+for dfLabel,marker,label,color in zip(store,markers,labels,colors):
 
     print(dfLabel)
     df = store[dfLabel]
@@ -63,7 +57,7 @@ for dfLabel,marker,label in zip(store,markers,labels):
 
     for i,(field,ax) in enumerate(zip(fields,axes)):
         print('\t',field)
-        ax.plot(df['redshift'],df[field[-1]],marker=marker,label=label)
+        ax.plot(df['redshift'],df[field[-1]],marker=marker,label=label,color=color)
 
 for ax in axes:
     ax.invert_xaxis()

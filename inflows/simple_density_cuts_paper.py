@@ -137,6 +137,7 @@ for tempLabel in tempLabels:
                 #ax.hlines(0.5,xmin,xmax,linestyle='dashed',color='black')
                 #ax.set_xlim([xmin,xmax])
 
+            ax.annotate(tempLabel.capitalize(),(0.8,0.1),xycoords='axes fraction')
             
             mkLines(ax)
             ax.legend(loc='best',ncol=1,labelspacing=0,

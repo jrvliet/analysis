@@ -123,10 +123,12 @@ for tempLabel in tempLabels:
 
             #ax.set_ylim([lowest,uppest])
             
+            txtLoc = (0.8,0.1)
             if fieldBase=='SNII':
                 ax.set_ylim([1e-5,1e-2])
             if fieldBase=='metallicity':
                 ax.set_yscale('log')
+                txtLoc = (0.1,0.8)
             if fieldBase=='speed':
                 ax.set_ylim([0,350])
             if fieldBase=='vr':
@@ -137,7 +139,7 @@ for tempLabel in tempLabels:
                 #ax.hlines(0.5,xmin,xmax,linestyle='dashed',color='black')
                 #ax.set_xlim([xmin,xmax])
 
-            ax.annotate(tempLabel.capitalize(),(0.8,0.1),xycoords='axes fraction')
+            ax.annotate(tempLabel.capitalize(),txtLoc,xycoords='axes fraction')
             
             mkLines(ax)
             ax.legend(loc='best',ncol=1,labelspacing=0,

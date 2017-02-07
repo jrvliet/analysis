@@ -128,6 +128,7 @@ for tempLabel in tempLabels:
             if fieldBase=='SNII':
                 ax.set_ylim([1e-5,1e-2])
             if fieldBase=='rMod':
+                ax.set_ylim([0,4])
                 txtLoc = (0.8,0.9)
                 legLoc = 'lower left'
             if fieldBase=='metallicity':

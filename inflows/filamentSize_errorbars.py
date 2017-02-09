@@ -7,7 +7,16 @@ from __future__ import print_function
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-get_ipython().magic(u'matplotlib inline')
+import sys
+
+
+def mkLines(ax):
+
+    ymin,ymax = ax.get_ylim()
+    points = [2.57,2.13,1.86]
+    for p in points:
+        ax.vlines(p,ymin,ymax,color='k',linestyle='--')
+    ax.set_ylim([ymin,ymax])
 
 
 # In[3]:
@@ -23,29 +32,8 @@ valFname = loc+valFilename
 
 errors = pd.read_hdf(errFname,'data')
 valStore = pd.HDFStore(valFname)
-
-
-# In[5]:
-
-valStore
-
-
-# In[6]:
-
-valStore['nLim=(-5.5,-4.5)'].head()
-
-
-# In[86]:
-
 errors = errors.apply(pd.to_numeric)
-
-
-# In[8]:
-
 df = pd.read_hdf(loc+'filamentMassSize_simple.h5','data')
-
-
-# In[11]:
 
 expns = []
 for a in df.index:
@@ -55,37 +43,6 @@ for a in df.index:
 # In[79]:
 
 errors.head()
-
-
-# In[13]:
-
-fig1,ax1 = plt.subplots(1,1,figsize=(5,5))
-fig2,ax2 = plt.subplots(1,1,figsize=(5,5))
-
-z = [1./a-1 for a in expns]
-
-datLabs = 'rare mid dense'.split()
-errLabs = 'low mid high'.split()
-labels = 'diffuse mid dense'.split()
-colors = 'blue green red'.split()
-
-for datLab,errLab,label,c in zip(datLabs,errLabs,labels,colors):
-    ax1.errorbar(z,df['cool',datLab,'rho90kpc'],yerr=errors[errLab,'stdpkpc'],label=label,color=c)
-    ax2.errorbar(z,df['cool',datLab,'rho90Rvir'],yerr=errors[errLab,'stdRvir'],label=label,color=c)
-
-ax1.set_ylabel(r'$r_{90}$ [pkpc]')
-ax2.set_ylabel(r'$r_{90}$ [Rvir]')
-
-for ax in (ax1,ax2):
-    ax.legend(loc='best')
-    ax.set_xlabel('Redshift')
-    ax.invert_xaxis()
-    ax.set_xlim([4,1])
-    
-fig1.savefig(loc+'filamentSizeErrors_pkpc.pdf',bbox_inches='tight',dpi=300)
-fig2.savefig(loc+'filamentSizeErrors_rvir.pdf',bbox_inches='tight',dpi=300)
-plt.close(fig1)
-plt.close(fig2)
 
 
 # In[92]:
@@ -125,12 +82,16 @@ for ax in (ax1,ax2):
     ax.set_xlabel('Redshift')
     ax.invert_xaxis()
     ax.set_xlim([4,1])
+    mkLines(ax)
     
 fig1.savefig(loc+'filamentSizeErrors_pkpc_fill.pdf',bbox_inches='tight',dpi=300)
 fig2.savefig(loc+'filamentSizeErrors_rvir_fill.pdf',bbox_inches='tight',dpi=300)
 plt.close(fig1)
 plt.close(fig2)
 
+store.close()
+
+sys.exit()
 
 # In[29]:
 
@@ -166,18 +127,13 @@ ax1.set_ylabel(r'$r_{90}$ [pkpc]')
 ax2.set_ylabel(r'$r_{90}$ [Rvir]')
 
 for ax in (ax1,ax2):
-ax.legend(loc='best')
-ax.set_xlabel('Redshift')
-ax.invert_xaxis()
-ax.set_xlim([4,1])
+    ax.legend(loc='best')
+    ax.set_xlabel('Redshift')
+    ax.invert_xaxis()
+    ax.set_xlim([4,1])
 
 fig1.savefig(loc+'filamentSizeErrors_pkpc_fill.pdf',bbox_inches='tight',dpi=300)
 fig2.savefig(loc+'filamentSizeErrors_rvir_fill.pdf',bbox_inches='tight',dpi=300)
 plt.close(fig1)
 plt.close(fig2)
-
-
-# In[ ]:
-
-
 

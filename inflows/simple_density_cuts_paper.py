@@ -68,10 +68,10 @@ fields = ('speed valong vperp r rMod thetaRot phiRot numCellsFrac '
           'vr vzRot vrhoRot vthetaRot vphiRot thermalV').split()
 stats = 'Mean Std Ratio MeanMW Median'.split()
 
-fields = 'vr SNII  r speed metallicity vrFracAbs'.split()
+fields = 'vr SNII  rMod speed metallicity vrFracAbs'.split()
 stats = 'Mean Std Median MeanMW'.split()
 ylabs = ['Radial Velocity [km/s]','SNII Mass Fraction',
-        'Distance [kpc]','Speed [km/s]','Metallicity',
+        'Distance [Rvir]','Speed [km/s]','Metallicity',
         'Radial Velocity Fraction']
 
 
@@ -124,8 +124,13 @@ for tempLabel in tempLabels:
             #ax.set_ylim([lowest,uppest])
             
             txtLoc = (0.8,0.1)
+            legLoc = 'best'
             if fieldBase=='SNII':
                 ax.set_ylim([1e-5,1e-2])
+            if fieldBase=='rMod':
+                ax.set_ylim([0,4])
+                txtLoc = (0.8,0.9)
+                legLoc = 'lower left'
             if fieldBase=='metallicity':
                 ax.set_yscale('log')
                 txtLoc = (0.1,0.8)
@@ -142,7 +147,7 @@ for tempLabel in tempLabels:
             ax.annotate(tempLabel.capitalize(),txtLoc,xycoords='axes fraction')
             
             mkLines(ax)
-            ax.legend(loc='best',ncol=1,labelspacing=0,
+            ax.legend(loc=legLoc,ncol=1,labelspacing=0,
                     frameon=True)#,fontsize='small')
             s = '{0:s}/simple_denseCut_{1:s}_{2:s}.pdf'.format(plotLoc,
                                                         fieldBase+stat,

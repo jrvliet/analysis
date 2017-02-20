@@ -117,117 +117,118 @@ else:
                 continue
 
 
-# In[ ]:
+print('Data Read In')
+skip=1
+if skip==0:
+    groups = df.groupby(['galID','boxz'])
 
-groups = df.groupby(['galID','boxz'])
-
-ionsCombo = it.combinations(ions,2)
-common1 = pd.DataFrame(columns=fullheader)
-common2 = pd.DataFrame(columns=fullheader)
-common3 = pd.DataFrame(columns=fullheader)
-totals = np.zeros((len(ions),len(ions)))
-totals = pd.DataFrame(totals,columns=ions,index=ions)
-for ion1,ion2 in ionsCombo:
-    print(ion1,ion2)
-    for (gal,a),group in groups:
-        cells1 = group['cellID'][group['ion']==ion1]
-        cells2 = group['cellID'][group['ion']==ion2]
-        common = set(cells1) & set(cells2)
-        commondf = group[(group['cellID'].isin(common)) & (group['ion']==ion1)]
-        totals[ion1].ix[ion2] += len(commondf)
-        totals[ion2].ix[ion1] += len(commondf)
-        totals[ion1].ix[ion1] += len(cells1)/3.
-        commondf['ion'] = '{0:s} {1:s}'.format(ion1,ion2)
-        if gal=='D9o2':
-            common1 = common1.append(commondf)
-        elif gal=='D9q':
-            common2 = common2.append(commondf)
-        else:
-            common3 = common3.append(commondf)
+    ionsCombo = it.combinations(ions,2)
+    common1 = pd.DataFrame(columns=fullheader)
+    common2 = pd.DataFrame(columns=fullheader)
+    common3 = pd.DataFrame(columns=fullheader)
+    totals = np.zeros((len(ions),len(ions)))
+    totals = pd.DataFrame(totals,columns=ions,index=ions)
+    for ion1,ion2 in ionsCombo:
+        print(ion1,ion2)
+        for (gal,a),group in groups:
+            cells1 = group['cellID'][group['ion']==ion1]
+            cells2 = group['cellID'][group['ion']==ion2]
+            common = set(cells1) & set(cells2)
+            commondf = group[(group['cellID'].isin(common)) & (group['ion']==ion1)]
+            totals[ion1].ix[ion2] += len(commondf)
+            totals[ion2].ix[ion1] += len(commondf)
+            totals[ion1].ix[ion1] += len(cells1)/3.
+            commondf['ion'] = '{0:s} {1:s}'.format(ion1,ion2)
+            if gal=='D9o2':
+                common1 = common1.append(commondf)
+            elif gal=='D9q':
+                common2 = common2.append(commondf)
+            else:
+                common3 = common3.append(commondf)
 
 
-# In[ ]:
+    # In[ ]:
 
-titles = 'D9SN D9ALL\_1 D9ALL\_8'.split()
-ionsCombo = it.combinations(ions,2)
-for ion1,ion2 in ionsCombo:
-    print(ion1,ion2)
-    fig,axes = plt.subplots(1,3,figsize=(15,5),sharey='row',squeeze=True)
-    cbarax = fig.add_axes([.94,.2,.03,.6])
-    s = '{0:s} {1:s}'.format(ion1,ion2)
-    for ax,com,title in zip(axes,[common1,common2,common3],titles):
-        df = com[com['ion']==s]
-        df['mass'] = 10**df['nH']*mH*(df['size']*kpc2cm)**3 / mSun
-        mesh = mkHist(ax,df['nH'],df['t'],df['mass'],'sum','','',cbarax)
-        ax.annotate(title,(-2,7),xycoords='data',fontsize='x-large')
-        ax.set_xlabel('log( $n_H$ [cm$^{-3}$])',fontsize='x-large')
-    axes[0].set_ylabel('log( T [K] )',fontsize='x-large')
-    axes[0].xaxis.set_major_locator(MaxNLocator(prune='upper'))          
-    axes[1].xaxis.set_major_locator(MaxNLocator(prune='upper'))          
-    cbar = plt.colorbar(mesh,cax=cbarax,use_gridspec=True,
+    titles = 'D9SN D9ALL\_1 D9ALL\_8'.split()
+    ionsCombo = it.combinations(ions,2)
+    for ion1,ion2 in ionsCombo:
+        print(ion1,ion2)
+        fig,axes = plt.subplots(1,3,figsize=(15,5),sharey='row',squeeze=True)
+        cbarax = fig.add_axes([.94,.2,.03,.6])
+        s = '{0:s} {1:s}'.format(ion1,ion2)
+        for ax,com,title in zip(axes,[common1,common2,common3],titles):
+            df = com[com['ion']==s]
+            df['mass'] = 10**df['nH']*mH*(df['size']*kpc2cm)**3 / mSun
+            mesh = mkHist(ax,df['nH'],df['t'],df['mass'],'sum','','',cbarax)
+            ax.annotate(title,(-2,7),xycoords='data',fontsize='x-large')
+            ax.set_xlabel('log( $n_H$ [cm$^{-3}$])',fontsize='x-large')
+        axes[0].set_ylabel('log( T [K] )',fontsize='x-large')
+        axes[0].xaxis.set_major_locator(MaxNLocator(prune='upper'))          
+        axes[1].xaxis.set_major_locator(MaxNLocator(prune='upper'))          
+        cbar = plt.colorbar(mesh,cax=cbarax,use_gridspec=True,
+                            format=ticker.FuncFormatter(fmt))
+        cbar.ax.get_yaxis().labelpad = 20
+        cbar.ax.set_ylabel('log (M$_g$ [M$_{\odot}$])',rotation=270,fontsize='x-large')
+        fig.subplots_adjust(wspace=0)
+        s = 'commonAbs_{0:s}_{1:s}.pdf'.format(ion1,ion2)
+        fig.savefig(s,bbox_inches='tight',dpi=300)
+
+
+    # ## Full Phase 
+
+    # In[ ]:
+
+    runs = 'D9SN D9ALL\_1 D9ALL\_8'.split()
+    fig,axes = plt.subplots(4,3,figsize=(15,20),sharey='row',sharex='col')
+    cbarax1 = fig.add_axes([.94,.72,.03,.17])
+    cbarax2 = fig.add_axes([.94,.53,.03,.17])
+    cbarax3 = fig.add_axes([.94,.33,.03,.17])
+    cbarax4 = fig.add_axes([.94,.13,.03,.17])
+    cbaraxes = [cbarax1,cbarax2,cbarax3,cbarax4]
+    meshes = []
+
+    for j,ion in enumerate(ions):
+        for i,galID in enumerate(galIDs):
+            index = (df['ion']==ion) & (df['galID']==galID)
+            d = df[index]
+            d['mass'] = 10**d['nH']*mH*(d['size']*kpc2cm)**3 / mSun
+            ax = axes[j,i]
+            mesh = mkHist(ax,d['nH'],d['t'],d['mass'],'sum','','',cbarax1,ion)
+            s = '{0:s},{1:s}'.format(galID,ion)
+            #ax.annotate(s,(-2,7),xycoords='data')
+            meshes.append(mesh)
+    for i,cbarax in enumerate(cbaraxes):
+        mesh = meshes[3*(i+1)-1]
+        cbar = plt.colorbar(mesh,cax=cbarax,use_gridspec=True,
                         format=ticker.FuncFormatter(fmt))
-    cbar.ax.get_yaxis().labelpad = 20
-    cbar.ax.set_ylabel('log (M$_g$ [M$_{\odot}$])',rotation=270,fontsize='x-large')
-    fig.subplots_adjust(wspace=0)
-    s = 'commonAbs_{0:s}_{1:s}.pdf'.format(ion1,ion2)
-    fig.savefig(s,bbox_inches='tight',dpi=300)
+        cbar.ax.get_yaxis().labelpad = 20
+        cbar.ax.set_ylabel('log (M$_g$ [M$_{\odot}$])',rotation=270,fontsize='x-large')    
+
+        #cbar.ax.set_ylabel('{0:d}'.format(i),rotation=270,fontsize='x-large')    
 
 
-# ## Full Phase 
+    for ax in axes[3,:]:
+        ax.set_xlabel('log( $n_H$ [cm$^{-3}$])',fontsize='x-large')
+    for ax,ion in zip(axes[:,0],ions):
+        ax.set_ylabel('{0:s}\nlog( T [K] )'.format(ion),fontsize='x-large') 
+    for ax,run in zip(axes[0,:],runs):
+        ax.set_title(run,fontsize='x-large')
+        
+    axes[3,0].xaxis.set_major_locator(MaxNLocator(prune='upper'))
+    axes[3,1].xaxis.set_major_locator(MaxNLocator(prune='upper'))
 
-# In[ ]:
+    #axes[3,0].yaxis.set_major_locator(MaxNLocator(prune='upper'))
+    #axes[2,0].yaxis.set_major_locator(MaxNLocator(prune='upper'))
+    #axes[1,0].yaxis.set_major_locator(MaxNLocator(prune='upper'))
 
-runs = 'D9SN D9ALL\_1 D9ALL\_8'.split()
-fig,axes = plt.subplots(4,3,figsize=(15,20),sharey='row',sharex='col')
-cbarax1 = fig.add_axes([.94,.72,.03,.17])
-cbarax2 = fig.add_axes([.94,.53,.03,.17])
-cbarax3 = fig.add_axes([.94,.33,.03,.17])
-cbarax4 = fig.add_axes([.94,.13,.03,.17])
-cbaraxes = [cbarax1,cbarax2,cbarax3,cbarax4]
-meshes = []
-
-for j,ion in enumerate(ions):
-    for i,galID in enumerate(galIDs):
-        index = (df['ion']==ion) & (df['galID']==galID)
-        d = df[index]
-        d['mass'] = 10**d['nH']*mH*(d['size']*kpc2cm)**3 / mSun
-        ax = axes[j,i]
-        mesh = mkHist(ax,d['nH'],d['t'],d['mass'],'sum','','',cbarax1,ion)
-        s = '{0:s},{1:s}'.format(galID,ion)
-        #ax.annotate(s,(-2,7),xycoords='data')
-        meshes.append(mesh)
-for i,cbarax in enumerate(cbaraxes):
-    mesh = meshes[3*(i+1)-1]
-    cbar = plt.colorbar(mesh,cax=cbarax,use_gridspec=True,
-                    format=ticker.FuncFormatter(fmt))
-    cbar.ax.get_yaxis().labelpad = 20
-    cbar.ax.set_ylabel('log (M$_g$ [M$_{\odot}$])',rotation=270,fontsize='x-large')    
-
-    #cbar.ax.set_ylabel('{0:d}'.format(i),rotation=270,fontsize='x-large')    
-
-
-for ax in axes[3,:]:
-    ax.set_xlabel('log( $n_H$ [cm$^{-3}$])',fontsize='x-large')
-for ax,ion in zip(axes[:,0],ions):
-    ax.set_ylabel('{0:s}\nlog( T [K] )'.format(ion),fontsize='x-large') 
-for ax,run in zip(axes[0,:],runs):
-    ax.set_title(run,fontsize='x-large')
-    
-axes[3,0].xaxis.set_major_locator(MaxNLocator(prune='upper'))
-axes[3,1].xaxis.set_major_locator(MaxNLocator(prune='upper'))
-
-#axes[3,0].yaxis.set_major_locator(MaxNLocator(prune='upper'))
-#axes[2,0].yaxis.set_major_locator(MaxNLocator(prune='upper'))
-#axes[1,0].yaxis.set_major_locator(MaxNLocator(prune='upper'))
-
-axes[1,0].set_yticks([2,3,4,5,6,7])
-axes[2,0].set_yticks([2,3,4,5,6,7])
-axes[3,0].set_yticks([2,3,4,5,6,7])
-    
-fig.subplots_adjust(wspace=0,hspace=0)
-s = 'dwarfFullPhase.pdf'
-fig.savefig(s,bbox_inches='tight',dpi=100)
-plt.close(fig)
+    axes[1,0].set_yticks([2,3,4,5,6,7])
+    axes[2,0].set_yticks([2,3,4,5,6,7])
+    axes[3,0].set_yticks([2,3,4,5,6,7])
+        
+    fig.subplots_adjust(wspace=0,hspace=0)
+    s = 'dwarfFullPhase.pdf'
+    fig.savefig(s,bbox_inches='tight',dpi=100)
+    plt.close(fig)
 
 
 # ## Probabilities 

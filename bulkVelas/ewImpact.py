@@ -23,13 +23,14 @@ def galaxyProps(location):
 
     return galID,expn,redshift,mvir,rvir,inc
 
-rootloc = '/mnt/cluster/abs/cgm/vela2b/vela27/'
+rootloc = '/mnt/cluster/abs/cgm/vela2b/'
 rootloc = '/home/jacob/research/velas/vela2b/'
 subloc = 'vela{0:d}/a{1:.3f}/i{2:d}/{3:s}/'
 filename = '{0:s}.{1:s}.a{2:.3f}.i{3:d}.ALL.sysabs.h5'
 
+galNums = range(20,30)
+
 ions = 'HI MgII CIV OVI'.split()
-ions = 'HI MgII CIV'.split()
 
 loD,hiD = 0,1.5
 numDbins = 15
@@ -57,7 +58,6 @@ for galNum,finala in zip(galNums,finalExpn):
         loc = rootloc+'vela{0:d}/a{1:.3f}/i90/'.format(galNum,a)
         galID,expn,redshift,mvir,rvir,inc = galaxyProps(loc)
         
-        print(type(inc))
         for ion in ions:
 
             print('\t',ion)
@@ -74,5 +74,4 @@ for galNum,finala in zip(galNums,finalExpn):
     s = 'vela2b-{0:d}_ewImpact.h5'.format(galNum)
     results.to_hdf(s,'data',mode='w')
 
-    break
 

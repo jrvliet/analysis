@@ -12,7 +12,7 @@ pd.options.mode.chained_assignment = None
 
 def galaxyProps(location):
 
-    fname = location+'galaxy.props'
+    fname = location+'/i90/galaxy.props'
     with open(fname) as f:
         galID = f.readline().split()[1]
         expn = f.readline().split()[1]
@@ -31,10 +31,11 @@ pmax = 1.0
 iterations = 1000
 
 rootloc = '/mnt/cluster/abs/cgm/vela2b/'
+rootloc = '/home/jacob/research/velas/vela2b/'
 subloc = 'vela{0:d}/a{1:.3f}/i{2:d}/{3:s}/'
-filename = '{0:s}.{1:s}.a{2:.3f}.ALL.sysabs'
+filename = '{0:s}.{1:s}.a{2:.3f}.i90.ALL.sysabs.h5'
 
-galNums = range(20,30)
+galNums = range(21,30)
 
 ions = 'HI MgII CIV OVI'.split()
 ewcut = 0.1
@@ -43,6 +44,8 @@ loD,hiD = 0,1.5
 numDbins = 15
 Dbins = np.linspace(loD,hiD,numDbins+1)
 DbinLabels = ['{0:.1f}'.format(i) for i in Dbins[1:]]
+
+finalExpn = [0.550]*len(galNums)
 
 for galNum,finala in zip(galNums,finalExpn):
 

@@ -4,7 +4,7 @@
 Plots binned EW vs. D over time as a heatmap
 '''
 
-
+from __future__ import print_function
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -28,7 +28,7 @@ rootloc = '/home/jacob/research/velas/vela2b/'
 subloc = 'vela{0:d}/a{1:.3f}/i{2:d}/{3:s}/'
 filename = '{0:s}.{1:s}.a{2:.3f}.i{3:d}.ALL.sysabs.h5'
 
-galNums = range(20,30)
+galNums = range(21,30)
 
 ions = 'HI MgII CIV OVI'.split()
 
@@ -40,7 +40,6 @@ DbinLabels = ['{0:.1f}'.format(i) for i in Dbins[1:]]
 finalExpn = [0.530, 0.490, 0.490, 0.510, 0.460, 
              0.500, 0.500, 0.500, 0.510, 0.500]
 
-galNums = range(20,30)
 for galNum,finala in zip(galNums,finalExpn):
 
     print(galNum)
@@ -56,21 +55,22 @@ for galNum,finala in zip(galNums,finalExpn):
 
         print(a)
         loc = rootloc+'vela{0:d}/a{1:.3f}/i90/'.format(galNum,a)
-        galID,expn,redshift,mvir,rvir,inc = galaxyProps(loc)
-        
-        for ion in ions:
+        try:
+            galID,expn,redshift,mvir,rvir,inc = galaxyProps(loc)
+            for ion in ions:
 
-            print('\t',ion)
-            sysabs = rootloc+subloc.format(galNum,a,inc,
-                        ion)+filename.format(galID,ion,a,inc)
-            df = pd.read_hdf(sysabs,'data')
+                print('\t',ion)
+                sysabs = rootloc+subloc.format(galNum,a,inc,
+                            ion)+filename.format(galID,ion,a,inc)
+                df = pd.read_hdf(sysabs,'data')
 
-            for i in range(numDbins):
-                loD = Dbins[i]*rvir
-                hiD = Dbins[i+1]*rvir
-                ews = df['EW_r'][(df['D']>=loD) & (df['D']<hiD)]
-                results[aLabel,ion].iloc[i] = ews.mean()
-
+                for i in range(numDbins):
+                    loD = Dbins[i]*rvir
+                    hiD = Dbins[i+1]*rvir
+                    ews = df['EW_r'][(df['D']>=loD) & (df['D']<hiD)]
+                    results[aLabel,ion].iloc[i] = ews.mean()
+        except IOError:
+            continue
     s = 'vela2b-{0:d}_ewImpact.h5'.format(galNum)
     results.to_hdf(s,'data',mode='w')
 

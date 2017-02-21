@@ -4,7 +4,7 @@
 Plots covering fraction vs azimuthal over time as a heatmap
 '''
 
-
+from __future__ import print_function
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -46,17 +46,26 @@ iterations = 1000
 
 rootloc = '/mnt/cluster/abs/cgm/vela2b/'
 subloc = 'vela{0:d}/a{1:.3f}/i{2:d}/{3:s}/'
-filename = '{0:s}.{1:s}.a{2:.3f}.ALL.sysabs.h5'
+filename = '{0:s}.{1:s}.a{2:.3f}.i90.ALL.sysabs.h5'
 
 galNums = range(20,30)
+galNums = range(21,29)
+
+finalExpn = [0.510, 0.490, 0.490, 0.510, 0.460,
+             0.500, 0.500, 0.500, 0.510, 0.500]
+
+
 
 ions = 'HI MgII CIV OVI'.split()
 ewcut = 0.1
 
-loAz,hiAz = 0,360
+loAz,hiAz = 0,90
 numAzbins = 10
 Azbins = np.linspace(loAz,hiAz,numAzbins+1)
-AzbinLabels = ['{0:.1f}'.format(i) for i in Azbins[1:]]
+AzbinLabels = ['{0:d}'.format(int(i)) for i in Azbins[1:]]
+
+print(Azbins)
+print(AzbinLabels)
 
 for galNum,finala in zip(galNums,finalExpn):
 
@@ -67,11 +76,12 @@ for galNum,finala in zip(galNums,finalExpn):
     fields = 'full lowD highD'.split()
     header = [expnLabels,ions,fields]
     header = pd.MultiIndex.from_product(header)
-    results = np.zeros((numDbins,len(header)))
-    results = pd.DataFrame(results,columns=header,index=DbinLabels)
+    results = np.zeros((numAzbins,len(header)))
+    results = pd.DataFrame(results,columns=header,index=AzbinLabels)
 
     for a,aLabel in zip(expns,expnLabels):
 
+        print('\t',aLabel)
         loc = rootloc+'vela{0:d}/a{1:.3f}/'.format(galNum,a)
         galID,expn,redshift,mvir,rvir,inc = galaxyProps(loc)
         
@@ -80,7 +90,7 @@ for galNum,finala in zip(galNums,finalExpn):
             loc = rootloc+subloc.format(galNum,a,inc,ion)
             sysabs = loc+filename.format(galID,ion,a)
             df = pd.read_hdf(sysabs,'data')
-            df['azi'] = azimuthal(df['phi'])
+            df['azi'] = df['phi'].apply(azimuthal)
         
             linesfile = loc+'lines.info'
             lines = np.loadtxt(linesfile,skiprows=2)
@@ -90,8 +100,6 @@ for galNum,finala in zip(galNums,finalExpn):
             linesImp = np.round(lines[:,1],1)
 
             for i in range(numAzbins):
-                loAz = np.round(Azbins[i]*rvir,1)
-                hiAz = np.round(Azbins[i+1]*rvir,1)
                 loAz,hiAz = Azbins[i],Azbins[i+1]
 
                 azIndex = (df['azi']>=loAz) & (df['azi']<hiAz)
@@ -103,12 +111,17 @@ for galNum,finala in zip(galNums,finalExpn):
                     d = df[index]
                     numHits = (d['EW_r']>ewcut).sum()
                     numLOS = index.sum()
-                    fraction = float(numHits)/float(numLOS)
+                    if numLOS>0:
+                        fraction = float(numHits)/float(numLOS)
+                    else:
+                        fraction = 0
                     results[aLabel,ion,field].iloc[i] = fraction
                     
+
        
     s = 'vela2b-{0:d}_covering.h5'.format(galNum)
     results.to_hdf(s,'data',mode='w')
+    break
        
 
 

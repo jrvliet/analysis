@@ -61,30 +61,31 @@ for galNum,finala in zip(galNums,finalExpn):
     for a,aLabel in zip(expns,expnLabels):
 
         loc = rootloc+'vela{0:d}/a{1:.3f}/'.format(galNum,a)
-        galID,expn,redshift,mvir,rvir,inc = galaxyProps(loc)
-        
-        for ion in ions:
 
-            loc = rootloc+subloc.format(galNum,a,inc,ion)
-            sysabs = loc+filename.format(galID,ion,a)
-            impact,ew = np.loadtxt(sysabs,skiprows=1,usecols=(1,5),unpack=True)
-        
-            linesfile = loc+'lines.info'
-            lines = np.loadtxt(linesfile,skiprows=2)
+        try:
+            galID,expn,redshift,mvir,rvir,inc = galaxyProps(loc)
+            
+            for ion in ions:
 
-            # The impact parameters need to be rounded becuase the impact parameters
-            # in the ALL.sysabs file are rounded to 1 decimal point
-            linesImp = np.round(lines[:,1],1)
+                loc = rootloc+subloc.format(galNum,a,inc,ion)
+                sysabs = loc+filename.format(galID,ion,a)
+                df = pd.read_hdf(sysabs,'data')
+            
+                for i in range(numDbins):
+                    loD = np.round(Dbins[i]*rvir,1)
+                    hiD = np.round(Dbins[i+1]*rvir,1)
 
-            for i in range(numDbins):
-                loD = np.round(Dbins[i]*rvir,1)
-                hiD = np.round(Dbins[i+1]*rvir,1)
-                ews = ew[(impact>=loD) & (impact<hiD)]
+                    index = (df['D']>=loD) & (df['D']<hiD)
+                    d = df[index]
 
-                numHits = (ews>ewcut).sum()
-                numLOS = ((linesImp>=loD) & (linesImp<hiD)).sum()
-                fraction = float(numHits)/float(numLOS)
-                results[aLabel,ion].iloc[i] = fraction
+                    numHits = (d['EW_r']>ewcut).sum()
+                    numLOS = index.sum()
+
+                    fraction = float(numHits)/float(numLOS)
+                    results[aLabel,ion].iloc[i] = fraction
+
+        except IOError:
+                continue
 
     s = 'vela2b-{0:d}_covering.h5'.format(galNum)
     results.to_hdf(s,'data',mode='w')

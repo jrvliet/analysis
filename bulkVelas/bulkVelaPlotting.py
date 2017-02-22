@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-get_ipython().magic(u'matplotlib inline')
 pd.options.mode.chained_assignment = None
 sns.set(style='white')
 
@@ -92,8 +91,6 @@ cbarax.set_ylabel(r'log (EW [\AA])',rotation=270)#,fontsize='large')
 #axes[0].set_yticks([a if i%2==0 else '' for i,a in enumerate(totals.index)])
 #axes[0].set_yticks([0]*len(hi))
 #axes[0].set_yticks(zticks)
-print(zticks)
-print(len(zticks),len(totals))
 fig.subplots_adjust(wspace=0.05)
 s = '{0:s}/ewDist_vela2b-Mean.png'.format(loc)
 fig.savefig(s,bbox_inches='tight',dpi=300)
@@ -181,47 +178,6 @@ fig.savefig(s,bbox_inches='tight',dpi=300)
 
 # In[ ]:
 
-
-
-
-# In[51]:
-
-t.fillna(-4).values.max()
-
-
-# In[77]:
-
-expns = [float(a.split('a')[-1])/1000. for a in totals.index]
-totals.index = ['{0:.2f}'.format(1./a-1) for a in expns]
-
-
-# In[78]:
-
-totals
-
-
-# In[102]:
-
-aticks = np.arange(0.200,0.500,0.02)
-zvals = ['{0:.2f}'.format(1./a-1) for a in aticks]
-
-
-# In[103]:
-
-zblanks = ['']*len(zticks)
-
-
-# In[104]:
-
-zticks = [val for pair in zip(zvals, zblanks) for val in pair]
-
-
-# In[106]:
-
-zticks
-
-
-# In[ ]:
 
 
 

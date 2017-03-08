@@ -12,7 +12,7 @@ pd.options.mode.chained_assignment = None
 
 def galaxyProps(location):
 
-    fname = location+'galaxy.props'
+    fname = location+'/i90/galaxy.props'
     with open(fname) as f:
         galID = f.readline().split()[1]
         expn = f.readline().split()[1]
@@ -31,10 +31,11 @@ pmax = 1.0
 iterations = 1000
 
 rootloc = '/mnt/cluster/abs/cgm/vela2b/'
+rootloc = '/home/jacob/research/velas/vela2b/'
 subloc = 'vela{0:d}/a{1:.3f}/i{2:d}/{3:s}/'
-filename = '{0:s}.{1:s}.a{2:.3f}.ALL.sysabs'
+filename = '{0:s}.{1:s}.a{2:.3f}.i90.ALL.sysabs.h5'
 
-galNums = range(20,30)
+galNums = range(21,30)
 
 ions = 'HI MgII CIV OVI'.split()
 ewcut = 0.1
@@ -43,6 +44,8 @@ loD,hiD = 0,1.5
 numDbins = 15
 Dbins = np.linspace(loD,hiD,numDbins+1)
 DbinLabels = ['{0:.1f}'.format(i) for i in Dbins[1:]]
+
+finalExpn = [0.550]*len(galNums)
 
 for galNum,finala in zip(galNums,finalExpn):
 
@@ -58,30 +61,31 @@ for galNum,finala in zip(galNums,finalExpn):
     for a,aLabel in zip(expns,expnLabels):
 
         loc = rootloc+'vela{0:d}/a{1:.3f}/'.format(galNum,a)
-        galID,expn,redshift,mvir,rvir,inc = galaxyProps(loc)
-        
-        for ion in ions:
 
-            loc = rootloc+subloc.format(galNum,a,inc,ion)
-            sysabs = loc+filename.format(galID,ion,a)
-            impact,ew = np.loadtxt(sysabs,skiprows=1,usecols=(1,5),unpack=True)
-        
-            linesfile = loc+'lines.info'
-            lines = np.loadtxt(linesfile,skiprows=2)
+        try:
+            galID,expn,redshift,mvir,rvir,inc = galaxyProps(loc)
+            
+            for ion in ions:
 
-            # The impact parameters need to be rounded becuase the impact parameters
-            # in the ALL.sysabs file are rounded to 1 decimal point
-            linesImp = np.round(lines[:,1],1)
+                loc = rootloc+subloc.format(galNum,a,inc,ion)
+                sysabs = loc+filename.format(galID,ion,a)
+                df = pd.read_hdf(sysabs,'data')
+            
+                for i in range(numDbins):
+                    loD = np.round(Dbins[i]*rvir,1)
+                    hiD = np.round(Dbins[i+1]*rvir,1)
 
-            for i in range(numDbins):
-                loD = np.round(Dbins[i]*rvir,1)
-                hiD = np.round(Dbins[i+1]*rvir,1)
-                ews = ew[(impact>=loD) & (impact<hiD)]
+                    index = (df['D']>=loD) & (df['D']<hiD)
+                    d = df[index]
 
-                numHits = (ews>ewcut).sum()
-                numLOS = ((linesImp>=loD) & (linesImp<hiD)).sum()
-                fraction = float(numHits)/float(numLOS)
-                results[aLabel,ion].iloc[i] = fraction
+                    numHits = (d['EW_r']>ewcut).sum()
+                    numLOS = index.sum()
+
+                    fraction = float(numHits)/float(numLOS)
+                    results[aLabel,ion].iloc[i] = fraction
+
+        except IOError:
+                continue
 
     s = 'vela2b-{0:d}_covering.h5'.format(galNum)
     results.to_hdf(s,'data',mode='w')

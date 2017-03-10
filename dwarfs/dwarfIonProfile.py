@@ -25,7 +25,7 @@ header = ['size x y z vx vy vz nH temperature SNII SNIa '
 header = header[0].split()
 numbins = 20
 
-fields = 'nH temperature alphaSol nAtom fIon nIon'.split()
+fields = 'nH temperature alphaZmet nAtom fIon nIon'.split()
 labels = 'nH T Z $n_{0:s}$ $f_{0:s}$ $n_{0:s}$'.split()
 for ion,e in zip(ions,elements):
 
@@ -55,7 +55,8 @@ for ion,e in zip(ions,elements):
 
         for i,(ax,field,label) in enumerate(zip(axes.flatten(),fields,labels)):
         
-            ax.errorbar(values['r'],values[field],yerr=errs[field],label=galName)
+            #ax.errorbar(values['r'],values[field],yerr=errs[field],label=galName)
+            ax.plot(values['r'],values[field],label=galName)
             ax.set_xlabel('Distance [Rvir]')
             if i<3:
                 l = label
@@ -64,6 +65,8 @@ for ion,e in zip(ions,elements):
             else:
                 l = label.format(ion)
             ax.set_ylabel('log( {0:s} )'.format(l))
+            ax.set_yscale('log')
+
 
     axes[0,0].legend(loc='best')
     fig.tight_layout()

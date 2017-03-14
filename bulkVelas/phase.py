@@ -36,7 +36,7 @@ def mkHist(ax,n,t,z,stat):
     h = np.rot90(h)
     h = np.flipud(h)
     h[np.isnan(h)] = 0.0
-    
+    h = np.ma.masked_where(h==0,h) 
     h = np.log10(h)
     mesh = ax.pcolormesh(xedges,yedges,h)
     ax.set_xlim(binrange[0])
@@ -51,8 +51,8 @@ mSun = 1.989e33
 s2yr = 3.154e7
 
 
-rootloc = '/mnt/cluster/abs/cgm/vela2b/'
 rootloc = '/home/jacob/research/velas/vela2b/'
+rootloc = '/mnt/cluster/abs/cgm/vela2b/'
 subloc = 'vela{0:d}/a{1:.3f}/i{2:d}/{3:s}/'
 filename = '{0:s}.{1:s}.a{2:.3f}.i{3:d}.ALL.sysabs.h5'
 filename = '{0:s}.{1:.3f}.{2:s}.i90.abs_cells.h5'
@@ -68,15 +68,19 @@ expns = np.arange(0.200,max(finalExpn),0.01)
 expnLabels = ['a{0:d}'.format(int(a*1000)) for a in expns]
 
 lo,hi = [],[]
+
 for a,aLabel in zip(expns,expnLabels):
     fig,axes = plt.subplots(len(galNums),len(ions),
                             figsize=(20,45),
                             sharex=True,
                             sharey=True)
 
+    print(aLabel)
+    totals = [None]*len(ions)
     for i,(galNum,finala) in enumerate(zip(galNums,finalExpn)):
         loc = rootloc+'vela{0:d}/a{1:.3f}/i90/'.format(galNum,a)
 
+        print('\t',galNum)
         try:
             galID,expn,redshift,mvir,rvir,inc = galaxyProps(loc)
 
@@ -88,6 +92,10 @@ for a,aLabel in zip(expns,expnLabels):
                             ion)+filename.format(galID,a,ion)
                 df = pd.read_hdf(cells,'data')
                 df['mass'] = (10**df['nH'])*mH*(df['cell_size']*pc2cm)**3 / mSun
+                if i==0:
+                    totals[j] = df
+                else:
+                    totals[j] = totals[j].append(df,ignore_index=True)
 
                 clo,chi = mkHist(ax,df['nH'],df['temperature'],
                                 df['mass'],'count')
@@ -95,12 +103,32 @@ for a,aLabel in zip(expns,expnLabels):
                 hi.append(chi)
 
         except IOError:
+            print(cells)
             continue
 
-    s = 'vela2b_a{0:s}_phase.png'.format(aLabel)
+    for ax,ion in zip(axes[0,:],ions):
+        ax.set_title(ion)
+    for ax,galNum in zip(axes[:,0],galNums):
+        ax.set_ylabel('vela2b-{0:d}\n$\log(T)$ [K]'.format(galNum))
+    fig.subplots_adjust(wspace=0,hspace=0)
+    s = 'vela2b_{0:s}_phase.png'.format(aLabel)
     fig.savefig(s,bbox_inches='tight',dpi=300)
     plt.close(fig)
-    break
+
+    # Plot Totals
+    fig,axes = plt.subplots(2,2,figsize=(10,10),sharex=True,sharey=True)
+    for ion,ax,total in zip(ions,axes.flatten(),totals):
+        mkHist(ax,total['nH'],total['temperature'],total['mass'],'mean')
+    fig.subplots_adjust(wspace=0,hspace=0)
+    fig.savefig('vela2b_{0:s}mean_phase.png'.format(aLabel),bbox_inches='tight',dpi=300)
+    plt.close(fig)
+
+    
+
+
+
+
+
 
 print(min(lo),max(hi))
 

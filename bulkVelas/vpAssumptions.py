@@ -2,8 +2,6 @@ from __future__ import print_function
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
-sns.set(style='white')
 pd.options.mode.chained_assignment = None
 
 loc = '/Users/jacob/research/velas/vela2b/'
@@ -14,6 +12,7 @@ linesname = 'lines.dat'
 
 galNums = range(21,30)
 expns = np.arange(0.200,0.550,0.01)
+expnLabels = ['a{0:d}'.format(int(a*1000)) for a in expns]
 ions = 'HI MgII CIV OVI'.split()
 
 fields = 'loc.spread loc.sep length numCells'.split()
@@ -100,7 +99,7 @@ for galNum in galNums:
                 results[ion,'length'].loc[galNum,aLabel] = np.mean(lens)
                 results[ion,'numCells'].loc[galNum,aLabel] = np.mean(nCells) 
 
-            except IOError:
+            except (IOError,KeyError):
                 continue
                                     
 print('Done')

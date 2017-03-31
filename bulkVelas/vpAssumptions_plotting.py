@@ -15,6 +15,7 @@ fname = loc+filename
 df = pd.read_hdf(fname,'data')
 
 galNums = range(21,30)
+galNums.remove(27)
 expns = np.arange(0.200,0.550,0.01)
 expnLabels = ['a{0:d}'.format(int(a*1000)) for a in expns]
 ions = 'HI MgII CIV OVI'.split()
@@ -27,8 +28,10 @@ for prop in props:
 
 logFields = 't n Z'.split()
 
+loLimits = [0, 0, 0, 0, -250, 0, 4, 3.4, -3.5, -4, -5.6, -6]
+hiLimits = [1, 0.25, 1400, 250, 250, 110, 6.5, 6.4, 2, 2, -4, -3.8]
 
-for field in fields:
+for field,lo,hi in zip(fields,loLimits,hiLimits):
     print(field)
 
     fig,axes = plt.subplots(2,2,figsize=(10,10))
@@ -44,6 +47,7 @@ for field in fields:
             #print(y)
             ax.plot(x,y,label=galNum)
 
+        ax.set_ylim([lo,hi])
         ax.set_xlabel('Expn')
         ax.set_ylabel(field)
         ax.set_title(ion)

@@ -68,8 +68,15 @@ for galNum in galNums:
                     
                     minmax = cells['dist'].max()-cells['dist'].min()
                     #seperate = cells['dist'][1:] - cells['dist'][:-1]
-                    cells['t'] = 10**cells['temperature']
-                    cells['n'] = 10**cells['nH']
+                    if cells['temperature'].mean()<100:
+                        cells['t'] = 10**cells['temperature']
+                    else:
+                        cells['t'] = cells['temperature']
+                
+                    if cells['nH'].mean()<0:
+                        cells['n'] = 10**cells['nH']
+                    else:
+                        cells['n'] = cells['nH']
                     
                     lens.append(length)
                     spread.append(minmax)

@@ -17,16 +17,20 @@ def getMass(a,galNum):
     filename = 'halos_{0:.3f}.txt'
     fname = dataloc.format(galNum) + filename.format(a)
 
-    with open(fname) as f:
-        f.readline()
-        f.readline()
-        l = f.readline().split()
-        mstar = float(l[13])
-        mvir = float(l[7])
-        rvir = float(l[8])
-        mgas = float(l[12])
+    try:
+        with open(fname) as f:
+            f.readline()
+            f.readline()
+            l = f.readline().split()
+            mstar = float(l[13])
+            mvir = float(l[7])
+            rvir = float(l[8])
+            mgas = float(l[12])
 
-    return mstar,mvir,rvir,mgas
+        return mstar,mvir,rvir,mgas
+    except IOError:
+        return 0,0,0,0
+
 
 def mkLines(ax):
     ymin,ymax = ax.get_ylim()
@@ -42,6 +46,7 @@ galNums = range(21,30)
     
 for galNum in galNums:
 
+    print(galNum)
     # Initial mass
     a = 0.200
     mstar1,mvir1,rvir1,mgas1 = getMass(a,galNum)
@@ -54,9 +59,10 @@ for galNum in galNums:
 
     for a in expns:
 
-        mstar2,mvir2,rvir2,mgas2 = getMass(a)
+        mstar2,mvir2,rvir2,mgas2 = getMass(a,galNum)
+        if mstar2==0:
+            break
 
-        print(mstar1,mstar2)
         deltaMs = mstar2-mstar1
         sfr = deltaMs/timestep
         ssfr = sfr/mstar2
@@ -76,7 +82,7 @@ for galNum in galNums:
 
     data = np.delete(data,(0),axis=0)
     df = pd.DataFrame(data,columns=header)
-    outname = 'vela2b-{0:D}_sfr.csv'.format(galNum)
+    outname = 'vela2b-{0:d}_sfr.csv'.format(galNum)
     df.to_csv(outname,index=False)
 
 sys.exit()

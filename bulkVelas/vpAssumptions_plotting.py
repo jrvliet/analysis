@@ -9,6 +9,7 @@ import sys
 
 
 loc = '/home/jacob/research/code/analysis/bulkVelas/'
+loc = '/lustre/projects/p089_swin/jvander/analysis/bulkVelas/'
 filename = 'vpAssumptions_vela.h5'
 fname = loc+filename
 

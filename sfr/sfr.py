@@ -7,14 +7,15 @@ from __future__ import print_function
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
 
 
-def getMass(a):
+def getMass(a,galNum):
 
-    dataloc = '/mnt/cluster/abs/Simulations/vela2.1/VELA27/output/ana/'
     dataloc = '/home/jacob/research/velas/vela2b/vela27/subhalos/'
+    dataloc = '/mnt/cluster/abs/Simulations/vela2.1/VELA{0:d}/output/ana/'
     filename = 'halos_{0:.3f}.txt'
-    fname = dataloc + filename.format(a)
+    fname = dataloc.format(galNum) + filename.format(a)
 
     with open(fname) as f:
         f.readline()
@@ -37,42 +38,48 @@ def mkLines(ax):
 
 times = pd.read_csv('lookback_time.csv',index_col='a')
 
-# Initial mass
-a = 0.200
-mstar1,mvir1,rvir1,mgas1 = getMass(a)
-timestep = times.ix[a]['Time until next [Myr]']*1e6
-
-expns = [i/100. for i in range(21,55)]
-
-header = ['a','mstar','mvir','sfr','ssfr']
-data = np.zeros(len(header))
-
-for a in expns:
-
-    mstar2,mvir2,rvir2,mgas2 = getMass(a)
-
-    print(mstar1,mstar2)
-    deltaMs = mstar2-mstar1
-    sfr = deltaMs/timestep
-    ssfr = sfr/mstar2
-
+galNums = range(21,30)
     
-    d = np.zeros(len(header))
-    d[0] = a
-    d[1] = np.log10(mstar2)
-    d[2] = np.log10(mvir2)
-    d[3] = sfr
-    d[4] = np.log10(ssfr)
-    
+for galNum in galNums:
+
+    # Initial mass
+    a = 0.200
+    mstar1,mvir1,rvir1,mgas1 = getMass(a,galNum)
     timestep = times.ix[a]['Time until next [Myr]']*1e6
-    mstar1,mvir1,rvir1,mgas1 = mstar2,mvir2,rvir2,mgas2 
 
-    data = np.vstack((data,d))
+    expns = [i/100. for i in range(21,55)]
 
-data = np.delete(data,(0),axis=0)
-df = pd.DataFrame(data,columns=header)
-df.to_csv('vela2b-27_sfr.csv',index=False)
+    header = ['a','mstar','mvir','sfr','ssfr']
+    data = np.zeros(len(header))
 
+    for a in expns:
+
+        mstar2,mvir2,rvir2,mgas2 = getMass(a)
+
+        print(mstar1,mstar2)
+        deltaMs = mstar2-mstar1
+        sfr = deltaMs/timestep
+        ssfr = sfr/mstar2
+
+        
+        d = np.zeros(len(header))
+        d[0] = a
+        d[1] = np.log10(mstar2)
+        d[2] = np.log10(mvir2)
+        d[3] = sfr
+        d[4] = np.log10(ssfr)
+        
+        timestep = times.ix[a]['Time until next [Myr]']*1e6
+        mstar1,mvir1,rvir1,mgas1 = mstar2,mvir2,rvir2,mgas2 
+
+        data = np.vstack((data,d))
+
+    data = np.delete(data,(0),axis=0)
+    df = pd.DataFrame(data,columns=header)
+    outname = 'vela2b-{0:D}_sfr.csv'.format(galNum)
+    df.to_csv(outname,index=False)
+
+sys.exit()
 df['redshift'] = 1./df['a'] - 1.
 
 # Plot SFR

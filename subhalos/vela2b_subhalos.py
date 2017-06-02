@@ -36,12 +36,16 @@ for galNum in galNums:
         
         fname = loc+subloc.format(galNum)+filename.format(a)
 
-        with open(fname,'r') as frot:
-            frot.readline()
-            frot.readline()
-            l = frot.readline().split()
-            mhost = float(l[7])
-            rhost = float(l[8])
+
+        try: 
+            with open(fname,'r') as frot:
+                frot.readline()
+                frot.readline()
+                l = frot.readline().split()
+                mhost = float(l[7])
+                rhost = float(l[8])
+        except IOError:
+            continue
 
         mvir, rvir, xc, yc, zc, vx, vy, vz = np.loadtxt(fname,skiprows=3,
                                                 usecols=(7,8,15,16,17,4,5,6), 

@@ -10,6 +10,15 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+def azimuthal(phi):
+    if phi<90:
+        return phi
+    elif phi<180:
+        return 180.-phi
+    elif phi<270:
+        return phi-180.
+    else:
+        return 360.-phi
 
 baseloc = '/mnt/cluster/abs/cgm/vela2b/'
 subloc = 'vela{0:d}/a0.490/i90/OVI/'
@@ -20,6 +29,8 @@ specName = 'vela2b-{0:d}.OVI.los{1:04d}.OVI{2:d}.spec'
 galNums = range(21,30)
 losnums = range(1,1000)
 trans = [1032,1038]
+
+azCutoff = 30.
 
 for tran in trans:
     print('Transition: {0:d}'.format(tran))

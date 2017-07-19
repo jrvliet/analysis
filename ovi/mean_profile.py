@@ -48,7 +48,6 @@ for tran in trans:
         try:
             lines = pd.read_csv(lines,sep='\s+',skiprows=2,names=linesHeader)
             lines['az'] = lines['phi'].apply(azimuthal)
-            print(galNum)
         except IOError:
             continue
 
@@ -61,16 +60,19 @@ for tran in trans:
 
                 try:
                     fi = open(syName,'r')
+                    fi.readline()
+                    ew = float(fi.readline().split()[5])
                     fi.close()
                     vel,f,s = np.loadtxt(spName,usecols=(1,2,3),unpack=True)
                 
                     az = lines['az'].iloc[losnum-1]
-                    if az<azCutoff:
-                        majorFlux.append(f)
-                        majorSigma.append(s)
-                    else:
-                        minorFlux.append(f)
-                        minorSigma.append(s)
+                    if ew>0:
+                        if az<azCutoff:
+                            majorFlux.append(f)
+                            majorSigma.append(s)
+                        else:
+                            minorFlux.append(f)
+                            minorSigma.append(s)
                         
                 except IOError:
                     continue
@@ -82,26 +84,38 @@ for tran in trans:
                                [majorSigma,minorSigma],
                                ['Major','Minor']):
 
+        print('{0:s}\t{1:d}'.format(name,len(flux)))
         flux = np.asarray(flux)
         sigma = np.asarray(sigma)
         top = np.sum(flux/sigma**2,axis=0)
         bot = np.sum(sigma**(-2),axis=0)
         y = top/bot
         yerr = 1./np.sqrt(bot**2)
-        #y = np.mean(flux,axis=0)
-        #yerr = np.std(flux,axis=0)/np.sqrt(tot.shape[0])
 
         fig,ax = plt.subplots(1,1,figsize=(5,5))
         ax.errorbar(vel,y,yerr=yerr)
         ax.set_xlabel('Velocity [km/s]')
         ax.set_ylabel('Flux')
         ax.set_ylim([0,1.2])
-
         fig.savefig('meanOVI{0:d}_{1:s}_Limitsprofile.png'.format(tran,name),
                     bbox_inches='tight',dpi=300)
-        plt.close()
+        plt.close(fig)
             
-            
+        fig,ax = plt.subplots(1,1,figsize=(5,5))
+        y = np.mean(flux,axis=0)
+        yerr = np.std(flux,axis=0)/np.sqrt(flux.shape[0])
+        print(np.mean(yerr))
+        ax.errorbar(vel,y,yerr=yerr)
+        #ax.plot(vel,y)
+        ax.set_xlabel('Velocity Test [km/s]')
+        ax.set_ylabel('Flux')
+        ax.set_ylim([0,1.2])
+        fig.savefig('meanOVI{0:d}_{1:s}_directMeanProfile.png'.format(tran,name),
+                    bbox_inches='tight',dpi=300)
+        plt.close(fig)
+
+    break
+   
             
 
 

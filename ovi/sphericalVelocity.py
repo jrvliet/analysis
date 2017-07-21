@@ -27,19 +27,19 @@ def rotate(row,rot):
 
     # Coordinates
     row['xGal'] = (row['x']*rot['a11'] + row['y']*rot['a12'] + 
-                   row['z']*rot['a13'])
+                   row['z']*rot['a13']).values[0]
     row['yGal'] = (row['x']*rot['a21'] + row['y']*rot['a22'] + 
-                   row['z']*rot['a23'])
+                   row['z']*rot['a23']).values[0]
     row['zGal'] = (row['x']*rot['a31'] + row['y']*rot['a32'] + 
-                   row['z']*rot['a33'])
+                   row['z']*rot['a33']).values[0]
     
     # Velocities
     row['vxGal'] = (row['vx']*rot['a11'] + row['vy']*rot['a12'] + 
-                   row['vz']*rot['a13'])
+                   row['vz']*rot['a13']).values[0]
     row['vyGal'] = (row['vx']*rot['a21'] + row['vy']*rot['a22'] + 
-                   row['vz']*rot['a23'])
+                   row['vz']*rot['a23']).values[0]
     row['vzGal'] = (row['vx']*rot['a31'] + row['vy']*rot['a32'] + 
-                   row['vz']*rot['a33'])
+                   row['vz']*rot['a33']).values[0]
     return row
 
 
@@ -149,7 +149,6 @@ for galNum in galNums:
     
     # Determine if the cell is in the plane or in outflows
     print('\tLabel')
-    print(type(cells['phi']))
     cells['cellPlane'] = cells['phi'].apply(lambda x: (90-planeAzCut<=x) & (x<=90.+planeAzCut))
     cells['cellOutflow'] = cells['phi'].apply(lambda x: (90-planeAzCut<=x) & (x<=90.+planeAzCut))
 
@@ -165,10 +164,8 @@ for galNum in galNums:
     cells['losOutflow'] = cells['losAz'].apply(lambda x: x>=outflowAzCut)
     
     print('\tSave')
-    print(cells.columns)
     cells.to_hdf(oname,'data',mode='w')
     
-    break
 
     
     

@@ -21,6 +21,7 @@ def azimuthal(phi):
         return 360.-phi
 
 baseloc = '/mnt/cluster/abs/cgm/vela2b/'
+baseloc = '/home/jacob/research/velas/vela2b/'
 subloc = 'vela{0:d}/a0.490/i90/OVI/'
 
 sysabsName = 'vela2b-{0:d}.OVI.los{1:04d}.sysabs'
@@ -30,6 +31,7 @@ linesHeader = 'losnum D phi incline'.split()
 galNums = range(21,30)
 losnums = range(1,1000)
 trans = [1032,1038]
+galNums = [25]
 
 azCutoff = 30.
 loD,hiD = 20,250
@@ -93,7 +95,8 @@ for tran in trans:
         yerr = 1./np.sqrt(bot**2)
 
         fig,ax = plt.subplots(1,1,figsize=(5,5))
-        ax.errorbar(vel,y,yerr=yerr)
+        #ax.errorbar(vel,y,yerr=yerr)
+        ax.plot(vel,y)
         ax.set_xlabel('Velocity [km/s]')
         ax.set_ylabel('Flux')
         ax.set_ylim([0,1.2])
@@ -105,9 +108,9 @@ for tran in trans:
         y = np.mean(flux,axis=0)
         yerr = np.std(flux,axis=0)/np.sqrt(flux.shape[0])
         print(np.mean(yerr))
-        ax.errorbar(vel,y,yerr=yerr)
-        #ax.plot(vel,y)
-        ax.set_xlabel('Velocity Test [km/s]')
+        #ax.errorbar(vel,y,yerr=yerr)
+        ax.plot(vel,y)
+        ax.set_xlabel('Velocity [km/s]')
         ax.set_ylabel('Flux')
         ax.set_ylim([0,1.2])
         fig.savefig('meanOVI{0:d}_{1:s}_directMeanProfile.png'.format(tran,name),

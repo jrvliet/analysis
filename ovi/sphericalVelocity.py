@@ -63,8 +63,8 @@ def spherical(row):
     row['vtheta'] = row['r']*np.sin(row['phi'])*row['thetadot']
     row['vphi'] = row['r']*row['phidot']
     
-    row['phi'] = np.pi/180.*row['phi']
-    row['theta'] = np.pi/180.*row['theta']
+    row['phi'] = 180./np.pi*row['phi']
+    row['theta'] = 180./np.pi*row['theta']
 
     return row
 

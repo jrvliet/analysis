@@ -154,7 +154,7 @@ for galNum in galNums:
     # Determine if the cell is in the plane or in outflows
     print('\tLabel')
     cells['cellPlane'] = cells['phi'].apply(lambda x: (90-planeAzCut<=x) & (x<=90.+planeAzCut))
-    cells['cellOutflow'] = cells['phi'].apply(lambda x: (90-planeAzCut<=x) & (x<=90.+planeAzCut))
+    cells['cellOutflow'] = cells['phi'].apply(lambda x: (x<=outflowAzCut) | (x>=180.-outflowAzCut))
 
     #cells['cellPlane'] = cells['phi'].apply(cell_plane_cut,args=[planeAzCut])
     #cells['cellOutflow'] = cells['phi'].apply(cell_outflow_cut,args=[outflowAzCut])

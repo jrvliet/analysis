@@ -63,9 +63,13 @@ def spherical(row):
     row['vtheta'] = row['r']*np.sin(row['phi'])*row['thetadot']
     row['vphi'] = row['r']*row['phidot']
     
+    row['phi'] = np.pi/180.*row['phi']
+    row['theta'] = np.pi/180.*row['theta']
+
     return row
 
 def cell_plane_cut(phi,planeAzCut):
+    
     if phi>=90.-planeAzCut and phi<=90.+planeAzCut:
         return 1
     else:

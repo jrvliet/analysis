@@ -24,7 +24,8 @@ g2Ms  = 1.989e33
 u2g = 1.661e-24
 
 pd.options.mode.chained_assignment = None  # default='warn'
-colors = ['blue','red','green','black','cyan','coral','purple','goldenrod','gray','orange']
+colors = ['blue','red','green','black','cyan',
+        'coral','purple','goldenrod','gray','orange']
 markers = ['o','^','d','s','v']
 
 # Define which galaxies to use

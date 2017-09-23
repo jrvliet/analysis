@@ -15,6 +15,7 @@ import numb as nb
 import tempfile
 import sys
 import decimal
+import os
 
 
 class tpcfProps(object):
@@ -83,10 +84,34 @@ def select_los(run):
     Selects lines of sight that fit the limits contained in run
     '''
 
+    linesHeader = 'los impact phi incline az'.split()
     galNums = range(21,30)
+    los = pd.dataframe(columns=galNums)
     for galNum in galNums:
         
         # Check if the expansion parameter exists
+        dirname = run.loc+'vela{0:d}/a{1:.3f}'.format(galNum,run.expn)
+        if os.path.isdir(dirname):
+            
+            # Get list of inclinations in this directory
+            iDirs = [name for name in os.listdir('.') if 
+                        os.path.isdir(os.path.join('.',name)) and
+                        i[0]=='i' and 
+                        float(i.split('i')[1])>=run.iLo and
+                        float(i.split('i')[1])<=run.iLo]
+            for iDir in iDirs:
+                linesFile = '{0:s}/{1:s}/lines.info'.format(dirname,iDir)
+                lines =  pd.read_csv(linesFile,names=linesHeader,
+                                     sep='\s+')
+                targets = ((lines['az']>=run.azLo) & 
+                           (lines['az']<=run.azHi) &
+                           (lines['impact']>=run.dLo) & 
+                           (lines['impact']<=run.dHi))
+                target = lines['los'][targets]
+                
+                los.set_value(iDir,galNum,target)
+            
+        
     
         # Read in the lines file
     

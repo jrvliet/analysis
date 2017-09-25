@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import subprocess as sp
 import itertools as it
 import joblib as jl
-import numb as nb
+import numba as nb
 import tempfile
 import sys
 import decimal
@@ -86,7 +86,10 @@ def select_los(run):
 
     linesHeader = 'los impact phi incline az'.split()
     galNums = range(21,30)
+    iDirs = find_inclinations(run,galNums)
+    
     los = pd.dataframe(columns=galNums)
+    
     for galNum in galNums:
                    for iDir in iDirs:
                 linesFile = '{0:s}/{1:s}/lines.info'.format(dirname,iDir)

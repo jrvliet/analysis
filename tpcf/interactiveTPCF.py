@@ -39,7 +39,7 @@ class tpcfRun(object):
     Class that holds the settings for this interactive run
     '''
     
-    def __init__ (object):
+    def __init__ (self):
         self.azLo = 0.
         self.azHi = 90.
         self.expn = '0.490'
@@ -49,6 +49,16 @@ class tpcfRun(object):
         self.dLo = 0.
         self.dHi = 200.
         self.loc = '/mnt/cluster/abs/cgm/vela2b/'
+
+    def print_run(self):
+        print('\nTPCF Run Properties: ')
+        print('\tLocation = {0:s}'.format(self.loc))
+        print('\tExpansion Parameter = {0:s}'.format(self.expn))
+        print('\tIons = {0:s}'.format(', '.join(self.ions)))
+        print('\tAzimuthal Limits = {0:f} - {1:f}'.format(self.azLo,self.azHi))
+        print('\tInclination Limits = {0:f} - {1:f}'.format(self.iLo,self.iHi))
+        print('\tImpact Limits = {0:f} - {1:f}'.format(self.dLo,self.dHi))
+        print()
         
 def read_input():
     '''
@@ -59,6 +69,8 @@ def read_input():
     run = tpcfRun()
     with open(fname,'r') as f:
         
+        run.expn = f.readline().split()[0]
+
         run.azLo = float(f.readline().split()[0])
         run.azHi = float(f.readline().split()[0])
 
@@ -67,7 +79,6 @@ def read_input():
 
         run.iLo = float(f.readline().split()[0])
         run.iHi = float(f.readline().split()[0])
-        run.expn = float(f.readline().split()[0])
 
         # Read in ions
         f.readline()
@@ -131,7 +142,7 @@ def build_sample(run,los):
             # Select out the lines that are in LOS
             snap = los[galNum,inc]
             a = set(['{0:.1f}'.format(v) for v in snap.values])
-            snapVels = vd[list(a & velDiffColumns]
+            snapVels = vd[list(a & velDiffColumns)]
             allVels[i] = pd.concat([allVels[i],snapVels],axis=1)
     
     # Reset allVels column names
@@ -230,7 +241,13 @@ def find_inclinations(run,galNums):
 
 if __name__ == '__main__':
 
-    run = runProps()
+    run = read_input()
+    run.print_run()
+    tpcfProp = tpcfProps()
+    tpcfProp.bootNum = 10
+    
+    los = select_los(run)
+    allVelsPath,allVelsShapes,maxVel = build_sample(run,los):
     
 
 

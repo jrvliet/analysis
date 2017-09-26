@@ -42,7 +42,7 @@ class tpcfRun(object):
     def __init__ (object):
         self.azLo = 0.
         self.azHi = 90.
-        self.expn = 0.490
+        self.expn = '0.490'
         self.ions = 'MgII CIV OVI'.split()
         self.iLo = 0.
         self.iHi = 90.
@@ -86,33 +86,112 @@ def select_los(run):
 
     linesHeader = 'los impact phi incline az'.split()
     galNums = range(21,30)
-    iDirs = find_inclinations(run,galNums)
+    iDirs,iDirsList = find_inclinations(run,galNums)
+        
+    los = pd.DataFrame(columns=pd.MultiIndex.from_tuples(iDirs),
+                        index=range(1000))
     
-    los = pd.dataframe(columns=galNums)
+    # Loop through to read in lines.info files
+    for gal,inc in iDirsList:
+        dirname = '{0:s}/vela{1:d}/{2:s}/{3:s}/'.format(run.loc,
+                                                gal,run.expn,inc)
+        linesFile = '{0:s}/lines.info'.format(dirname)
+        lines =  pd.read_csv(linesFile,names=linesHeader,
+                             sep='\s+')
+        targets = ((lines['az']>=run.azLo) & 
+                   (lines['az']<=run.azHi) &
+                   (lines['impact']>=run.dLo) & 
+                   (lines['impact']<=run.dHi))
+        target = lines['los'][targets]
+        
+        los[gal,inc] = pd.Series(target)
+        los.set_value(iDir,galNum,target)
+        
+    return los
+   
+def build_sample(run,los):
+    '''
+    Using LOS contained in los, select out the velocity differences 
+    from TPCF files
+    '''
     
-    for galNum in galNums:
-                   for iDir in iDirs:
-                linesFile = '{0:s}/{1:s}/lines.info'.format(dirname,iDir)
-                lines =  pd.read_csv(linesFile,names=linesHeader,
-                                     sep='\s+')
-                targets = ((lines['az']>=run.azLo) & 
-                           (lines['az']<=run.azHi) &
-                           (lines['impact']>=run.dLo) & 
-                           (lines['impact']<=run.dHi))
-                target = lines['los'][targets]
-                
-                los.set_value(iDir,galNum,target)
+    # Loop through columns in los
+    allVels = [pd.DataFrame for ion in ions]
+    for galNum,inc in los.columns:
+    
+        dirname = '{0:s}/vela{1:d}/{2:s}/{3:s}/tpcf/'.format(run.loc,
+                    galNum,run.expn,inc)
+        for i,ion in eunumerate(run.ions):
+            filename = 'vela2b-{0:d}_{1:s}_{2:s}_{3:s}_velDiff.csv'.format(
+                    galNum,run.expn,inc,ion)
+            fname = dirname+filename
+            vd = pd.read_csv(fname)
+            velDiffColumns = set(vd.columns.values)
             
-        
+            # Select out the lines that are in LOS
+            snap = los[galNum,inc]
+            a = set(['{0:.1f}'.format(v) for v in snap.values])
+            snapVels = vd[list(a & velDiffColumns]
+            allVels[i] = pd.concat([allVels[i],snapVels],axis=1)
     
-        # Read in the lines file
+    # Reset allVels column names
+    for df in allVels:
+        df.columns = range(df.shape[1])
+
+    # Convert to memmap objects
+    allVelsPaths = []
+    allVelsShapes = []
+    maxVel = 0
+    for df,ion in zip(allVels,ions):
+        path = tempfile.mkdtemp()
+        velMemPath = os.path.join(velDiffPath,
+                    'vellDiff_{0:s}.mmap'.format(ion))
+        velDiffMem = np.memmap(velMemPath,dtype='float',
+                        shape=df.shape,mode='w+')
+        velDiffMem[:] = df.values[:]
+        allVelsPaths.append(velMemPath)
+        dfMax = np.nanmax(df.values)
+        if dfMax>maxVel:
+            maxVel = dfMax
+
+    return allVelsPath,allVelsShapes,maxVel
     
-        # Select los that fit the requirements
 
-        # Add to array
-        
-    # Return array
+def sample_bins(run,maxVel,tpcfProp):
+    ''' 
+    Generates the velocity bins and labels to making the tpcf
+    '''
 
+    nbins = int(maxVel/tpcfProp.binSize)
+    endPoint = tpcf.binSize*(nbins+1)
+    bins = np.arange(0,endPoint,tpcf.binSize)
+
+    labels = [(bins[i]+bins[i+1])/2. for i in range(nbins)]
+    lastLabel = labels[-1] + (labels[1]-labels[0])
+    labels.append(lastLabel)
+    return bins,labels
+    
+
+
+def sample_tpcf(run,samplePath,sampleShape,bins,labels,bootstrap=0):
+    '''
+    Constructs the TPCF from the sample
+    '''
+    
+    sample = np.memmap(samplePath,dtype='float',mode='r',
+                        shape=sampleShape)
+    if bootstrap!=0:
+        sample = sample[:,np.random.random.choice(sample.shape[1],
+                        sample.shape[1],replace=True)]
+    
+    flat = sample.flatten()
+    flat = flat[~np.isnan(flat)]
+    tpcf = np.sort(np.bincount(np.digitize(flat,bins)))[::-1]
+    tpcf = tpcf/tpcf.sum()
+    return tpcf 
+    
+    
+    
     
 
 def find_inclinations(run,galNums):
@@ -127,22 +206,32 @@ def find_inclinations(run,galNums):
 
         # Check if the expansion parameter exists
         dirname = run.loc+'vela{0:d}/a{1:.3f}'.format(galNum,run.expn)
+        inclines = []
         if os.path.isdir(dirname):
             
             # Get list of inclinations in this directory
             inclines = [name for name in os.listdir('.') if 
                         os.path.isdir(os.path.join('.',name)) and
-                        i[0]=='i' and 
-                        float(i.split('i')[1])>=run.iLo and
-                        float(i.split('i')[1])<=run.iLo]
+                        names[0]=='i' and 
+                        float(names.split('i')[1])>=run.iLo and
+                        float(names.split('i')[1])<=run.iHi]
 
         iDirs[galNum] = inclines
 
-    return iDirs
+    iDirsList = []
+    for key,val in iDirs.items():
+        for v in val:
+            iDirsList.append([key,v])
+    
+    return iDirs,iDirsList
     
 
 
 
+if __name__ == '__main__':
+
+    run = runProps()
+    
 
 
 

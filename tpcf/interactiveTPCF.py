@@ -184,21 +184,23 @@ def sample_bins(run,maxVel,tpcfProp):
     
 
 
-def sample_tpcf(run,samplePath,sampleShape,bins,labels,bootstrap=0):
+def sample_tpcf(run,samplePaths,sampleShapes,bins,labels,bootstrap=0):
     '''
     Constructs the TPCF from the sample
     '''
     
-    sample = np.memmap(samplePath,dtype='float',mode='r',
-                        shape=sampleShape)
-    if bootstrap!=0:
-        sample = sample[:,np.random.random.choice(sample.shape[1],
-                        sample.shape[1],replace=True)]
-    
-    flat = sample.flatten()
-    flat = flat[~np.isnan(flat)]
-    tpcf = np.sort(np.bincount(np.digitize(flat,bins)))[::-1]
-    tpcf = tpcf/tpcf.sum()
+    tpcfs = []
+    for sPath,sShape in zip(samplePaths,samplesShapes):
+        sample = np.memmap(sPath,dtype='float',mode='r',
+                            shape=sShape)
+        if bootstrap!=0:
+            sample = sample[:,np.random.random.choice(sample.shape[1],
+                            sample.shape[1],replace=True)]
+        
+        flat = sample.flatten()
+        flat = flat[~np.isnan(flat)]
+        tpcf = np.sort(np.bincount(np.digitize(flat,bins)))[::-1]
+        tpcf = tpcf/tpcf.sum()
     return tpcf 
     
     
@@ -247,9 +249,11 @@ if __name__ == '__main__':
     tpcfProp.bootNum = 10
     
     los = select_los(run)
-    allVelsPath,allVelsShapes,maxVel = build_sample(run,los):
+    allVelsPath,allVelsShapes,maxVel = build_sample(run,los)
     
 
+    bins,labels = sample_bins(run,maxVel,tpcfProp):
+    tpcfs = sample_tpcf(run,allVelsPath,allVelsShapes,bins,labels)
 
 
 

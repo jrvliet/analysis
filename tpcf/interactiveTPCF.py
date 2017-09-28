@@ -99,16 +99,18 @@ def select_los(run):
     galNums = range(21,30)
     iDirs,iDirsList = find_inclinations(run,galNums)
         
-    los = pd.DataFrame(columns=pd.MultiIndex.from_tuples(iDirs),
+    print('iDirs: ',iDirs)
+    print('iDirsList; ',iDirsList)
+    los = pd.DataFrame(columns=pd.MultiIndex.from_tuples(iDirsList),
                         index=range(1000))
     
     # Loop through to read in lines.info files
     for gal,inc in iDirsList:
-        dirname = '{0:s}/vela{1:d}/{2:s}/{3:s}/'.format(run.loc,
+        dirname = '{0:s}/vela{1:d}/a{2:s}/{3:s}/'.format(run.loc,
                                                 gal,run.expn,inc)
         linesFile = '{0:s}/lines.info'.format(dirname)
         lines =  pd.read_csv(linesFile,names=linesHeader,
-                             sep='\s+')
+                             sep='\s+',skiprows=1)
         targets = ((lines['az']>=run.azLo) & 
                    (lines['az']<=run.azHi) &
                    (lines['impact']>=run.dLo) & 
@@ -116,7 +118,7 @@ def select_los(run):
         target = lines['los'][targets]
         
         los[gal,inc] = pd.Series(target)
-        los.set_value(iDir,galNum,target)
+        los.set_value(inc,gal,target)
         
     return los
    
@@ -126,17 +128,25 @@ def build_sample(run,los):
     from TPCF files
     '''
     
+    flog = open('tpcf_errors.log','w')
+    flog.write('GalNum\tExpn\tIncline\tIon\n')
+    flogs = '{0:d}\t{1:s}\t{2:s}\t{3:s}\n'
+
     # Loop through columns in los
-    allVels = [pd.DataFrame for ion in ions]
+    allVels = [pd.DataFrame() for ion in run.ions]
     for galNum,inc in los.columns:
     
-        dirname = '{0:s}/vela{1:d}/{2:s}/{3:s}/tpcf/'.format(run.loc,
+        dirname = '{0:s}/vela{1:d}/a{2:s}/{3:s}/tpcf/'.format(run.loc,
                     galNum,run.expn,inc)
-        for i,ion in eunumerate(run.ions):
+        for i,ion in enumerate(run.ions):
             filename = 'vela2b-{0:d}_{1:s}_{2:s}_{3:s}_velDiff.csv'.format(
                     galNum,run.expn,inc,ion)
             fname = dirname+filename
-            vd = pd.read_csv(fname)
+            try:
+                vd = pd.read_csv(fname)
+            except IOError:
+                flog.write(flogs.format(galNum,run.expn,inc,ion))
+                continue
             velDiffColumns = set(vd.columns.values)
             
             # Select out the lines that are in LOS
@@ -153,19 +163,20 @@ def build_sample(run,los):
     allVelsPaths = []
     allVelsShapes = []
     maxVel = 0
-    for df,ion in zip(allVels,ions):
+    for df,ion in zip(allVels,run.ions):
         path = tempfile.mkdtemp()
-        velMemPath = os.path.join(velDiffPath,
+        velMemPath = os.path.join(path,
                     'vellDiff_{0:s}.mmap'.format(ion))
         velDiffMem = np.memmap(velMemPath,dtype='float',
                         shape=df.shape,mode='w+')
         velDiffMem[:] = df.values[:]
         allVelsPaths.append(velMemPath)
+        allVelsShapes.append(df.shape)
         dfMax = np.nanmax(df.values)
         if dfMax>maxVel:
             maxVel = dfMax
 
-    return allVelsPath,allVelsShapes,maxVel
+    return allVelsPaths,allVelsShapes,maxVel
     
 
 def sample_bins(run,maxVel,tpcfProp):
@@ -174,8 +185,8 @@ def sample_bins(run,maxVel,tpcfProp):
     '''
 
     nbins = int(maxVel/tpcfProp.binSize)
-    endPoint = tpcf.binSize*(nbins+1)
-    bins = np.arange(0,endPoint,tpcf.binSize)
+    endPoint = tpcfProp.binSize*(nbins+1)
+    bins = np.arange(0,endPoint,tpcfProp.binSize)
 
     labels = [(bins[i]+bins[i+1])/2. for i in range(nbins)]
     lastLabel = labels[-1] + (labels[1]-labels[0])
@@ -190,7 +201,9 @@ def sample_tpcf(run,samplePaths,sampleShapes,bins,labels,bootstrap=0):
     '''
     
     tpcfs = []
-    for sPath,sShape in zip(samplePaths,samplesShapes):
+    print('Paths = ',samplePaths)
+    print('Shapes = ',sampleShapes)
+    for sPath,sShape in zip(samplePaths,sampleShapes):
         sample = np.memmap(sPath,dtype='float',mode='r',
                             shape=sShape)
         if bootstrap!=0:
@@ -201,7 +214,8 @@ def sample_tpcf(run,samplePaths,sampleShapes,bins,labels,bootstrap=0):
         flat = flat[~np.isnan(flat)]
         tpcf = np.sort(np.bincount(np.digitize(flat,bins)))[::-1]
         tpcf = tpcf/tpcf.sum()
-    return tpcf 
+        tpcfs.append(tpcf)
+    return tpcfs
     
     
     
@@ -218,16 +232,17 @@ def find_inclinations(run,galNums):
     for galNum in galNums:
 
         # Check if the expansion parameter exists
-        dirname = run.loc+'vela{0:d}/a{1:.3f}'.format(galNum,run.expn)
+        subloc = run.loc+'vela{0:d}/a{1:s}/'.format(galNum,run.expn)
+        dirname = os.path.join(run.loc,subloc)
         inclines = []
         if os.path.isdir(dirname):
             
             # Get list of inclinations in this directory
-            inclines = [name for name in os.listdir('.') if 
-                        os.path.isdir(os.path.join('.',name)) and
-                        names[0]=='i' and 
-                        float(names.split('i')[1])>=run.iLo and
-                        float(names.split('i')[1])<=run.iHi]
+            inclines = [name for name in os.listdir(dirname) if 
+                        os.path.isdir(os.path.join(dirname,name)) and
+                        name[0]=='i' and 
+                        float(name.split('i')[1])>=run.iLo and
+                        float(name.split('i')[1])<=run.iHi]
 
         iDirs[galNum] = inclines
 
@@ -239,11 +254,22 @@ def find_inclinations(run,galNums):
     return iDirs,iDirsList
     
 
+def cleanup(paths):
+
+    '''
+    Deletes mmaps
+    '''
+    command = 'rm {0:s}'
+    for path in paths:
+        print(command.format(path))
+        sp.call(command.format(path),shell=True)
+
 
 
 if __name__ == '__main__':
 
     run = read_input()
+    run.loc = '/home/sims/vela2b/'
     run.print_run()
     tpcfProp = tpcfProps()
     tpcfProp.bootNum = 10
@@ -252,10 +278,16 @@ if __name__ == '__main__':
     allVelsPath,allVelsShapes,maxVel = build_sample(run,los)
     
 
-    bins,labels = sample_bins(run,maxVel,tpcfProp):
+    bins,labels = sample_bins(run,maxVel,tpcfProp)
     tpcfs = sample_tpcf(run,allVelsPath,allVelsShapes,bins,labels)
 
+    tpcfFull = pd.DataFrame(index=labels)
+    print(bins,labels)
+    for ion,tpcf in zip(run.ions,tpcfs):
+        tpcfFull[ion] = tpcf
 
+    tpcfFull.write_csv('tpcfFull.csv')
+    cleanup(allVelsPath)
 
 
 

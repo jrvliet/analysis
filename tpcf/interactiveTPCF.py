@@ -49,10 +49,32 @@ class tpcfRun(object):
         self.dLo = 0.
         self.dHi = 200.
         self.loc = '/mnt/cluster/abs/cgm/vela2b/'
+        self.binSize = 10.
+        self.bootNum = 1000
+    
+        # Time selection
+        self.zRange = 0
+        self.loZ = 1.05
+        self.hiZ = 1.00
+
+        # Mass selection
+        self.useMass = 0
+        self.massType = 1
+        self.loMass = 10
+        self.hiMass = 12
+
+        # SFR selection
+        self.useSFR = 0
+        self.sfrType = 1
+        self.loSFR = -12
+        self.hiSFR = -10
 
     def print_run(self):
         print('\nTPCF Run Properties: ')
         print('\tLocation = {0:s}'.format(self.loc))
+
+        print('')
+
         print('\tExpansion Parameter = {0:s}'.format(self.expn))
         print('\tIons = {0:s}'.format(', '.join(self.ions)))
         print('\tAzimuthal Limits = {0:f} - {1:f}'.format(self.azLo,self.azHi))
@@ -164,7 +186,9 @@ def build_sample(run,los):
     allVelsShapes = []
     maxVel = 0
     for df,ion in zip(allVels,run.ions):
-        path = tempfile.mkdtemp()
+        #path = tempfile.mkdtemp()
+        path = os.path.join('.','tmp')
+        
         velMemPath = os.path.join(path,
                     'vellDiff_{0:s}.mmap'.format(ion))
         velDiffMem = np.memmap(velMemPath,dtype='float',
@@ -269,7 +293,7 @@ def cleanup(paths):
 if __name__ == '__main__':
 
     run = read_input()
-    #run.loc = '/home/sims/vela2b/'
+    run.loc = '/home/sims/vela2b/'
     run.print_run()
     tpcfProp = tpcfProps()
     tpcfProp.bootNum = 10

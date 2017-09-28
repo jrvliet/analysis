@@ -269,7 +269,7 @@ def cleanup(paths):
 if __name__ == '__main__':
 
     run = read_input()
-    run.loc = '/home/sims/vela2b/'
+    #run.loc = '/home/sims/vela2b/'
     run.print_run()
     tpcfProp = tpcfProps()
     tpcfProp.bootNum = 10
@@ -283,9 +283,9 @@ if __name__ == '__main__':
 
     # Put full TPCFs into dataframe
     tpcfFull = pd.DataFrame(index=labels)
-    print(bins,labels)
-    print()
-    print(len(bins),len(labels))
+    #print(bins,labels)
+    #print()
+    #print(len(bins),len(labels))
     for ion,tpcf in zip(run.ions,tpcfs):
         # Pad the array with nans
         print(ion,len(tpcf))
@@ -300,6 +300,9 @@ if __name__ == '__main__':
 
     header = 'vel '+' '.join(run.ions)
     header = header.split()
+    header = run.ions
+    print(header)
+    print(tpcfFull.shape)
     tpcfFull.to_csv('tpcfFull.csv',header=header)
     cleanup(allVelsPath)
 

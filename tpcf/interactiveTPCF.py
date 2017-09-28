@@ -281,12 +281,26 @@ if __name__ == '__main__':
     bins,labels = sample_bins(run,maxVel,tpcfProp)
     tpcfs = sample_tpcf(run,allVelsPath,allVelsShapes,bins,labels)
 
+    # Put full TPCFs into dataframe
     tpcfFull = pd.DataFrame(index=labels)
     print(bins,labels)
+    print()
+    print(len(bins),len(labels))
     for ion,tpcf in zip(run.ions,tpcfs):
+        # Pad the array with nans
+        print(ion,len(tpcf))
+        padWidth = len(bins)-len(tpcf)
+        if padWidth>0:
+            tpcf = np.pad(tpcf,(0,padWidth),mode='constant',constant_values= (np.nan))
+        elif padWidth<0:
+            tpcf = tpcf[:len(bins)]
+        
+        print(len(bins),len(tpcf),padWidth)
         tpcfFull[ion] = tpcf
 
-    tpcfFull.write_csv('tpcfFull.csv')
+    header = 'vel '+' '.join(run.ions)
+    header = header.split()
+    tpcfFull.to_csv('tpcfFull.csv',header=header)
     cleanup(allVelsPath)
 
 

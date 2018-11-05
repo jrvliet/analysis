@@ -49,17 +49,117 @@ class tpcfRun(object):
         self.dLo = 0.
         self.dHi = 200.
         self.loc = '/mnt/cluster/abs/cgm/vela2b/'
+        self.binSize = 10.
+        self.bootNum = 1000
+    
+        # Time selection
+        self.zRange = 0
+        self.loZ = '1.05'
+        self.hiZ = '1.00'
+        self.loA = 1./float(self.loZ)-1.
+        self.hiA = 1./float(self.hiZ)-1.
+
+        # Mass selection
+        self.useMass = 0
+        self.massType = 1
+        self.loMass = 10
+        self.hiMass = 12
+
+        # SFR selection
+        self.useSFR = 0
+        self.sfrType = 1
+        self.loSFR = -12
+        self.hiSFR = -9
 
     def print_run(self):
-        print('\nTPCF Run Properties: ')
-        print('\tLocation = {0:s}'.format(self.loc))
-        print('\tExpansion Parameter = {0:s}'.format(self.expn))
-        print('\tIons = {0:s}'.format(', '.join(self.ions)))
-        print('\tAzimuthal Limits = {0:f} - {1:f}'.format(self.azLo,self.azHi))
-        print('\tInclination Limits = {0:f} - {1:f}'.format(self.iLo,self.iHi))
-        print('\tImpact Limits = {0:f} - {1:f}'.format(self.dLo,self.dHi))
-        print()
+        s = ''
+        s += '\nTPCF Run Properties: \n'
+        s += '\tLocation = {0:s}\n'.format(self.loc)
+
+        s += '\tRedshift Selection\n'
+        if self.zRange==0:
+            s += '\t\tSingle snapshot at {0:s}\n'.format(self.loZ)
+        else:
+            s += '\t\tRange from {0:s} to {1:s}\n'.format(self.loZ,self.hiZ)
+
+        s += '\tMass Selection\n'
+        if self.useMass==0:
+            s += '\t\tNo mass selection applied\n'
+        else:
+            if self.massType==1:
+                s += '\t\tHalo mass range = {0:.1f} - {1:.1f}\n'.format(
+                            self.loMass,self.hiMass)
+            else:
+                s += '\t\tStellar mass range = {0:.1f} - {1:.1f}\n'.format(
+                            self.loMass,self.hiMass)
+                
+        s += '\tStar Formation Rate Selection\n'
+        if self.useSFR==0:
+            s += '\t\tNo SFR selection applied\n'
+        else:
+            if self.sfrType==1:
+                s += '\t\tSpecfic SFR range = {0:.1f} - {1:.1f}\n'.format(
+                        self.loSFR,self.hiSFR)
+            else:
+                s += '\t\tSFR range = {0:.1f} - {1:.1f}\n'.format(
+                        self.loSFR,self.hiSFR)
         
+        s += '\tLOS Selection:\n'
+        s += '\t\tAzimuthal Limits = {0:f} - {1:f}\n'.format(self.azLo,self.azHi)
+        s += '\t\tImpact Limits = {0:f} - {1:f}\n'.format(self.dLo,self.dHi)
+        s += '\t\tInclination Limits = {0:f} - {1:f}\n'.format(self.iLo,self.iHi)
+
+        s += '\tIons = {0:s}\n'.format(', '.join(self.ions))
+        
+        return s
+        
+def galaxy_selection(run):
+    '''
+    Reads in the sfr files and returns all galaxies and expansion
+    paramters within the mass, sfr, and expn limits
+    '''
+
+    sfrLoc = run.loc+'sfr/'
+    filename = 'vela2b-{0:d}_sfr.csv'
+
+    galNums = range(21,30)
+    selection = []
+    for galNum in galNums:
+        fname = sfrLoc+filename.format(galNum)
+        df = pd.read_csv(fname)
+        if run.zRange==1:
+            timeSelection = (df['a']>=run.loA) & (df['a']<=run.hiA)
+        else:
+            timeSelection = np.islcos(df['a'],0.22)
+
+        if run.useMass==1:
+            if run.massType==1:
+                massSelection = ((df['mvir']>=run.loMass) & 
+                                 (df['mvir']<=run.hiMass))
+            else:
+                massSelection = ((df['mstar']>=run.loMass) & 
+                                 (df['mstar']<=run.hiMass))
+
+        if run.useSFR==1:
+            if run.sfrType==1:
+                sfrSelection = ((df['ssfr']>=run.loSFR) & 
+                                (df['ssfr']<=run.hiSFR))
+            else:
+                sfrSelection = ((df['sfr']>=run.loSFR) & 
+                                (df['sfr']<=run.hiSFR))
+
+
+        fullSelection = df[timeSelection & sfrSelection & massSelection]['a']
+        print(galNum,timeSelection.sum(),run.loA,run.hiA)
+        
+        for a in fullSelection:
+            selection.append((galNum,'{0:.3f}'.format(a)))
+        
+    return selection
+
+
+
+
 def read_input():
     '''
     Reads in the input file and fills out run object
@@ -68,20 +168,50 @@ def read_input():
     fname = 'tpcf.config'
     run = tpcfRun()
     with open(fname,'r') as f:
-        
-        run.expn = f.readline().split()[0]
+        # Read in time section
+        for i in range(2):
+            f.readline()
+        run.zRange = int(f.readline().split()[0])
+        run.loZ = f.readline().split()[0]
+        run.hiZ = f.readline().split()[0]
+        run.loA = 1./(float(run.loZ)+1)
+        run.hiA = 1./(float(run.hiZ)+1)
 
+        # Read in the mass section
+        for i in range(2):
+            f.readline()
+        run.useMass = int(f.readline().split()[0])
+        run.massType = int(f.readline().split()[0])
+        run.loMass = float(f.readline().split()[0])
+        run.hiMass = float(f.readline().split()[0])
+
+        # Read in star formation rate section
+        for i in range(2):
+            f.readline()
+        run.useSFR = int(f.readline().split()[0])
+        run.sfrType = int(f.readline().split()[0])
+        run.loSFR = float(f.readline().split()[0])
+        run.hiSFR = float(f.readline().split()[0])
+    
+        # Read in LOS section
+        for i in range(2):
+            f.readline()
         run.azLo = float(f.readline().split()[0])
         run.azHi = float(f.readline().split()[0])
-
         run.dLo = float(f.readline().split()[0])
         run.dHi = float(f.readline().split()[0])
-
         run.iLo = float(f.readline().split()[0])
         run.iHi = float(f.readline().split()[0])
 
+        # Read in TPCF Settings
+        for i in range(2):
+            f.readline()
+        run.binSize = int(f.readline().split()[0])
+        run.bootNum = int(f.readline().split()[0])
+
         # Read in ions
-        f.readline()
+        for i in range(2):
+            f.readline()
         ions = []
         for line in f:
             ions.append(line.split()[0])
@@ -90,14 +220,14 @@ def read_input():
     return run
         
 
-def select_los(run):
+def select_los(run,selections):
     '''
     Selects lines of sight that fit the limits contained in run
     '''
 
     linesHeader = 'los impact phi incline az'.split()
     galNums = range(21,30)
-    iDirs,iDirsList = find_inclinations(run,galNums)
+    iDirs,iDirsList = find_inclinations(run,selections)
         
     print('iDirs: ',iDirs)
     print('iDirsList; ',iDirsList)
@@ -164,7 +294,9 @@ def build_sample(run,los):
     allVelsShapes = []
     maxVel = 0
     for df,ion in zip(allVels,run.ions):
-        path = tempfile.mkdtemp()
+        #path = tempfile.mkdtemp()
+        path = os.path.join('.','tmp')
+        
         velMemPath = os.path.join(path,
                     'vellDiff_{0:s}.mmap'.format(ion))
         velDiffMem = np.memmap(velMemPath,dtype='float',
@@ -221,7 +353,7 @@ def sample_tpcf(run,samplePaths,sampleShapes,bins,labels,bootstrap=0):
     
     
 
-def find_inclinations(run,galNums):
+def find_inclinations(run,selections):
 
     '''
     Returns a list of inclinations directories for each galaxy number
@@ -229,10 +361,10 @@ def find_inclinations(run,galNums):
 
     iDirs = {}
     
-    for galNum in galNums:
+    for galNum,expn in selections:
 
         # Check if the expansion parameter exists
-        subloc = run.loc+'vela{0:d}/a{1:s}/'.format(galNum,run.expn)
+        subloc = run.loc+'vela{0:d}/a{1:s}/'.format(galNum,expn)
         dirname = os.path.join(run.loc,subloc)
         inclines = []
         if os.path.isdir(dirname):
@@ -269,12 +401,16 @@ def cleanup(paths):
 if __name__ == '__main__':
 
     run = read_input()
-    #run.loc = '/home/sims/vela2b/'
-    run.print_run()
+    run.loc = '/home/sims/vela2b/'
+    print(run.print_run())
     tpcfProp = tpcfProps()
     tpcfProp.bootNum = 10
     
-    los = select_los(run)
+    selections = galaxy_selection(run)
+    print(selections)
+
+
+    los = select_los(run,selections)
     allVelsPath,allVelsShapes,maxVel = build_sample(run,los)
     
 
@@ -283,6 +419,7 @@ if __name__ == '__main__':
 
     # Put full TPCFs into dataframe
     tpcfFull = pd.DataFrame(index=labels)
+    tpcfFull = pd.DataFrame(labels)
     #print(bins,labels)
     #print()
     #print(len(bins),len(labels))
@@ -291,7 +428,8 @@ if __name__ == '__main__':
         print(ion,len(tpcf))
         padWidth = len(bins)-len(tpcf)
         if padWidth>0:
-            tpcf = np.pad(tpcf,(0,padWidth),mode='constant',constant_values= (np.nan))
+            tpcf = np.pad(tpcf,(0,padWidth),mode='constant',
+                            constant_values= (np.nan))
         elif padWidth<0:
             tpcf = tpcf[:len(bins)]
         
@@ -300,10 +438,10 @@ if __name__ == '__main__':
 
     header = 'vel '+' '.join(run.ions)
     header = header.split()
-    header = run.ions
+    #header = run.ions
     print(header)
     print(tpcfFull.shape)
-    tpcfFull.to_csv('tpcfFull.csv',header=header)
+    tpcfFull.to_csv('tpcfFull.csv',header=header,index=False)
     cleanup(allVelsPath)
 
 
